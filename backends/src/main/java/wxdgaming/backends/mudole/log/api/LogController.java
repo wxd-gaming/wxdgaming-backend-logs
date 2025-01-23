@@ -6,8 +6,12 @@ import wxdgaming.backends.entity.logs.SLog;
 import wxdgaming.backends.mudole.log.LogsService;
 import wxdgaming.boot.core.str.json.FastJsonUtil;
 import wxdgaming.boot.core.timer.MyClock;
+import wxdgaming.boot.net.SocketSession;
+import wxdgaming.boot.net.controller.ann.ProtoController;
+import wxdgaming.boot.net.controller.ann.ProtoMapping;
 import wxdgaming.boot.net.controller.ann.TextController;
 import wxdgaming.boot.net.controller.ann.TextMapping;
+import wxdgaming.boot.net.message.rpc.ReqRemote;
 import wxdgaming.boot.net.web.hs.HttpSession;
 import wxdgaming.boot.starter.pgsql.PgsqlService;
 
@@ -20,6 +24,7 @@ import java.time.LocalDate;
  * @version: 2025-01-22 16:54
  **/
 @Slf4j
+@ProtoController
 @TextController(path = "/log")
 public class LogController {
 
@@ -46,6 +51,12 @@ public class LogController {
         this.logsService.checkLogTable(sLog.getTableName());
         this.psqlService.getBatchPool().insert(sLog);
         return "ok";
+    }
+
+
+    @ProtoMapping
+    public void push(SocketSession remoteSession, ReqRemote sLog) {
+
     }
 
 }

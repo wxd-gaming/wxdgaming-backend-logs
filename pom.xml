@@ -58,6 +58,21 @@
     </pluginRepositories>
 
     <dependencies>
+        <dependency>
+            <groupId>wxdgaming.boot</groupId>
+            <artifactId>wxdgaming.boot.starter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>wxdgaming.boot</groupId>
+            <artifactId>wxdgaming.boot.starter.pgsql</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>wxdgaming.boot</groupId>
+            <artifactId>wxdgaming.boot.net.http.client.apache</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

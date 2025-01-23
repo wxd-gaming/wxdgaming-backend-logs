@@ -31,6 +31,15 @@
             <!--            <KV key="cache-control" value="max-age=36000"/>-->
         </headers>
     </http>
+    <tcpSocket>
+        <name>g1</name>
+        <host>*</host>
+        <wanIp>127.0.0.1</wanIp>
+        <port>17000</port>
+        <sslProtocolType></sslProtocolType>
+        <jks></jks>
+        <jksPwd></jksPwd>
+    </tcpSocket>
     <pgsql>
         <name>default</name>
         <show_sql>true</show_sql>
