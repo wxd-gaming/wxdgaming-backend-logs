@@ -24,7 +24,7 @@ import java.time.LocalDate;
  * @version: 2025-01-22 16:54
  **/
 @Slf4j
-@ProtoController
+// @ProtoController
 @TextController(path = "/log")
 public class LogController {
 
@@ -54,9 +54,9 @@ public class LogController {
     }
 
 
-    @ProtoMapping
-    public void push(SocketSession remoteSession, ReqRemote sLog) {
-
-    }
+    // @ProtoMapping
+    // public void push(SocketSession remoteSession, ReqRemote sLog) {
+    //
+    // }
 
 }

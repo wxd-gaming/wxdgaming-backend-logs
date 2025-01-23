@@ -1,10 +1,10 @@
 package push;
 
-import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.jupiter.api.RepeatedTest;
 import wxdgaming.backends.entity.logs.SLog;
+import wxdgaming.boot.core.collection.MapOf;
 import wxdgaming.boot.core.format.HexId;
 import wxdgaming.boot.core.lang.RandomUtils;
 import wxdgaming.boot.httpclient.apache.HttpBuilder;
@@ -41,7 +41,7 @@ public class LogPush {
             sLog.setGameId(1);
             sLog.setMainId(1);
             sLog.setSId(1);
-            sLog.setData(new JSONObject().fluentPut("a", "b").fluentPut("itemId", 111).fluentPut("itemNum", 111).fluentPut("item_name", "金币").fluentPut("bind", "true"));
+            sLog.setData(MapOf.newJSONObject("a", "b").fluentPut("itemId", 111).fluentPut("itemNum", 111).fluentPut("item_name", "金币").fluentPut("bind", "true"));
 
             String json = sLog.toJson();
             log.info("{}", json);
