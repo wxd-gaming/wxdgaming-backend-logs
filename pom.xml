@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>wxdgaming.boot</groupId>
+        <artifactId>wxdgaming.boot</artifactId>
+        <version>j21-003</version>
+    </parent>
+
+    <groupId>wxdgaming</groupId>
+    <artifactId>wxdgaming.backend</artifactId>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>backends</module>
+    </modules>
+
+    <properties>
+        <encoding>UTF-8</encoding>
+        <java.version>21</java.version>
+        <project.build.sourceEncoding>${encoding}</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>${encoding}</project.reporting.outputEncoding>
+        <maven.compiler.encoding>${encoding}</maven.compiler.encoding>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <maven.compiler.compilerVersion>${java.version}</maven.compiler.compilerVersion>
+        <protobuf-java.version>3.23.4</protobuf-java.version>
+        <kotlin.version>2.0.0</kotlin.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>public</id>
+            <url>https://maven.aliyun.com/repository/public</url>
+            <!--            <url>https://repo1.maven.org/maven2/</url>-->
+        </repository>
+        <repository>
+            <id>central</id>
+            <url>https://maven.aliyun.com/repository/central</url>
+            <!--            <url>https://repo1.maven.org/maven2/</url>-->
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>public</id>
+            <name>public</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>central</id>
+            <name>central</name>
+            <url>https://maven.aliyun.com/repository/central</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <dependencies>
+    </dependencies>
+
+</project>
