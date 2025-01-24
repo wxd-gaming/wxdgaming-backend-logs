@@ -3,7 +3,11 @@ package wxdgaming.backends.mudole.log.api;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.entity.logs.SLog;
+import wxdgaming.backends.mudole.game.GameService;
 import wxdgaming.backends.mudole.log.LogsService;
+import wxdgaming.boot.batis.sql.pgsql.PgsqlDataHelper;
+import wxdgaming.boot.core.str.StringUtil;
+import wxdgaming.boot.core.threading.ThreadInfo;
 import wxdgaming.boot.core.timer.MyClock;
 import wxdgaming.boot.net.controller.ann.Body;
 import wxdgaming.boot.net.controller.ann.TextController;
@@ -21,21 +25,31 @@ import java.time.LocalDate;
  **/
 @Slf4j
 // @ProtoController
-@TextController(path = "/log")
+@TextController(path = "log")
 public class LogApi {
 
-    LogsService logsService;
-    PgsqlService psqlService;
+    final GameService gameService;
+    final LogsService logsService;
 
     @Inject
-    public LogApi(LogsService logsService, PgsqlService psqlService) {
+    public LogApi(GameService gameService, LogsService logsService, PgsqlService psqlService) {
+        this.gameService = gameService;
         this.logsService = logsService;
-        this.psqlService = psqlService;
     }
 
     @TextMapping()
+    @ThreadInfo(vt = true)
     public String push(HttpSession httpSession, @Body SLog sLog) {
-        log.info("{}", httpSession.getReqContent());
+
+        log.info("sLog - {}", sLog.toJson());
+
+        if (sLog.getGameId() == 0) return "gameId is null";
+        if (StringUtil.emptyOrNull(sLog.getToken())) return "token is null";
+
+        PgsqlDataHelper pgsqlDataHelper = this.gameService.pgsqlDataHelper(sLog.getGameId());
+
+        if (sLog.getUid() == 0)
+            sLog.setUid(gameService.newId(sLog.getGameId()));
         if (sLog.getCreateTime() == 0) {
             sLog.setCreateTime(System.currentTimeMillis());
         }
@@ -43,8 +57,7 @@ public class LogApi {
         sLog.setYear(localDate.getYear());
         sLog.setMonth(localDate.getMonthValue());
         sLog.setDay(localDate.getDayOfMonth());
-        this.logsService.checkLogTable(sLog.getTableName());
-        this.psqlService.getBatchPool().insert(sLog);
+        pgsqlDataHelper.getBatchPool().insert(sLog);
         return "ok";
     }
 

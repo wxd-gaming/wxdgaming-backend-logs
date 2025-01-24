@@ -5,6 +5,8 @@ import com.google.inject.Singleton;
 import wxdgaming.backends.entity.logs.SLog;
 import wxdgaming.boot.starter.pgsql.PgsqlService;
 
+import java.util.List;
+
 /**
  * 日志服务
  *
@@ -14,6 +16,8 @@ import wxdgaming.boot.starter.pgsql.PgsqlService;
 @Singleton
 public class LogsService {
 
+
+
     PgsqlService psqlService;
 
 
@@ -22,14 +26,6 @@ public class LogsService {
         this.psqlService = psqlService;
     }
 
-    public void checkLogTable(String logTableName) {
-        logTableName = logTableName.toLowerCase();
-        if (psqlService.getDbTableMap().containsKey(logTableName)) return;
 
-        psqlService.createTable(SLog.class, logTableName);
-
-        psqlService.getDbTableMap().clear();
-        psqlService.getDbTableStructMap().clear();
-    }
 
 }

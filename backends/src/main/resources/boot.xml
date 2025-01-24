@@ -50,7 +50,7 @@
         <dbBase>backend</dbBase>
         <dbUser>postgres</dbUser>
         <dbPwd>test</dbPwd>
-        <scanPackage>wxdgaming.backends.entity</scanPackage>
+        <scanPackage>wxdgaming.backends.entity.system</scanPackage>
     </pgsql>
     <!--    <redis>-->
     <!--        <name>数据源1</name>-->

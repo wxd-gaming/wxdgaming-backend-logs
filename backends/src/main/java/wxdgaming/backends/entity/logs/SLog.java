@@ -4,10 +4,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Getter;
 import lombok.Setter;
+import wxdgaming.backends.entity.EntityBase;
 import wxdgaming.boot.batis.enums.ColumnType;
 import wxdgaming.boot.batis.struct.DbColumn;
 import wxdgaming.boot.batis.struct.TableName;
-import wxdgaming.boot.core.lang.ObjectBase;
+import wxdgaming.boot.core.collection.MapOf;
 
 /**
  * 服务日志
@@ -17,17 +18,11 @@ import wxdgaming.boot.core.lang.ObjectBase;
  **/
 @Getter
 @Setter
-public class SLog extends ObjectBase implements TableName {
+public class SLog extends EntityBase implements TableName {
 
-    @JSONField(ordinal = 1)
+    @JSONField(ordinal = -1)
     @DbColumn(index = true, columnType = ColumnType.Varchar, length = 128)
     private String logType;
-    @JSONField(ordinal = 2)
-    @DbColumn(key = true)
-    private long uid;
-    @JSONField(ordinal = 3)
-    @DbColumn(index = true)
-    private long createTime;
     @JSONField(ordinal = 4)
     @DbColumn(index = true)
     private int year;
@@ -37,9 +32,6 @@ public class SLog extends ObjectBase implements TableName {
     @JSONField(ordinal = 6)
     @DbColumn(index = true)
     private int day;
-    @JSONField(ordinal = 7)
-    @DbColumn(index = true)
-    private long gameId;
     @JSONField(ordinal = 8)
     @DbColumn(index = true)
     private int sId;
@@ -50,14 +42,15 @@ public class SLog extends ObjectBase implements TableName {
     @DbColumn(index = true, columnType = ColumnType.Varchar, length = 128)
     private String account;
     @JSONField(ordinal = 11)
-    @DbColumn(index = true)
-    private long roleId;
+    @DbColumn(index = true, columnType = ColumnType.Varchar, length = 128)
+    private String roleId;
     @JSONField(ordinal = 12)
     @DbColumn(index = true, columnType = ColumnType.Varchar, length = 128)
     private String roleName;
     @JSONField(ordinal = 13)
     @DbColumn(columnType = ColumnType.Json)
-    private JSONObject data;
+    private final JSONObject data = MapOf.newJSONObject();
+
 
     @JSONField(serialize = false)
     @Override public String getTableName() {
