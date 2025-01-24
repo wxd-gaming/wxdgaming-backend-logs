@@ -20,8 +20,6 @@ public class LogsService {
     @Inject
     public LogsService(PgsqlService psqlService) {
         this.psqlService = psqlService;
-
-
     }
 
     public void checkLogTable(String logTableName) {

@@ -1,5 +1,6 @@
 package push;
 
+import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.jupiter.api.RepeatedTest;
@@ -30,6 +31,7 @@ public class LogPush {
         int ff = forCount.get();
         for (int i = 0; i < ff; i++) {
             List<String> strings = List.of("item_log", "login_log", "pay_log");
+            // List<String> strings = List.of("item_log");
             String logTableName = RandomUtils.randomItem(strings);
             SLog sLog = new SLog();
             sLog.setLogType(logTableName);
@@ -44,8 +46,12 @@ public class LogPush {
             sLog.setData(MapOf.newJSONObject("a", "b").fluentPut("itemId", 111).fluentPut("itemNum", 111).fluentPut("item_name", "金币").fluentPut("bind", "true"));
 
             String json = sLog.toJson();
-            log.info("{}", json);
+            // log.info("{}", json);
+            // HttpBuilder.postJson("http://127.0.0.1:19000/log/push", json).request().bodyString();
+            // forCount.decrementAndGet();
+
             HttpBuilder.postJson("http://127.0.0.1:19000/log/push", json)
+                    .retry(2)
                     .async()
                     .whenComplete((resp, throwable) -> {
                         forCount.decrementAndGet();
@@ -53,6 +59,14 @@ public class LogPush {
                     });
         }
         while (forCount.get() > 0) {}
+    }
+
+    @Test
+    public void convert() {
+        JSONObject jsonObject = MapOf.newJSONObject();
+        jsonObject.put("a", "b");
+        String javaObject = jsonObject.toJavaObject(String.class);
+        log.info("{}", javaObject);
     }
 
 }

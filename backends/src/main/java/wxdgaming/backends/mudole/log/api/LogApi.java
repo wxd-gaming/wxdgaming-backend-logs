@@ -4,14 +4,10 @@ import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.entity.logs.SLog;
 import wxdgaming.backends.mudole.log.LogsService;
-import wxdgaming.boot.core.str.json.FastJsonUtil;
 import wxdgaming.boot.core.timer.MyClock;
-import wxdgaming.boot.net.SocketSession;
-import wxdgaming.boot.net.controller.ann.ProtoController;
-import wxdgaming.boot.net.controller.ann.ProtoMapping;
+import wxdgaming.boot.net.controller.ann.Body;
 import wxdgaming.boot.net.controller.ann.TextController;
 import wxdgaming.boot.net.controller.ann.TextMapping;
-import wxdgaming.boot.net.message.rpc.ReqRemote;
 import wxdgaming.boot.net.web.hs.HttpSession;
 import wxdgaming.boot.starter.pgsql.PgsqlService;
 
@@ -26,21 +22,20 @@ import java.time.LocalDate;
 @Slf4j
 // @ProtoController
 @TextController(path = "/log")
-public class LogController {
+public class LogApi {
 
     LogsService logsService;
     PgsqlService psqlService;
 
     @Inject
-    public LogController(LogsService logsService, PgsqlService psqlService) {
+    public LogApi(LogsService logsService, PgsqlService psqlService) {
         this.logsService = logsService;
         this.psqlService = psqlService;
     }
 
     @TextMapping()
-    public String push(HttpSession httpSession) {
+    public String push(HttpSession httpSession, @Body SLog sLog) {
         log.info("{}", httpSession.getReqContent());
-        SLog sLog = FastJsonUtil.parse(httpSession.getReqContent(), SLog.class);
         if (sLog.getCreateTime() == 0) {
             sLog.setCreateTime(System.currentTimeMillis());
         }
