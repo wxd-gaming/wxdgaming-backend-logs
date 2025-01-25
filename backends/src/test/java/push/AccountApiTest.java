@@ -2,8 +2,10 @@ package push;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
+import org.junit.jupiter.api.RepeatedTest;
 import wxdgaming.backends.entity.logs.AccountRecord;
 import wxdgaming.boot.core.lang.RandomUtils;
+import wxdgaming.boot.core.str.StringUtil;
 
 /**
  * test
@@ -26,6 +28,13 @@ public class AccountApiTest extends GameApiTest {
         record.setLastJoinTime(System.currentTimeMillis());
         record.getData().fluentPut("channel", "huawei").fluentPut("os", "huawei");
         push("account/push", record);
+    }
+
+    @Test
+    @RepeatedTest(100)
+    public void pushAccountList() {
+        account = StringUtil.getRandomString(18);
+        pushAccount();
     }
 
 }

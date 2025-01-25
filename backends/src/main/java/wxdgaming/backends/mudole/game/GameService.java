@@ -88,7 +88,7 @@ public class GameService implements IStart {
         pgsqlDataHelper.getDbTableStructMap().clear();
     }
 
-    public RunResult checkToken(Integer gameId, String token) {
+    public RunResult checkAppToken(Integer gameId, String token) {
         if (token == null)
             return RunResult.error("token is null");
 
@@ -97,7 +97,7 @@ public class GameService implements IStart {
             return RunResult.error("gameId is not exist");
         }
 
-        if (!gameRecord.getToken().equals(token))
+        if (!gameRecord.getAppToken().equals(token))
             return RunResult.error("token is not match");
 
         return null;

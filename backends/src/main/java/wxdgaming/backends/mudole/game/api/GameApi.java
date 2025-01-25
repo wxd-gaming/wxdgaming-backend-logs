@@ -9,11 +9,15 @@ import wxdgaming.backends.mudole.game.GameService;
 import wxdgaming.boot.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot.core.lang.RunResult;
 import wxdgaming.boot.core.str.StringUtil;
+import wxdgaming.boot.core.str.json.FastJsonUtil;
+import wxdgaming.boot.core.timer.MyClock;
 import wxdgaming.boot.net.controller.ann.Body;
 import wxdgaming.boot.net.controller.ann.TextController;
 import wxdgaming.boot.net.controller.ann.TextMapping;
 import wxdgaming.boot.net.web.hs.HttpSession;
 import wxdgaming.boot.starter.pgsql.PgsqlService;
+
+import java.util.List;
 
 /**
  * 游戏操作
@@ -40,24 +44,39 @@ public class GameApi {
         GameRecord queryEntity = pgsqlService.queryEntity(GameRecord.class, gameRecord.getUid());
         if (queryEntity == null) {
             gameRecord.setCreateTime(System.currentTimeMillis());
-            gameRecord.setToken(StringUtil.getRandomString(64));
+            gameRecord.setAppToken(StringUtil.getRandomString(12));
+            gameRecord.setRechargeToken(StringUtil.getRandomString(18));
+            gameRecord.setLogToken(StringUtil.getRandomString(32));
             pgsqlService.insert(gameRecord);
             gameService.addGame(gameRecord);
         } else {
             gameRecord.setUid(queryEntity.getUid());
             gameRecord.setCreateTime(Math.min(gameRecord.getCreateTime(), queryEntity.getCreateTime()));
             gameRecord.setTableMapping(queryEntity.getTableMapping());
-            gameRecord.setToken(queryEntity.getToken());
+            gameRecord.setAppToken(queryEntity.getAppToken());
+            gameRecord.setRechargeToken(queryEntity.getRechargeToken());
+            gameRecord.setLogToken(queryEntity.getLogToken());
             pgsqlService.update(gameRecord);
         }
         return RunResult.ok();
     }
 
     @TextMapping
+    public RunResult list(HttpSession session) {
+        List<JSONObject> list = gameService.getGameId2GameRecordMap().values().stream()
+                .map(FastJsonUtil::toJSONObject)
+                .peek(jsonObject -> {
+                    jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm", jsonObject.getLong("createTime")));
+                })
+                .toList();
+        return RunResult.ok().fluentPut("data", list).fluentPut("length", list.size());
+    }
+
+    @TextMapping
     public RunResult addLogType(HttpSession session, JSONObject data) {
         Integer gameId = data.getInteger("gameId");
         String token = data.getString("token");
-        RunResult runResult = gameService.checkToken(gameId, token);
+        RunResult runResult = gameService.checkAppToken(gameId, token);
         if (runResult != null) return runResult;
 
         GameRecord gameRecord = gameService.getGameId2GameRecordMap().get(gameId);
@@ -78,7 +97,7 @@ public class GameApi {
     public RunResult listLogType(HttpSession session, JSONObject data) {
         Integer gameId = data.getInteger("gameId");
         String token = data.getString("token");
-        RunResult runResult = gameService.checkToken(gameId, token);
+        RunResult runResult = gameService.checkAppToken(gameId, token);
         if (runResult != null) return runResult;
 
         GameRecord gameRecord = gameService.getGameId2GameRecordMap().get(gameId);

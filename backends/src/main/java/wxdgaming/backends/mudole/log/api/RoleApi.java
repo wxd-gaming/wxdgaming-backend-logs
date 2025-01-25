@@ -1,17 +1,24 @@
 package wxdgaming.backends.mudole.log.api;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.entity.logs.RoleRecord;
 import wxdgaming.backends.mudole.game.GameService;
 import wxdgaming.backends.mudole.log.LogsService;
 import wxdgaming.boot.batis.sql.pgsql.PgsqlDataHelper;
+import wxdgaming.boot.core.lang.RunResult;
 import wxdgaming.boot.core.str.StringUtil;
+import wxdgaming.boot.core.str.json.FastJsonUtil;
 import wxdgaming.boot.core.threading.ThreadInfo;
+import wxdgaming.boot.core.timer.MyClock;
 import wxdgaming.boot.net.controller.ann.Body;
+import wxdgaming.boot.net.controller.ann.Param;
 import wxdgaming.boot.net.controller.ann.TextController;
 import wxdgaming.boot.net.controller.ann.TextMapping;
 import wxdgaming.boot.net.web.hs.HttpSession;
+
+import java.util.List;
 
 /**
  * 角色接口
@@ -66,6 +73,27 @@ public class RoleApi {
             pgsqlDataHelper.update(roleRecord);
         }
         return "ok";
+    }
+
+    @TextMapping
+    public RunResult list(HttpSession httpSession,
+                          @Param("gameId") Integer gameId,
+                          @Param(value = "search", required = false) String search) {
+        PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
+        List<RoleRecord> accountRecords;
+        if (StringUtil.emptyOrNull(search)) {
+            accountRecords = pgsqlDataHelper.queryEntities(RoleRecord.class);
+        } else {
+            accountRecords = pgsqlDataHelper.queryEntitiesWhere(RoleRecord.class, "account = ?", search);
+        }
+        List<JSONObject> list = accountRecords.stream()
+                .map(FastJsonUtil::toJSONObject)
+                .peek(jsonObject -> {
+                    jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm", jsonObject.getLong("createTime")));
+                    jsonObject.put("data", jsonObject.getString("data"));
+                })
+                .toList();
+        return RunResult.ok().fluentPut("data", list).fluentPut("length", list.size());
     }
 
 }

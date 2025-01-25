@@ -8,7 +8,6 @@ import wxdgaming.boot.batis.enums.ColumnType;
 import wxdgaming.boot.batis.struct.DbBase;
 import wxdgaming.boot.batis.struct.DbColumn;
 import wxdgaming.boot.batis.struct.DbTable;
-import wxdgaming.boot.core.lang.ObjectBase;
 
 import java.util.LinkedHashMap;
 
@@ -35,7 +34,11 @@ public class GameRecord extends DbBase {
     private String url;
     @JSONField(ordinal = 15)
     @DbColumn(index = true, columnType = ColumnType.Varchar, length = 128)
-    private String token;
+    private String appToken;
+    @DbColumn(index = true, columnType = ColumnType.Varchar, length = 128)
+    private String rechargeToken;
+    @DbColumn(index = true, columnType = ColumnType.Varchar, length = 128)
+    private String logToken;
     @JSONField(ordinal = 16)
     @DbColumn(index = true, columnType = ColumnType.Text)
     private LinkedHashMap<String, String> tableMapping = new LinkedHashMap<>();
