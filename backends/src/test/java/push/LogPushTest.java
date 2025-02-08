@@ -26,26 +26,28 @@ public class LogPushTest extends RoleApiTest {
 
     @Test
     @RepeatedTest(590000)
-    public void push() {
-        JSONObject listLogType = listLogType();
+    public void pushItemLog() {
         AtomicInteger forCount = new AtomicInteger(50);
         int ff = forCount.get();
         for (int i = 0; i < ff; i++) {
 
             // List<String> strings = List.of("item_log");
-            String logTableName = RandomUtils.randomItem(listLogType.keySet());
             SLog sLog = new SLog();
             sLog.setGameId(gameId);
             sLog.setToken(logToken);
-            sLog.setLogType(logTableName);
+            sLog.setLogType("log_item");
             sLog.setUid(hexId.newId());
-            sLog.setLogTime(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(RandomUtils.random(0, 4)));
+            sLog.setLogTime(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(RandomUtils.random(0, 45)));
             sLog.setAccount(account);
-            sLog.setRoleId(roleId);
+            sLog.setRoleId(String.valueOf(RandomUtils.random(1, 1000)));
             sLog.setRoleName(roleName);
             sLog.setMainId(1);
             sLog.setSId(1);
-            sLog.getData().fluentPut("a", "b").fluentPut("itemId", 111).fluentPut("itemNum", 111).fluentPut("item_name", "金币").fluentPut("bind", "true");
+            sLog.getData().fluentPut("a", "b")
+                    .fluentPut("itemId", RandomUtils.random(1, 100))
+                    .fluentPut("itemNum", RandomUtils.random(1, 100))
+                    .fluentPut("item_name", "货币")
+                    .fluentPut("bind", "true");
 
             String json = sLog.toJson();
             // log.info("{}", json);

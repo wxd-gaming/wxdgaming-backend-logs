@@ -12,25 +12,26 @@ import wxdgaming.boot.core.lang.RandomUtils;
  **/
 public class RoleApiTest extends AccountApiTest {
 
-    protected String roleId = "345623234";
     protected String roleName = "无心道";
 
     @Test
     public void test() {
-        RoleRecord roleRecord = new RoleRecord();
-        roleRecord.setGameId(gameId);
-        roleRecord.setToken(appToken);
-        roleRecord.setAccount(account);
-        roleRecord.setCreateSid(RandomUtils.random(1, 100));
-        roleRecord.setCurSid(RandomUtils.random(1, 100));
-        roleRecord.setCreateTime(System.currentTimeMillis());
-        roleRecord.setRoleId(roleId);
-        roleRecord.setRoleName(roleName);
-        roleRecord.setJob("魔剑士");
-        roleRecord.setSex("男");
-        roleRecord.setLv(RandomUtils.random(1, 100));
-        roleRecord.getData().fluentPut("channel", "huawei");
-        push("role/push", roleRecord);
+        for (int i = 1; i <= 1000; i++) {
+            RoleRecord roleRecord = new RoleRecord();
+            roleRecord.setGameId(gameId);
+            roleRecord.setToken(appToken);
+            roleRecord.setAccount(account);
+            roleRecord.setCreateSid(RandomUtils.random(1, 100));
+            roleRecord.setCurSid(RandomUtils.random(1, 100));
+            roleRecord.setCreateTime(System.currentTimeMillis());
+            roleRecord.setRoleId(String.valueOf(i));
+            roleRecord.setRoleName(roleName);
+            roleRecord.setJob("魔剑士");
+            roleRecord.setSex("男");
+            roleRecord.setLv(RandomUtils.random(1, 100));
+            roleRecord.getData().fluentPut("channel", "huawei");
+            push("role/push", roleRecord);
+        }
     }
 
 

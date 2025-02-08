@@ -52,7 +52,7 @@ public class GameService implements IStart {
     public void scheduled() {
         List<GameRecord> gameRecords = pgsqlService.queryEntities(GameRecord.class);
         for (GameRecord gameRecord : gameRecords) {
-            addGame(gameRecord);
+            initDataHelper(gameRecord);
         }
     }
 
@@ -73,37 +73,37 @@ public class GameService implements IStart {
     }
 
     public void initDataHelper(GameRecord gameRecord) {
-        gameId2PgsqlDataHelperMap.computeIfAbsent((int) gameRecord.getUid(), k -> {
+        PgsqlDataHelper dataHelper = gameId2PgsqlDataHelperMap.computeIfAbsent((int) gameRecord.getUid(), k -> {
             String dbName = "game_db_" + k;
             DbConfig clone = pgsqlService.getDbConfig().clone(dbName);
             clone.setName(dbName);
             clone.setScanPackage(LogScan.class.getPackageName());
+            clone.setCreateDbBase(true);
             PgsqlDataHelper pgsqlDataHelper = new PgsqlDataHelper(clone);
             pgsqlDataHelper.getBatchPool().setMaxCacheSize(300 * 10000);
-            for (Map.Entry<String, String> entry : gameRecord.getTableMapping().entrySet()) {
-                checkSLogTable(pgsqlDataHelper, entry.getKey());
-
-                /*TODO 处理分区表 */
-                LocalDateTime localDate = LocalDateTime.now();
-                for (int i = 0; i < 5; i++) {
-                    /*创建表分区*/
-                    String form = MyClock.formatDate("yyyyMMdd", localDate);
-                    localDate = localDate.plusDays(1);
-                    String to = MyClock.formatDate("yyyyMMdd", localDate);
-                    String partition_table_name = entry.getKey() + "_" + form;
-                    if (pgsqlDataHelper.getDbTableMap().containsKey(partition_table_name))
-                        continue;
-                    String string = """
-                            CREATE TABLE %s PARTITION OF %s
-                                FOR VALUES FROM (%s) TO (%s);
-                            """.formatted(partition_table_name, entry.getKey(), form, to);
-                    pgsqlDataHelper.executeUpdate(string);
-                    log.info("表 {} 创建分区 {}", entry.getKey(), partition_table_name);
-                }
-
-            }
             return pgsqlDataHelper;
         });
+
+        for (Map.Entry<String, String> entry : gameRecord.getTableMapping().entrySet()) {
+            checkSLogTable(dataHelper, entry.getKey());
+            /*TODO 处理分区表 */
+            LocalDateTime localDate = LocalDateTime.now();
+            for (int i = 0; i < 50; i++) {
+                /*创建表分区*/
+                String form = MyClock.formatDate("yyyyMMdd", localDate);
+                localDate = localDate.plusDays(1);
+                String to = MyClock.formatDate("yyyyMMdd", localDate);
+                String partition_table_name = entry.getKey() + "_" + form;
+                if (dataHelper.getDbTableMap().containsKey(partition_table_name))
+                    continue;
+                String string = """
+                        CREATE TABLE %s PARTITION OF %s
+                            FOR VALUES FROM (%s) TO (%s);
+                        """.formatted(partition_table_name, entry.getKey(), form, to);
+                dataHelper.executeUpdate(string);
+                log.info("表 {} 创建分区 {}", entry.getKey(), partition_table_name);
+            }
+        }
     }
 
     public void checkSLogTable(PgsqlDataHelper pgsqlDataHelper, String logTableName) {
