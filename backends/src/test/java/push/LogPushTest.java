@@ -5,12 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.jupiter.api.RepeatedTest;
 import wxdgaming.backends.entity.logs.SLog;
-import wxdgaming.backends.mudole.game.GameService;
 import wxdgaming.boot.core.collection.MapOf;
 import wxdgaming.boot.core.format.HexId;
 import wxdgaming.boot.core.lang.RandomUtils;
 import wxdgaming.boot.httpclient.apache.HttpBuilder;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -25,7 +25,7 @@ public class LogPushTest extends RoleApiTest {
     static HexId hexId = new HexId(1);
 
     @Test
-    @RepeatedTest(19)
+    @RepeatedTest(590000)
     public void push() {
         JSONObject listLogType = listLogType();
         AtomicInteger forCount = new AtomicInteger(50);
@@ -36,10 +36,10 @@ public class LogPushTest extends RoleApiTest {
             String logTableName = RandomUtils.randomItem(listLogType.keySet());
             SLog sLog = new SLog();
             sLog.setGameId(gameId);
-            sLog.setToken(token);
+            sLog.setToken(logToken);
             sLog.setLogType(logTableName);
             sLog.setUid(hexId.newId());
-            sLog.setCreateTime(System.currentTimeMillis());
+            sLog.setLogTime(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(RandomUtils.random(0, 4)));
             sLog.setAccount(account);
             sLog.setRoleId(roleId);
             sLog.setRoleName(roleName);

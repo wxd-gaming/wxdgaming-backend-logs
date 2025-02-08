@@ -3,8 +3,8 @@ package push;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
+import wxdgaming.backends.entity.EntityBase;
 import wxdgaming.backends.entity.system.GameRecord;
-import wxdgaming.boot.batis.struct.DbBase;
 import wxdgaming.boot.core.collection.MapOf;
 import wxdgaming.boot.core.lang.RunResult;
 import wxdgaming.boot.httpclient.apache.HttpBuilder;
@@ -21,9 +21,10 @@ import java.util.LinkedHashMap;
 public class GameApiTest {
 
     protected int gameId = 1;
-    protected String token = "42e8sxgm5FVF18b3iSNQVR0jof3FIUMgD6p922pUm36aubm70Tn5C7A5b3m8NlaE";
+    protected String appToken = "34g3fy";
+    protected String logToken = "42e8sxgm5FVF18b3iSNQVR0jof3FIUMgD6p922pUm36aubm70Tn5C7A5b3m8NlaE";
 
-    public String push(String path, DbBase base) {
+    public String push(String path, EntityBase base) {
         String json = base.toJson();
         return push(path, json);
     }
@@ -42,7 +43,7 @@ public class GameApiTest {
         JSONObject jsonObject = MapOf.newJSONObject();
         jsonObject
                 .fluentPut("gameId", gameId)
-                .fluentPut("token", token);
+                .fluentPut("token", appToken);
 
         String push = push("game/listLogType", jsonObject.toJSONString());
         RunResult runResult = RunResult.parse(push);
@@ -73,7 +74,7 @@ public class GameApiTest {
         JSONObject jsonObject = MapOf.newJSONObject();
         jsonObject
                 .fluentPut("gameId", gameId)
-                .fluentPut("token", token)
+                .fluentPut("token", appToken)
                 .fluentPut("logType", "log_lv")
                 .fluentPut("logComment", "等级日志");
 

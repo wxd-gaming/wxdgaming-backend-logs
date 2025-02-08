@@ -11,10 +11,13 @@ import wxdgaming.boot.batis.DbConfig;
 import wxdgaming.boot.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot.core.format.HexId;
 import wxdgaming.boot.core.lang.RunResult;
+import wxdgaming.boot.core.timer.MyClock;
+import wxdgaming.boot.core.timer.ann.Scheduled;
 import wxdgaming.boot.starter.IocContext;
 import wxdgaming.boot.starter.i.IStart;
 import wxdgaming.boot.starter.pgsql.PgsqlService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,6 +45,11 @@ public class GameService implements IStart {
     }
 
     @Override public void start(IocContext iocInjector) throws Exception {
+        scheduled();
+    }
+
+    @Scheduled("0 0 0")
+    public void scheduled() {
         List<GameRecord> gameRecords = pgsqlService.queryEntities(GameRecord.class);
         for (GameRecord gameRecord : gameRecords) {
             addGame(gameRecord);
@@ -64,21 +72,41 @@ public class GameService implements IStart {
         return gameId2PgsqlDataHelperMap.get(gameId);
     }
 
-    public PgsqlDataHelper initDataHelper(GameRecord gameRecord) {
-        return gameId2PgsqlDataHelperMap.computeIfAbsent((int) gameRecord.getUid(), k -> {
+    public void initDataHelper(GameRecord gameRecord) {
+        gameId2PgsqlDataHelperMap.computeIfAbsent((int) gameRecord.getUid(), k -> {
             String dbName = "game_db_" + k;
             DbConfig clone = pgsqlService.getDbConfig().clone(dbName);
             clone.setName(dbName);
             clone.setScanPackage(LogScan.class.getPackageName());
             PgsqlDataHelper pgsqlDataHelper = new PgsqlDataHelper(clone);
+            pgsqlDataHelper.getBatchPool().setMaxCacheSize(300 * 10000);
             for (Map.Entry<String, String> entry : gameRecord.getTableMapping().entrySet()) {
-                checkLogTable(pgsqlDataHelper, entry.getKey());
+                checkSLogTable(pgsqlDataHelper, entry.getKey());
+
+                /*TODO 处理分区表 */
+                LocalDateTime localDate = LocalDateTime.now();
+                for (int i = 0; i < 5; i++) {
+                    /*创建表分区*/
+                    String form = MyClock.formatDate("yyyyMMdd", localDate);
+                    localDate = localDate.plusDays(1);
+                    String to = MyClock.formatDate("yyyyMMdd", localDate);
+                    String partition_table_name = entry.getKey() + "_" + form;
+                    if (pgsqlDataHelper.getDbTableMap().containsKey(partition_table_name))
+                        continue;
+                    String string = """
+                            CREATE TABLE %s PARTITION OF %s
+                                FOR VALUES FROM (%s) TO (%s);
+                            """.formatted(partition_table_name, entry.getKey(), form, to);
+                    pgsqlDataHelper.executeUpdate(string);
+                    log.info("表 {} 创建分区 {}", entry.getKey(), partition_table_name);
+                }
+
             }
             return pgsqlDataHelper;
         });
     }
 
-    public void checkLogTable(PgsqlDataHelper pgsqlDataHelper, String logTableName) {
+    public void checkSLogTable(PgsqlDataHelper pgsqlDataHelper, String logTableName) {
         logTableName = logTableName.toLowerCase();
         if (pgsqlDataHelper.getDbTableMap().containsKey(logTableName)) return;
 

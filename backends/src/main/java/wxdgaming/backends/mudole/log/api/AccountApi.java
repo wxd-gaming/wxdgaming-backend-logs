@@ -50,7 +50,7 @@ public class AccountApi {
         if (accountRecord.getCreateTime() == 0) {
             accountRecord.setCreateTime(System.currentTimeMillis());
         }
-
+        accountRecord.setLogTime(System.currentTimeMillis());
         PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(accountRecord.getGameId());
         AccountRecord entity = pgsqlDataHelper.queryEntityByWhere(AccountRecord.class, "account = ?", accountRecord.getAccount());
         if (entity == null) {

@@ -25,10 +25,15 @@ public class AccountRecord extends EntityBase {
     @DbColumn(index = true, columnType = ColumnType.Varchar, length = 128)
     private String account;
     @JSONField(ordinal = 11)
-    private int lastJoinSid;
+    @DbColumn(index = true)
+    private long createTime;
     @JSONField(ordinal = 12)
-    private long lastJoinTime;
+    @DbColumn(index = true)
+    private int lastJoinSid;
     @JSONField(ordinal = 13)
+    @DbColumn(index = true)
+    private long lastJoinTime;
+    @JSONField(ordinal = 14)
     @DbColumn(columnType = ColumnType.Json)
     private final JSONObject data = MapOf.newJSONObject();
 

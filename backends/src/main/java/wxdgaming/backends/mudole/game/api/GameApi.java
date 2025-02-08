@@ -86,7 +86,7 @@ public class GameApi {
             return RunResult.error("gameId is not exist");
         }
         if (!gameRecord.getTableMapping().containsKey(data.getString("logType"))) {
-            gameService.checkLogTable(pgsqlDataHelper, data.getString("logType"));
+            gameService.checkSLogTable(pgsqlDataHelper, data.getString("logType"));
             gameRecord.getTableMapping().put(data.getString("logType"), data.getString("logComment"));
             this.pgsqlService.update(gameRecord);
         }

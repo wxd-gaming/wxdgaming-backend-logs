@@ -24,7 +24,6 @@ import java.time.LocalDate;
  * @version: 2025-01-22 16:54
  **/
 @Slf4j
-// @ProtoController
 @TextController(path = "log")
 public class LogApi {
 
@@ -32,7 +31,7 @@ public class LogApi {
     final LogsService logsService;
 
     @Inject
-    public LogApi(GameService gameService, LogsService logsService, PgsqlService psqlService) {
+    public LogApi(GameService gameService, LogsService logsService) {
         this.gameService = gameService;
         this.logsService = logsService;
     }
@@ -50,21 +49,15 @@ public class LogApi {
 
         if (sLog.getUid() == 0)
             sLog.setUid(gameService.newId(sLog.getGameId()));
-        if (sLog.getCreateTime() == 0) {
-            sLog.setCreateTime(System.currentTimeMillis());
+
+        if (sLog.getLogTime() == 0) {
+            sLog.setLogTime(System.currentTimeMillis());
         }
-        LocalDate localDate = MyClock.localDate(sLog.getCreateTime());
-        sLog.setYear(localDate.getYear());
-        sLog.setMonth(localDate.getMonthValue());
-        sLog.setDay(localDate.getDayOfMonth());
+
+        LocalDate localDate = MyClock.localDate(sLog.getLogTime());
+        sLog.setDayKey(localDate.getYear() * 10000 + localDate.getMonthValue() * 100 + localDate.getDayOfMonth());
         pgsqlDataHelper.getBatchPool().insert(sLog);
         return "ok";
     }
-
-
-    // @ProtoMapping
-    // public void push(SocketSession remoteSession, ReqRemote sLog) {
-    //
-    // }
 
 }

@@ -19,7 +19,7 @@ public class RoleApiTest extends AccountApiTest {
     public void test() {
         RoleRecord roleRecord = new RoleRecord();
         roleRecord.setGameId(gameId);
-        roleRecord.setToken(token);
+        roleRecord.setToken(appToken);
         roleRecord.setAccount(account);
         roleRecord.setCreateSid(RandomUtils.random(1, 100));
         roleRecord.setCurSid(RandomUtils.random(1, 100));

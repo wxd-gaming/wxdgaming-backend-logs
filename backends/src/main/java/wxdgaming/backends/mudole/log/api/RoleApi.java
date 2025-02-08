@@ -41,12 +41,12 @@ public class RoleApi {
 
     @TextMapping
     @ThreadInfo(vt = true)
-    public String push(HttpSession session, @Body RoleRecord roleRecord) {
+    public RunResult push(HttpSession session, @Body RoleRecord roleRecord) {
 
         log.info("role - {}", roleRecord.toJson());
 
-        if (roleRecord.getGameId() == 0) return "gameId is null";
-        if (StringUtil.emptyOrNull(roleRecord.getToken())) return "token is null";
+        if (roleRecord.getGameId() == 0) return RunResult.error("gameId is null");
+        if (StringUtil.emptyOrNull(roleRecord.getToken())) return RunResult.error("token is null");
 
         PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(roleRecord.getGameId());
 
@@ -56,7 +56,8 @@ public class RoleApi {
                 roleRecord.getAccount(), roleRecord.getRoleId(), roleRecord.getCreateSid()
         );
 
-        roleRecord.setUpdateTime(System.currentTimeMillis());
+        roleRecord.setLogTime(System.currentTimeMillis());
+
         if (entity == null) {
             if (roleRecord.getUid() == 0) {
                 long newId = gameService.newId(roleRecord.getGameId());
@@ -66,13 +67,14 @@ public class RoleApi {
                 roleRecord.setCreateTime(System.currentTimeMillis());
             }
             pgsqlDataHelper.insert(roleRecord);
+            return RunResult.ok().errorMsg("新增");
         } else {
             roleRecord.setUid(entity.getUid());
             roleRecord.setCreateTime(Math.min(roleRecord.getCreateTime(), entity.getCreateTime()));
             roleRecord.setCreateSid(entity.getCreateSid());
             pgsqlDataHelper.update(roleRecord);
+            return RunResult.ok().errorMsg("修改");
         }
-        return "ok";
     }
 
     @TextMapping

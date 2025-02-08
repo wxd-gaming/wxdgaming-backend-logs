@@ -23,7 +23,7 @@ public class RoleRecord extends EntityBase {
 
     @JSONField(ordinal = 3)
     @DbColumn(index = true)
-    private long updateTime;
+    private long createTime;
 
     @JSONField(ordinal = 5)
     @DbColumn(index = true, columnType = ColumnType.Varchar, length = 128)

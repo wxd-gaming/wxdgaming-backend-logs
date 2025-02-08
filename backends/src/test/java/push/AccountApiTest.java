@@ -22,7 +22,7 @@ public class AccountApiTest extends GameApiTest {
     public void pushAccount() {
         AccountRecord record = new AccountRecord();
         record.setGameId(gameId);
-        record.setToken(token);
+        record.setToken(appToken);
         record.setAccount(account);
         record.setLastJoinSid(RandomUtils.random(1, 100));
         record.setLastJoinTime(System.currentTimeMillis());
