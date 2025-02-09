@@ -8,6 +8,7 @@ import wxdgaming.backends.entity.logs.SLog;
 import wxdgaming.boot.core.collection.MapOf;
 import wxdgaming.boot.core.format.HexId;
 import wxdgaming.boot.core.lang.RandomUtils;
+import wxdgaming.boot.core.str.StringUtil;
 import wxdgaming.boot.httpclient.apache.HttpBuilder;
 
 import java.util.concurrent.TimeUnit;
@@ -38,9 +39,9 @@ public class LogPushTest extends RoleApiTest {
             sLog.setLogType("log_item");
             sLog.setUid(hexId.newId());
             sLog.setLogTime(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(RandomUtils.random(0, 45)));
-            sLog.setAccount(account);
+            sLog.setAccount(StringUtil.getRandomString(8));
             sLog.setRoleId(String.valueOf(RandomUtils.random(1, 1000)));
-            sLog.setRoleName(roleName);
+            sLog.setRoleName(StringUtil.getRandomString(8));
             sLog.setMainId(1);
             sLog.setSId(1);
             sLog.getData().fluentPut("a", "b")

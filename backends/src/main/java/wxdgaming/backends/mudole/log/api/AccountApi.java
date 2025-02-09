@@ -60,19 +60,19 @@ public class AccountApi {
             accountRecord.setCreateTime(Math.min(accountRecord.getCreateTime(), entity.getCreateTime()));
             pgsqlDataHelper.update(accountRecord);
         }
-        return RunResult.ok();
+        return RunResult.ok().data(accountRecord);
     }
 
     @TextMapping
     public RunResult list(HttpSession httpSession,
                           @Param("gameId") Integer gameId,
-                          @Param(value = "search", required = false) String search) {
+                          @Param(value = "account", required = false) String account) {
         PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
         List<AccountRecord> accountRecords;
-        if (StringUtil.emptyOrNull(search)) {
+        if (StringUtil.emptyOrNull(account)) {
             accountRecords = pgsqlDataHelper.queryEntities(AccountRecord.class);
         } else {
-            accountRecords = pgsqlDataHelper.queryEntitiesWhere(AccountRecord.class, "account = ?", search);
+            accountRecords = pgsqlDataHelper.queryEntitiesWhere(AccountRecord.class, "account = ?", account);
         }
         List<JSONObject> list = accountRecords.stream()
                 .map(FastJsonUtil::toJSONObject)

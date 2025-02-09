@@ -48,7 +48,7 @@ public class GameApi {
             gameRecord.setRechargeToken(StringUtil.getRandomString(18));
             gameRecord.setLogToken(StringUtil.getRandomString(32));
             pgsqlService.insert(gameRecord);
-            gameService.addGame(gameRecord);
+            gameService.addGameCache(gameRecord);
         } else {
             gameRecord.setUid(queryEntity.getUid());
             gameRecord.setCreateTime(Math.min(gameRecord.getCreateTime(), queryEntity.getCreateTime()));
@@ -57,8 +57,21 @@ public class GameApi {
             gameRecord.setRechargeToken(queryEntity.getRechargeToken());
             gameRecord.setLogToken(queryEntity.getLogToken());
             pgsqlService.update(gameRecord);
+            gameService.addGameCache(gameRecord);
         }
         return RunResult.ok();
+    }
+
+    @TextMapping
+    public RunResult menu(HttpSession session) {
+        List<JSONObject> list = gameService.getGameId2GameRecordMap().values().stream()
+                .map(FastJsonUtil::toJSONObject)
+                .peek(jsonObject -> {
+                    jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm", jsonObject.getLong("createTime")));
+                    jsonObject.entrySet().removeIf(v -> v.getKey().toLowerCase().endsWith("token"));
+                })
+                .toList();
+        return RunResult.ok().fluentPut("data", list).fluentPut("length", list.size());
     }
 
     @TextMapping

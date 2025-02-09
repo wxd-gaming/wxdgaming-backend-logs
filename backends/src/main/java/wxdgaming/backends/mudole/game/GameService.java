@@ -52,11 +52,11 @@ public class GameService implements IStart {
     public void scheduled() {
         List<GameRecord> gameRecords = pgsqlService.queryEntities(GameRecord.class);
         for (GameRecord gameRecord : gameRecords) {
-            initDataHelper(gameRecord);
+            addGameCache(gameRecord);
         }
     }
 
-    public void addGame(GameRecord gameRecord) {
+    public void addGameCache(GameRecord gameRecord) {
         int gameId = (int) gameRecord.getUid();
         initDataHelper(gameRecord);
         gameId2GameRecordMap.put(gameId, gameRecord);
@@ -101,7 +101,7 @@ public class GameService implements IStart {
                             FOR VALUES FROM (%s) TO (%s);
                         """.formatted(partition_table_name, entry.getKey(), form, to);
                 dataHelper.executeUpdate(string);
-                log.info("表 {} 创建分区 {}", entry.getKey(), partition_table_name);
+                log.info("数据库 {} 表 {} 创建分区 {}", dataHelper.getDbConfig().getDbBase(), entry.getKey(), partition_table_name);
             }
         }
     }

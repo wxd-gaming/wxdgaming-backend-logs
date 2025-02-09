@@ -34,26 +34,45 @@
         function getMenu() {
             wxd.loading();
 
-            let urlQuery = new wxd.Map()
-                .loadTopSearch()
-                .put("content", "1");
-
-            wxd.netty.post("/menu/list", urlQuery.toString(),
+            let url = "/game/menu";
+            wxd.netty.post(url, "",
                 function (responseText) {
-                    try {
-                        for (const row of responseText.rows) {
-                            let ls = `<a class="J_menuItem" href="${row.value}">${row.key}</a>`;
-                            $("#side-menu-sub").append(ls);
+                    console.log(JSON.stringify(responseText));
+                    var data = responseText.data;
+                    for (const datum of data) {
+
+                        let appendA = "";
+
+                        var tableMapping = datum.tableMapping;
+                        console.log(tableMapping);
+                        for (const key in tableMapping) {
+                            appendA += `<a class="J_menuItem" href="/log.html?gameId=${datum.uid}&logType=${key}">${tableMapping[key]}</a>`;
                         }
-                    } catch (e) {
-                        console.log("11->" + e);
+                        console.log(appendA);
+                        let appendLi = `
+                        <li>
+                            <a href="#">
+                                <i class="fa fa-home"></i>
+                                <span class="nav-label">${datum.name}</span>
+                                <span class="fa arrow"></span>
+                            </a>
+                            <ul class="nav nav-second-level">
+                                <li id="game-menu-sub-${datum.uid}">
+                                    <a class="J_menuItem" href="/account.html?gameId=${datum.uid}">账号列表</a>
+                                    <a class="J_menuItem" href="/role.html?gameId=${datum.uid}">角色列表</a>
+                                    ${appendA}
+                                </li>
+                            </ul>
+                        </li>
+                        `;
+                        $("#side-menu").append(appendLi);
                     }
                     wxd.loading_close();
                 },
-                function (error) {
-                    console.log("11->" + error);
-                    wxd.loading_close();
-                }
+                (errorMsg) => {
+                    wxd.message.alert("异常：" + errorMsg);
+                },
+                false
             );
 
         }
@@ -101,20 +120,6 @@
                     <ul class="nav nav-second-level">
                         <li id="side-menu-sub">
                             <a class="J_menuItem" href="game-list.html">游戏列表</a>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <a href="#">
-                        <i class="fa fa-home"></i>
-                        <span class="nav-label">奇迹6</span>
-                        <span class="fa arrow"></span>
-                    </a>
-                    <ul class="nav nav-second-level">
-                        <li id="game-menu-sub">
-                            <a class="J_menuItem" href="account.html?gameId=1">账号列表</a>
-                            <a class="J_menuItem" href="role.html?gameId=1">角色列表</a>
-                            <a class="J_menuItem" href="log.html?gameId=1">日志列表</a>
                         </li>
                     </ul>
                 </li>

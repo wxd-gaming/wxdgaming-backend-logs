@@ -3,6 +3,7 @@ package push;
 import org.junit.Test;
 import wxdgaming.backends.entity.logs.RoleRecord;
 import wxdgaming.boot.core.lang.RandomUtils;
+import wxdgaming.boot.core.str.StringUtil;
 
 /**
  * 角色api操作
@@ -20,12 +21,12 @@ public class RoleApiTest extends AccountApiTest {
             RoleRecord roleRecord = new RoleRecord();
             roleRecord.setGameId(gameId);
             roleRecord.setToken(appToken);
-            roleRecord.setAccount(account);
+            roleRecord.setAccount(StringUtil.getRandomString(8));
             roleRecord.setCreateSid(RandomUtils.random(1, 100));
             roleRecord.setCurSid(RandomUtils.random(1, 100));
             roleRecord.setCreateTime(System.currentTimeMillis());
             roleRecord.setRoleId(String.valueOf(i));
-            roleRecord.setRoleName(roleName);
+            roleRecord.setRoleName(StringUtil.getRandomString(8));
             roleRecord.setJob("魔剑士");
             roleRecord.setSex("男");
             roleRecord.setLv(RandomUtils.random(1, 100));

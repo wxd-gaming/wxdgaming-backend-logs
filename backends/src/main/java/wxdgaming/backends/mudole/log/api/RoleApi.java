@@ -18,6 +18,7 @@ import wxdgaming.boot.net.controller.ann.TextController;
 import wxdgaming.boot.net.controller.ann.TextMapping;
 import wxdgaming.boot.net.web.hs.HttpSession;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -80,13 +81,38 @@ public class RoleApi {
     @TextMapping
     public RunResult list(HttpSession httpSession,
                           @Param("gameId") Integer gameId,
-                          @Param(value = "search", required = false) String search) {
+                          @Param(value = "account", required = false) String account,
+                          @Param(value = "roleId", required = false) String roleId,
+                          @Param(value = "roleName", required = false) String roleName) {
         PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
         List<RoleRecord> accountRecords;
-        if (StringUtil.emptyOrNull(search)) {
+        String sqlWhere = "";
+        Object[] args = new Object[1];
+        if (StringUtil.notEmptyOrNull(account)) {
+            sqlWhere = "account = ?";
+            args[args.length - 1] = account;
+        }
+        if (StringUtil.notEmptyOrNull(roleId)) {
+            if (!sqlWhere.isEmpty()) {
+                sqlWhere += " AND ";
+                args = Arrays.copyOf(args, args.length + 1);
+            }
+            sqlWhere += "roleid = ?";
+            args[args.length - 1] = roleId;
+
+        }
+        if (StringUtil.notEmptyOrNull(roleName)) {
+            if (!sqlWhere.isEmpty()) {
+                sqlWhere += " AND ";
+                args = Arrays.copyOf(args, args.length + 1);
+            }
+            sqlWhere += "rolename = ?";
+            args[args.length - 1] = roleName;
+        }
+        if (StringUtil.emptyOrNull(sqlWhere)) {
             accountRecords = pgsqlDataHelper.queryEntities(RoleRecord.class);
         } else {
-            accountRecords = pgsqlDataHelper.queryEntitiesWhere(RoleRecord.class, "account = ?", search);
+            accountRecords = pgsqlDataHelper.queryEntitiesWhere(RoleRecord.class, sqlWhere, args);
         }
         List<JSONObject> list = accountRecords.stream()
                 .map(FastJsonUtil::toJSONObject)

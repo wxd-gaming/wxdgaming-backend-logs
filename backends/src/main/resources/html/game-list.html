@@ -59,7 +59,6 @@
             let urlQuery = new wxd.Map().loadSearch();
             urlQuery.put("search", $("#search").val());
             let url = "/game/list";
-            console.log(urlQuery.toString());
             wxd.netty.post(url, urlQuery.toString(),
                 function (responseText) {
                     items = responseText.data;

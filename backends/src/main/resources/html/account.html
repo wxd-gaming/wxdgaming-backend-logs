@@ -27,6 +27,7 @@
     </style>
 
     <script>
+        let pathname = window.location.protocol + "//" + window.location.host + "" + window.location.pathname;
 
         function ban(url, uid) {
             let urlQuery = new wxd.Map().loadSearch();
@@ -54,7 +55,7 @@
         function search() {
             wxd.loading();
             let urlQuery = new wxd.Map().loadSearch();
-            urlQuery.put("account", $("#search").val());
+            urlQuery.put("account", $("#account").val());
             let url = "/account/list";
             wxd.netty.post(url, urlQuery.toString(),
                 function (responseText) {
@@ -92,6 +93,8 @@
             if (index > maxIndex) {
                 index = maxIndex;
             }
+
+            localStorage.setItem(pathname + "-page-max", pageSize().toString());
 
             $("#lab_page_index").text(index);
             $("#lab_page_max").text(maxIndex);
@@ -148,6 +151,11 @@
 
 
         $(() => {
+            /*读取本地存储，根据个人爱好查看数据*/
+            let ps = localStorage.getItem(pathname + "-page-max");
+            if (!wxd.isNull(ps)) {
+                $('#page_size').val(ps);
+            }
             search();
         });
 
