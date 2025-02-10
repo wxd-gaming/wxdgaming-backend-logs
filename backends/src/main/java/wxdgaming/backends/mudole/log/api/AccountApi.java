@@ -77,8 +77,8 @@ public class AccountApi {
         List<JSONObject> list = accountRecords.stream()
                 .map(FastJsonUtil::toJSONObject)
                 .peek(jsonObject -> {
-                    jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm", jsonObject.getLong("createTime")));
-                    jsonObject.put("lastJoinTime", MyClock.formatDate("yyyy-MM-dd HH:mm", jsonObject.getLong("lastJoinTime")));
+                    jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("createTime")));
+                    jsonObject.put("lastJoinTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("lastJoinTime")));
                     jsonObject.put("data", jsonObject.getString("data"));
                 })
                 .toList();

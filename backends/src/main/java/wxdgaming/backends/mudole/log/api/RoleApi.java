@@ -117,7 +117,7 @@ public class RoleApi {
         List<JSONObject> list = accountRecords.stream()
                 .map(FastJsonUtil::toJSONObject)
                 .peek(jsonObject -> {
-                    jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm", jsonObject.getLong("createTime")));
+                    jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("createTime")));
                     jsonObject.put("data", jsonObject.getString("data"));
                 })
                 .toList();

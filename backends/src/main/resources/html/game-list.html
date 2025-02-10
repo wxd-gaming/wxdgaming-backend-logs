@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>在线用户</title>
+    <title>游戏列表</title>
 
     <script charset="utf-8" type="text/javascript" src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
     <script charset="utf-8" type="text/javascript" src="/js/com.wxd.js"></script>
@@ -24,11 +24,14 @@
 
         label {padding-left: 5px;padding-right: 5px;}
 
+        input {margin-top: 5px;border: slategrey 1px solid;border-radius: 5px;height: 22px;}
+
+        input[type=text] {width: 160px;}
     </style>
 
     <script>
 
-
+        let pathname = window.location.protocol + "//" + window.location.host + "" + window.location.pathname;
 
         function operate(gameId, opt) {
             wxd.loading();
@@ -54,7 +57,7 @@
             );
         }
 
-        function searchName() {
+        function search() {
             wxd.loading();
             let urlQuery = new wxd.Map().loadSearch();
             urlQuery.put("search", $("#search").val());
@@ -124,7 +127,9 @@
             wxd.message.tips_init_bind(); //初始化
             wxd.loading_close();
         }
+
         let items = [];
+
         function createRow(index, row) {
             return `
     <tr>
@@ -146,7 +151,7 @@
         }
 
         $(() => {
-            searchName();
+            search();
         });
 
     </script>
@@ -159,8 +164,9 @@
 </div>
 <br>
 <div style="text-align: left;padding-left: 10px;">
-    <label for="search">搜索</label><input id="search" type="text" value="" style="width: 300px;" onkeydown="if (event.keyCode===13)searchName();" placeholder="游戏ID或者游戏名字"/>
-    <input type="button" value="搜索" onclick="searchName();">
+    <input type="button" value="搜索" onclick="search();">
+    <br>
+    <input id="search" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="游戏ID或者游戏名字"/>
 </div>
 <div class="tableDom" style="position: absolute;left: 10px;top: 50px;right: 15px;bottom: 35px;padding-right: 10px;border-radius: 0;overflow: auto;">
     <table>
@@ -185,14 +191,20 @@
 </div>
 <div style="position: absolute;left: 2px;right: 2px;bottom: 5px;padding: 2px;border-radius: 0px;overflow: auto;text-align: center;">
     <div>
+        <label for="page_size">共</label>
+        <label id="lab_row_count" style="width: 40px; text-align: center; border: slategrey 1px solid;background-color: white;">0</label>
+        &nbsp;&nbsp;
         <label for="page_size">每页显示</label>
-        <select id="page_size" onchange="nextPage(-1000)">
+        <select id="page_size" onchange="nextPage(-99999999999999999999)">
             <option value="20">20</option>
             <option value="30" selected="selected">30</option>
+            <option value="40">40</option>
             <option value="50">50</option>
             <option value="100">100</option>
+            <option value="500">500</option>
         </select>
         <label for="page_size">条</label>
+        <a href="javascript:void(0);" onclick="nextPage(-99999999999999999999)">首页</a>
         <a href="javascript:void(0);" onclick="nextPage(-1)">上一页</a>
         &nbsp;&nbsp;
         <label id="lab_page_index" style="width: 40px; text-align: center; border: slategrey 1px solid;background-color: white;">1</label>
@@ -200,6 +212,7 @@
         <label id="lab_page_max" style="width: 40px; text-align: center; border: slategrey 1px solid;background-color: white;">1</label>
         &nbsp;&nbsp;
         <a href="javascript:void(0);" onclick="nextPage(1)">下一页</a>
+        <a href="javascript:void(0);" onclick="nextPage(99999999999999999999)">末页</a>
     </div>
 </div>
 </body>
