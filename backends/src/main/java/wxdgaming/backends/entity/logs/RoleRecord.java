@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Getter;
 import lombok.Setter;
-import wxdgaming.backends.entity.EntityBase;
+import wxdgaming.backends.entity.RecordBase;
 import wxdgaming.boot.batis.enums.ColumnType;
 import wxdgaming.boot.batis.struct.DbColumn;
 import wxdgaming.boot.batis.struct.DbTable;
@@ -19,7 +19,7 @@ import wxdgaming.boot.core.collection.MapOf;
 @Getter
 @Setter
 @DbTable(name = "record_role")
-public class RoleRecord extends EntityBase {
+public class RoleRecord extends RecordBase {
 
     @JSONField(ordinal = 3)
     @DbColumn(index = true)

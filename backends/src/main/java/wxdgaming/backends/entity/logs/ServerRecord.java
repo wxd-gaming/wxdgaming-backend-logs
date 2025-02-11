@@ -2,6 +2,7 @@ package wxdgaming.backends.entity.logs;
 
 import lombok.Getter;
 import lombok.Setter;
+import wxdgaming.boot.batis.EntityBase;
 import wxdgaming.boot.batis.enums.ColumnType;
 import wxdgaming.boot.batis.struct.DbColumn;
 import wxdgaming.boot.batis.struct.DbTable;
@@ -16,10 +17,8 @@ import wxdgaming.boot.core.lang.ObjectBase;
 @Getter
 @Setter
 @DbTable
-public class ServerRecord extends ObjectBase {
+public class ServerRecord extends EntityBase<Long> {
 
-    @DbColumn(key = true)
-    private long uid;
     /** 是否启用 */
     @DbColumn(index = true)
     private boolean enabled;

@@ -3,10 +3,10 @@ package wxdgaming.backends.entity.system;
 import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Getter;
 import lombok.Setter;
+import wxdgaming.boot.batis.EntityBase;
 import wxdgaming.boot.batis.enums.ColumnType;
 import wxdgaming.boot.batis.struct.DbColumn;
 import wxdgaming.boot.batis.struct.DbTable;
-import wxdgaming.boot.core.lang.ObjectBase;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -21,13 +21,10 @@ import java.util.HashSet;
 @Getter
 @Setter
 @DbTable()
-public class User extends ObjectBase implements Serializable {
+public class User extends EntityBase<Long> implements Serializable {
 
     @Serial private static final long serialVersionUID = 1L;
 
-    @JSONField(ordinal = 1)
-    @DbColumn(key = true)
-    private long uid;
     @JSONField(ordinal = 2)
     @DbColumn(index = true)
     private long createdTime;

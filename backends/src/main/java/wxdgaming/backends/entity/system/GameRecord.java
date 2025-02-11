@@ -4,7 +4,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import wxdgaming.backends.entity.EntityBase;
+import wxdgaming.backends.entity.RecordBase;
 import wxdgaming.boot.batis.enums.ColumnType;
 import wxdgaming.boot.batis.struct.DbColumn;
 import wxdgaming.boot.batis.struct.DbTable;
@@ -21,7 +21,7 @@ import java.util.LinkedHashMap;
 @Setter
 @Accessors(chain = true)
 @DbTable(name = "record_game")
-public class GameRecord extends EntityBase {
+public class GameRecord extends RecordBase {
 
     @JSONField(ordinal = 3)
     @DbColumn(index = true)

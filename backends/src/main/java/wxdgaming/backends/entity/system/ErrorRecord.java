@@ -2,7 +2,7 @@ package wxdgaming.backends.entity.system;
 
 import lombok.Getter;
 import lombok.Setter;
-import wxdgaming.backends.entity.EntityBase;
+import wxdgaming.backends.entity.RecordBase;
 import wxdgaming.boot.batis.struct.DbTable;
 
 /**
@@ -14,6 +14,6 @@ import wxdgaming.boot.batis.struct.DbTable;
 @Getter
 @Setter
 @DbTable(name = "record_error")
-public class ErrorRecord extends EntityBase {
+public class ErrorRecord extends RecordBase {
 
 }

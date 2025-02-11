@@ -3,7 +3,7 @@ package push;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import wxdgaming.backends.entity.EntityBase;
+import wxdgaming.backends.entity.RecordBase;
 import wxdgaming.backends.entity.system.GameRecord;
 import wxdgaming.boot.core.collection.MapOf;
 import wxdgaming.boot.core.lang.RunResult;
@@ -24,7 +24,7 @@ public class GameApiTest {
     protected String appToken = "34g3fy";
     protected String logToken = "42e8sxgm5FVF18b3iSNQVR0jof3FIUMgD6p922pUm36aubm70Tn5C7A5b3m8NlaE";
 
-    public String push(String path, EntityBase base) {
+    public String push(String path, RecordBase base) {
         String json = base.toJson();
         return push(path, json);
     }
