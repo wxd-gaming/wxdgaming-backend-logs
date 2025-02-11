@@ -1,4 +1,4 @@
-package wxdgaming.backends.mudole.log.api;
+package wxdgaming.backends.mudole.account.api;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
@@ -6,7 +6,7 @@ import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.entity.logs.AccountRecord;
 import wxdgaming.backends.mudole.game.GameService;
-import wxdgaming.backends.mudole.log.LogsService;
+import wxdgaming.backends.mudole.slog.SLogService;
 import wxdgaming.boot.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot.core.lang.RunResult;
 import wxdgaming.boot.core.str.StringUtil;
@@ -32,12 +32,12 @@ import java.util.List;
 public class AccountApi {
 
     final GameService gameService;
-    final LogsService logsService;
+    final SLogService SLogService;
 
     @Inject
-    public AccountApi(GameService gameService, LogsService logsService) {
+    public AccountApi(GameService gameService, SLogService SLogService) {
         this.gameService = gameService;
-        this.logsService = logsService;
+        this.SLogService = SLogService;
     }
 
     @TextMapping

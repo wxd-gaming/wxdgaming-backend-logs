@@ -60,6 +60,9 @@
     <!--    </redis>-->
 
     <other>
+        <KV key="root" value="wxdgaming"/>
+        <KV key="pwd-key" value="wxdgaming"/>
+        <KV key="http.client.core" value="50"/>
         <KV key="http.client.core" value="50"/>
         <KV key="http.client.max" value="300"/>
         <KV key="http.client.connectionRequestTimeout" value="3000"/>

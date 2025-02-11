@@ -70,6 +70,10 @@
             let url = "/log/list";
             wxd.netty.post(url, urlQuery.toString(),
                 function (responseText) {
+                    if (responseText.code !== 1) {
+                        wxd.message.alert("异常：" + responseText.error);
+                        return
+                    }
                     items = responseText.data;
                     dataCount = Number(responseText.rowCount);
                     $("#lab_row_count").text(dataCount);
@@ -137,10 +141,7 @@
             let tr = `
     <tr>
         <td style="width: 140px;">
-            <a href="#" onclick="ban('/gm/001/002/003/banLogin', '${row.id}');return false;" title="封号和解封">封号</a>
-            <a href="#" onclick="ban('/gm/001/002/003/banChat', '${row.id}');return false;" title="禁言和解禁">禁言</a>
-            <a href="#" onclick="ban('/gm/001/002/003/clearRank', '${row.id}');return false;" title="清理排行榜">排行榜</a>
-            <a href="#" onclick="ban('/gm/001/002/003/kickout', '${row.id}');return false;" title="踢出下线并且清理内存">踢人</a>
+            <a href="#" onclick="ban('/gm/001/002/003/banLogin', '${row.uid}');return false;" title="删除">删除</a>
         </td>
         <td tips="true" style="width: 40px;">${index}</td>
         <td tips="true" style="width: 140px;">${row.logTime}</td>

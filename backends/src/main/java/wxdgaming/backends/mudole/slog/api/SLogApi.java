@@ -1,4 +1,4 @@
-package wxdgaming.backends.mudole.log.api;
+package wxdgaming.backends.mudole.slog.api;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.entity.logs.SLog;
 import wxdgaming.backends.entity.system.GameRecord;
 import wxdgaming.backends.mudole.game.GameService;
-import wxdgaming.backends.mudole.log.LogsService;
+import wxdgaming.backends.mudole.slog.SLogService;
 import wxdgaming.boot.agent.io.Objects;
 import wxdgaming.boot.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot.core.lang.RunResult;
@@ -31,15 +31,15 @@ import java.util.List;
  **/
 @Slf4j
 @TextController(path = "log")
-public class LogApi {
+public class SLogApi {
 
     final GameService gameService;
-    final LogsService logsService;
+    final SLogService SLogService;
 
     @Inject
-    public LogApi(GameService gameService, LogsService logsService) {
+    public SLogApi(GameService gameService, SLogService SLogService) {
         this.gameService = gameService;
-        this.logsService = logsService;
+        this.SLogService = SLogService;
     }
 
     @TextMapping()

@@ -62,6 +62,10 @@
             let url = "/account/list";
             wxd.netty.post(url, urlQuery.toString(),
                 function (responseText) {
+                    if (responseText.code !== 1) {
+                        wxd.message.alert("异常：" + responseText.error);
+                        return
+                    }
                     items = responseText.data;
                     nextPage(-1000);
                 },

@@ -1,15 +1,16 @@
-package wxdgaming.backends.mudole.log.api;
+package wxdgaming.backends.mudole.role.api;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.entity.logs.RoleRecord;
 import wxdgaming.backends.mudole.game.GameService;
-import wxdgaming.backends.mudole.log.LogsService;
+import wxdgaming.backends.mudole.slog.SLogService;
 import wxdgaming.boot.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot.core.lang.RunResult;
 import wxdgaming.boot.core.str.StringUtil;
 import wxdgaming.boot.core.str.json.FastJsonUtil;
+import wxdgaming.boot.core.threading.ThreadContext;
 import wxdgaming.boot.core.threading.ThreadInfo;
 import wxdgaming.boot.core.timer.MyClock;
 import wxdgaming.boot.net.controller.ann.Body;
@@ -32,12 +33,12 @@ import java.util.List;
 public class RoleApi {
 
     final GameService gameService;
-    final LogsService logsService;
+    final SLogService SLogService;
 
     @Inject
-    public RoleApi(GameService gameService, LogsService logsService) {
+    public RoleApi(GameService gameService, SLogService SLogService) {
         this.gameService = gameService;
-        this.logsService = logsService;
+        this.SLogService = SLogService;
     }
 
     @TextMapping
@@ -84,6 +85,9 @@ public class RoleApi {
                           @Param(value = "account", required = false) String account,
                           @Param(value = "roleId", required = false) String roleId,
                           @Param(value = "roleName", required = false) String roleName) {
+
+        log.info("{}", (Object) ThreadContext.context("user"));
+
         PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
         List<RoleRecord> accountRecords;
         String sqlWhere = "";
@@ -109,11 +113,13 @@ public class RoleApi {
             sqlWhere += "rolename = ?";
             args[args.length - 1] = roleName;
         }
+
         if (StringUtil.emptyOrNull(sqlWhere)) {
             accountRecords = pgsqlDataHelper.queryEntities(RoleRecord.class);
         } else {
             accountRecords = pgsqlDataHelper.queryEntitiesWhere(RoleRecord.class, sqlWhere, args);
         }
+
         List<JSONObject> list = accountRecords.stream()
                 .map(FastJsonUtil::toJSONObject)
                 .peek(jsonObject -> {

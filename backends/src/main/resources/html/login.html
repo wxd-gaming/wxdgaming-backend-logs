@@ -20,11 +20,11 @@
 
         function checkToken() {
 
-            wxd.netty.post("/account/check", "",
+            wxd.netty.post("/checkLogin", "",
                 function (responseText) {
                     if (responseText.code === 1) {
                         localStorage.setItem("token", responseText.data);
-                        window.top.location.href = "/mgr.html";
+                        window.top.location.href = "/index.html";
                     }
                 }, function (error) {
 
@@ -34,13 +34,12 @@
 
         function login() {
             let map = new wxd.Map();
-            map.put("accountName", $("#accountName").val());
-            map.put("password", $("#password").val());
-            wxd.netty.post("/account/login", map.toString(),
+            map.put("account", $("#accountName").val());
+            map.put("pwd", $("#password").val());
+            wxd.netty.post("/login", map.toString(),
                 function (responseText) {
                     if (responseText.code === 1) {
-                        localStorage.setItem("token", responseText.data);
-                        window.top.location.href = "/mgr.html";
+                        window.top.location.href = "/index.html";
                     } else {
                         wxd.message.alert(responseText.error);
                     }
@@ -116,7 +115,7 @@
         line-height: inherit;
     }
 
-    .register-top-grid { color: black; padding-bottom: 1em; margin: 0; font-family: "Marvel-Regular"; margin: 10px 0; }
+    .register-top-grid { color: black; padding-bottom: 1em; font-family: "Marvel-Regular"; margin: 10px 0; }
 
     .text-center { text-align: center; }
 
@@ -135,7 +134,7 @@
                     </div>
                     <div class="input">
                         <label for="password">密码 <span style="color: red">*</span></label>
-                        <input id="password" type="password" v-model="password" placeholder="请输入密码" class="input-text" value="87FE6B"/>
+                        <input id="password" type="password" v-model="password" placeholder="请输入密码" class="input-text" value="123456"/>
                     </div>
                 </div>
                 <div class="text-center">
