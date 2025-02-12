@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.entity.system.User;
 import wxdgaming.boot.core.lang.RunResult;
 import wxdgaming.boot.core.str.JwtUtils;
+import wxdgaming.boot.core.str.StringUtil;
 import wxdgaming.boot.core.threading.ThreadContext;
 import wxdgaming.boot.net.http.HttpHeadNameType;
 import wxdgaming.boot.net.web.hs.HttpSession;
@@ -32,12 +33,17 @@ public class LoginService {
     }
 
     public RunResult checkLogin(HttpSession session) {
+        String token = null;
         Cookie cookie = session.getReqCookies().findCookie(HttpHeadNameType.AUTHORIZATION.getValue());
-        if (cookie == null) {
+        if (cookie != null) token = cookie.value();
+        else token = session.header(HttpHeadNameType.AUTHORIZATION.getValue());
+
+        if (StringUtil.emptyOrNull(token)) {
             return RunResult.error("未登录");
         }
+
         try {
-            Jws<Claims> claimsJws = JwtUtils.parseJWT(cookie.value());
+            Jws<Claims> claimsJws = JwtUtils.parseJWT(token);
             Long userId = claimsJws.getPayload().get("userId", Long.class);
             if (userId == null) {
                 return RunResult.error("未登录");

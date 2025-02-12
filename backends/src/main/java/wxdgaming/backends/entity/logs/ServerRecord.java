@@ -2,7 +2,7 @@ package wxdgaming.backends.entity.logs;
 
 import lombok.Getter;
 import lombok.Setter;
-import wxdgaming.boot.batis.EntityLong;
+import wxdgaming.boot.batis.EntityLongUID;
 import wxdgaming.boot.batis.enums.ColumnType;
 import wxdgaming.boot.batis.struct.DbColumn;
 import wxdgaming.boot.batis.struct.DbTable;
@@ -16,7 +16,7 @@ import wxdgaming.boot.batis.struct.DbTable;
 @Getter
 @Setter
 @DbTable
-public class ServerRecord extends EntityLong {
+public class ServerRecord extends EntityLongUID {
 
     /** 是否启用 */
     @DbColumn(index = true)
