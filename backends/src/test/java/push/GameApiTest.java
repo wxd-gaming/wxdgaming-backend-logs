@@ -55,7 +55,7 @@ public class GameApiTest {
     @Test
     public void pushGame() {
         GameRecord gameRecord = new GameRecord();
-        gameRecord.setUid(2);
+        gameRecord.setUid(2L);
         gameRecord.setName("野火燎原");
         gameRecord.setIcon("icon");
         gameRecord.setDesc("desc");

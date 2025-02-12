@@ -3,7 +3,7 @@ package wxdgaming.backends.entity;
 import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Getter;
 import lombok.Setter;
-import wxdgaming.boot.batis.EntityBase;
+import wxdgaming.boot.batis.EntityLong;
 import wxdgaming.boot.batis.struct.DbColumn;
 import wxdgaming.boot.batis.struct.DbTable;
 
@@ -19,7 +19,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @DbTable(mappedSuperclass = true)
-public class RecordBase extends EntityBase<Long> implements Serializable {
+public class RecordBase extends EntityLong implements Serializable {
 
     @Serial private static final long serialVersionUID = 1L;
 
