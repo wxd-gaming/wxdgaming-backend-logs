@@ -6,16 +6,16 @@ import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.admin.AdminService;
 import wxdgaming.backends.admin.login.LoginService;
 import wxdgaming.backends.entity.system.User;
-import wxdgaming.boot.agent.io.Objects;
-import wxdgaming.boot.core.lang.RunResult;
-import wxdgaming.boot.core.str.JwtUtils;
-import wxdgaming.boot.core.str.Md5Util;
-import wxdgaming.boot.net.controller.ann.Param;
-import wxdgaming.boot.net.controller.ann.TextController;
-import wxdgaming.boot.net.controller.ann.TextMapping;
-import wxdgaming.boot.net.http.HttpHeadNameType;
-import wxdgaming.boot.net.web.hs.HttpSession;
-import wxdgaming.boot.starter.pgsql.PgsqlService;
+import wxdgaming.boot2.core.ann.Param;
+import wxdgaming.boot2.core.io.Objects;
+import wxdgaming.boot2.core.lang.RunResult;
+import wxdgaming.boot2.core.util.JwtUtils;
+import wxdgaming.boot2.core.util.Md5Util;
+import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
+import wxdgaming.boot2.starter.net.http.HttpHeadNameType;
+import wxdgaming.boot2.starter.net.server.ann.HttpRequest;
+import wxdgaming.boot2.starter.net.server.ann.RequestMapping;
+import wxdgaming.boot2.starter.net.server.http.HttpContext;
 
 import java.util.concurrent.TimeUnit;
 
@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
  **/
 @Slf4j
 @Singleton
-@TextController(path = "/")
+@RequestMapping(path = "/")
 public class LoginApi {
 
     PgsqlService dataHelper;
@@ -39,9 +39,9 @@ public class LoginApi {
         this.dataHelper = dataHelper;
     }
 
-    @TextMapping
-    public RunResult login(HttpSession session, @Param("account") String account, @Param("pwd") String pwd) {
-        User user = dataHelper.queryEntityByWhere(User.class, "account = ?", account);
+    @HttpRequest
+    public RunResult login(HttpContext httpContext, @Param(value = "account") String account, @Param(value = "pwd") String pwd) {
+        User user = dataHelper.findByWhere(User.class, "account = ?", account);
         if (user == null) {
             return RunResult.error("账号不存在");
         }
@@ -62,14 +62,14 @@ public class LoginApi {
                 .claim("userId", user.getUid())
                 .compact();
 
-        session.getResCookie().addCookie(HttpHeadNameType.AUTHORIZATION.getValue(), outToken, "/", null, daysMillis);
+        httpContext.getResponse().getResponseCookie().addCookie(HttpHeadNameType.AUTHORIZATION.getValue(), outToken, "/", null, daysMillis);
 
         return RunResult.ok();
     }
 
-    @TextMapping
-    public RunResult checkLogin(HttpSession session) {
-        return loginService.checkLogin(session);
+    @HttpRequest
+    public RunResult checkLogin(HttpContext httpContext) {
+        return loginService.checkLogin(httpContext);
     }
 
 

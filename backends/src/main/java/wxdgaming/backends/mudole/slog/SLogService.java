@@ -2,7 +2,7 @@ package wxdgaming.backends.mudole.slog;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import wxdgaming.boot.starter.pgsql.PgsqlService;
+import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
 
 /**
  * 日志服务
@@ -13,16 +13,11 @@ import wxdgaming.boot.starter.pgsql.PgsqlService;
 @Singleton
 public class SLogService {
 
-
-
     PgsqlService psqlService;
-
 
     @Inject
     public SLogService(PgsqlService psqlService) {
         this.psqlService = psqlService;
     }
-
-
 
 }

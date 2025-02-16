@@ -1,0 +1,40 @@
+{
+  "executor": {
+    "defaultCoreSize": 2,
+    "defaultMaxSize": 4,
+    "logicCoreSize": 10,
+    "logicMaxSize": 32,
+    "virtualCoreSize": 100,
+    "virtualMaxSize": 200
+  },
+  "socket.server": {
+    "debug": false,
+    "port": 19000,
+    "enabledHttp": true,
+    "enabledWebSocket": false,
+    "idleTimeout": 0,
+    "maxAggregatorLength": 64,
+    "maxFrameBytes": -1,
+    "maxFrameLength": -1,
+    "readTimeout": 0,
+    "sslProtocolType": null,
+    "sslKeyStorePath": "",
+    "sslPasswordPath": "",
+    "webSocketPrefix": "",
+    "writeTimeout": 0
+  },
+  "db.pgsql": {
+    "debug": true,
+    "driverClassName": "org.postgresql.Driver",
+    "url": "jdbc:postgresql://192.168.137.10:5432/backend",
+    "username": "postgres",
+    "password": "test",
+    "maxPoolSize": 20,
+    "minPoolSize": 5,
+    "scanPackage": "wxdgaming.backends.entity.system"
+  },
+  "other": {
+    "root": "wxdgaming",
+    "pwd-key": "wxdgaming"
+  }
+}

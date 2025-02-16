@@ -7,15 +7,13 @@ import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.entity.logs.LogScan;
 import wxdgaming.backends.entity.logs.SLog;
 import wxdgaming.backends.entity.system.GameRecord;
-import wxdgaming.boot.batis.DbConfig;
-import wxdgaming.boot.batis.sql.pgsql.PgsqlDataHelper;
-import wxdgaming.boot.core.format.HexId;
-import wxdgaming.boot.core.lang.RunResult;
-import wxdgaming.boot.core.timer.MyClock;
-import wxdgaming.boot.core.timer.ann.Scheduled;
-import wxdgaming.boot.starter.IocContext;
-import wxdgaming.boot.starter.i.IStart;
-import wxdgaming.boot.starter.pgsql.PgsqlService;
+import wxdgaming.boot2.core.ann.Start;
+import wxdgaming.boot2.core.format.HexId;
+import wxdgaming.boot2.core.lang.RunResult;
+import wxdgaming.boot2.core.timer.MyClock;
+import wxdgaming.boot2.starter.batis.sql.SqlConfig;
+import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
+import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -31,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Getter
 @Singleton
-public class GameService implements IStart {
+public class GameService {
 
     private final ConcurrentHashMap<Integer, HexId> gameId2HexMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Integer, PgsqlDataHelper> gameId2PgsqlDataHelperMap = new ConcurrentHashMap<>();
@@ -44,13 +42,14 @@ public class GameService implements IStart {
         this.pgsqlService = pgsqlService;
     }
 
-    @Override public void start(IocContext iocInjector) throws Exception {
+    @Start
+    public void start() throws Exception {
         scheduled();
     }
 
-    @Scheduled("0 0 0")
+    // @Scheduled("0 0 0")
     public void scheduled() {
-        List<GameRecord> gameRecords = pgsqlService.queryEntities(GameRecord.class);
+        List<GameRecord> gameRecords = pgsqlService.findAll(GameRecord.class);
         for (GameRecord gameRecord : gameRecords) {
             addGameCache(gameRecord);
         }
@@ -75,12 +74,9 @@ public class GameService implements IStart {
     public void initDataHelper(GameRecord gameRecord) {
         PgsqlDataHelper dataHelper = gameId2PgsqlDataHelperMap.computeIfAbsent(gameRecord.getUid().intValue(), k -> {
             String dbName = "game_db_" + k;
-            DbConfig clone = pgsqlService.getDbConfig().clone(dbName);
-            clone.setName(dbName);
-            clone.setScanPackage(LogScan.class.getPackageName());
-            clone.setCreateDbBase(true);
+            SqlConfig clone = pgsqlService.getSqlConfig().clone(dbName);
+            clone.setScanPackage(LogScan.class .getPackageName());
             PgsqlDataHelper pgsqlDataHelper = new PgsqlDataHelper(clone);
-            pgsqlDataHelper.getBatchPool().setMaxCacheSize(300 * 10000);
             return pgsqlDataHelper;
         });
 
@@ -96,12 +92,10 @@ public class GameService implements IStart {
                 String partition_table_name = entry.getKey() + "_" + form;
                 if (dataHelper.getDbTableMap().containsKey(partition_table_name))
                     continue;
-                String string = """
-                        CREATE TABLE %s PARTITION OF %s
-                            FOR VALUES FROM (%s) TO (%s);
-                        """.formatted(partition_table_name, entry.getKey(), form, to);
+                String string = "CREATE TABLE %s PARTITION OF %s FOR VALUES FROM (%s) TO (%s)"
+                        .formatted(partition_table_name, entry.getKey(), form, to);
                 dataHelper.executeUpdate(string);
-                log.info("数据库 {} 表 {} 创建分区 {}", dataHelper.getDbConfig().getDbBase(), entry.getKey(), partition_table_name);
+                log.info("数据库 {} 表 {} 创建分区 {}", dataHelper.getDbName(), entry.getKey(), partition_table_name);
             }
         }
     }
@@ -110,7 +104,7 @@ public class GameService implements IStart {
         logTableName = logTableName.toLowerCase();
         if (pgsqlDataHelper.getDbTableMap().containsKey(logTableName)) return;
 
-        pgsqlDataHelper.createTable(SLog.class, logTableName);
+        pgsqlDataHelper.checkTable(SLog.class, logTableName, "");
 
         pgsqlDataHelper.getDbTableMap().clear();
         pgsqlDataHelper.getDbTableStructMap().clear();

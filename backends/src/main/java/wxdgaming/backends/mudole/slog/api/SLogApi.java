@@ -2,23 +2,24 @@ package wxdgaming.backends.mudole.slog.api;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.entity.logs.SLog;
 import wxdgaming.backends.entity.system.GameRecord;
 import wxdgaming.backends.mudole.game.GameService;
 import wxdgaming.backends.mudole.slog.SLogService;
-import wxdgaming.boot.agent.io.Objects;
-import wxdgaming.boot.batis.sql.pgsql.PgsqlDataHelper;
-import wxdgaming.boot.core.lang.RunResult;
-import wxdgaming.boot.core.str.StringUtil;
-import wxdgaming.boot.core.str.json.FastJsonUtil;
-import wxdgaming.boot.core.threading.ThreadInfo;
-import wxdgaming.boot.core.timer.MyClock;
-import wxdgaming.boot.net.controller.ann.Body;
-import wxdgaming.boot.net.controller.ann.Param;
-import wxdgaming.boot.net.controller.ann.TextController;
-import wxdgaming.boot.net.controller.ann.TextMapping;
-import wxdgaming.boot.net.web.hs.HttpSession;
+import wxdgaming.boot2.core.ann.Body;
+import wxdgaming.boot2.core.ann.Param;
+import wxdgaming.boot2.core.chatset.StringUtils;
+import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
+import wxdgaming.boot2.core.io.Objects;
+import wxdgaming.boot2.core.lang.RunResult;
+import wxdgaming.boot2.core.threading.ThreadInfo;
+import wxdgaming.boot2.core.timer.MyClock;
+import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
+import wxdgaming.boot2.starter.net.server.ann.HttpRequest;
+import wxdgaming.boot2.starter.net.server.ann.RequestMapping;
+import wxdgaming.boot2.starter.net.server.http.HttpContext;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,7 +31,8 @@ import java.util.List;
  * @version: 2025-01-22 16:54
  **/
 @Slf4j
-@TextController(path = "log")
+@Singleton
+@RequestMapping(path = "log")
 public class SLogApi {
 
     final GameService gameService;
@@ -42,14 +44,14 @@ public class SLogApi {
         this.SLogService = SLogService;
     }
 
-    @TextMapping()
+    @HttpRequest()
     @ThreadInfo(vt = true)
-    public RunResult push(HttpSession httpSession, @Body SLog sLog) {
+    public RunResult push(HttpContext httpContext, @Body SLog sLog) {
 
-        log.info("sLog - {}", sLog.toJson());
+        log.info("sLog - {}", sLog.toJsonString());
 
         if (sLog.getGameId() == 0) return RunResult.error("gameId is null");
-        if (StringUtil.emptyOrNull(sLog.getToken())) return RunResult.error("token is null");
+        if (StringUtils.isBlank(sLog.getToken())) return RunResult.error("token is null");
 
         PgsqlDataHelper pgsqlDataHelper = this.gameService.pgsqlDataHelper(sLog.getGameId());
 
@@ -62,13 +64,13 @@ public class SLogApi {
 
         LocalDate localDate = MyClock.localDate(sLog.getLogTime());
         sLog.setDayKey(localDate.getYear() * 10000 + localDate.getMonthValue() * 100 + localDate.getDayOfMonth());
-        pgsqlDataHelper.getBatchPool().insert(sLog);
+        pgsqlDataHelper.getSqlDataBatch().insert(sLog);
         return RunResult.ok();
     }
 
-    @TextMapping()
+    @HttpRequest()
     @ThreadInfo(vt = true)
-    public RunResult list(HttpSession httpSession,
+    public RunResult list(HttpContext httpSession,
                           @Param("gameId") Integer gameId,
                           @Param("logType") String logType,
                           @Param("pageIndex") Integer pageIndex,
@@ -92,18 +94,18 @@ public class SLogApi {
 
         String sqlWhere = "";
         Object[] args = new Object[0];
-        if (StringUtil.notEmptyOrNull(account)) {
+        if (StringUtils.isNotBlank(account)) {
             sqlWhere = "account = ?";
             args = Objects.merge(args, account);
         }
-        if (StringUtil.notEmptyOrNull(roleId)) {
+        if (StringUtils.isNotBlank(roleId)) {
             if (!sqlWhere.isEmpty()) {
                 sqlWhere += " AND ";
             }
             sqlWhere += "roleid = ?";
             args = Objects.merge(args, roleId);
         }
-        if (StringUtil.notEmptyOrNull(roleName)) {
+        if (StringUtils.isNotBlank(roleName)) {
             if (!sqlWhere.isEmpty()) {
                 sqlWhere += " AND ";
             }
@@ -111,7 +113,7 @@ public class SLogApi {
             args = Objects.merge(args, roleName);
         }
 
-        if (StringUtil.notEmptyOrNull(dataJson)) {
+        if (StringUtils.isNotBlank(dataJson)) {
             String[] split = dataJson.split(",");
             for (String s : split) {
                 if (!sqlWhere.isEmpty()) {
@@ -123,10 +125,10 @@ public class SLogApi {
             }
         }
         String sql = "select * from " + logType;
-        if (StringUtil.notEmptyOrNull(sqlWhere)) {
+        if (StringUtils.isNotBlank(sqlWhere)) {
             sql += " where " + sqlWhere;
         } else {
-            args = Objects.EMPTY_OBJECT_ARRAY;
+            args = Objects.ZERO_ARRAY;
         }
 
         sql += " order by logtime desc";
@@ -141,11 +143,11 @@ public class SLogApi {
 
         PgsqlDataHelper pgsqlDataHelper = this.gameService.pgsqlDataHelper(gameId);
 
-        long rowCount = pgsqlDataHelper.rowCount(logType, sqlWhere, args);
+        long rowCount = pgsqlDataHelper.tableCount(logType, sqlWhere, args);
 
-        List<SLog> slogs = pgsqlDataHelper.queryEntities(
-                sql,
+        List<SLog> slogs = pgsqlDataHelper.findListBySql(
                 SLog.class,
+                sql,
                 args
         );
 

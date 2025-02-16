@@ -62,6 +62,8 @@
             urlQuery.put("account", $("#account").val());
             urlQuery.put("roleId", $("#roleId").val());
             urlQuery.put("roleName", $("#roleName").val());
+            urlQuery.put("curSid", $("#curSid").val());
+            urlQuery.put("createSid", $("#createSid").val())
             let url = "/role/list";
             wxd.netty.post(url, urlQuery.toString(),
                 function (responseText) {
@@ -69,7 +71,8 @@
                         wxd.message.alert("异常：" + responseText.error);
                         return
                     }
-                    items = responseText.data;
+                    items = responseText.data;dataCount = Number(responseText.rowCount);
+                    $("#lab_row_count").text(dataCount);
                     nextPage(-999999999999999);
                 },
                 (errorMsg) => {
@@ -142,7 +145,6 @@
         <td style="width: 140px;">
             <a href="#" onclick="ban('/gm/001/002/003/banLogin', '${row.uid}');return false;" title="封号和解封">封号</a>
             <a href="#" onclick="ban('/gm/001/002/003/banChat', '${row.uid}');return false;" title="禁言和解禁">禁言</a>
-            <a href="#" onclick="ban('/gm/001/002/003/clearRank', '${row.uid}');return false;" title="清理排行榜">排行榜</a>
             <a href="#" onclick="ban('/gm/001/002/003/kickout', '${row.uid}');return false;" title="踢出下线并且清理内存">踢人</a>
         </td>
         <td tips="true" style="width: 40px;">${index}</td>
@@ -180,8 +182,10 @@
     <input id="account" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="账号"/>
     <input id="roleId" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="角色id"/>
     <input id="roleName" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="角色名字"/>
+    <input id="createSid" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="创建区服"/>
+    <input id="curSid" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="当前区服"/>
 </div>
-<div class="tableDom" style="position: absolute;left: 10px;top: 50px;right: 15px;bottom: 35px;padding-right: 10px;border-radius: 0;overflow: auto;">
+<div class="tableDom" style="position: absolute;left: 10px;top: 80px;right: 15px;bottom: 35px;">
     <table>
         <thead>
         <tr>

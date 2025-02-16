@@ -3,7 +3,7 @@ package wxdgaming.backends.entity.system;
 import lombok.Getter;
 import lombok.Setter;
 import wxdgaming.backends.entity.RecordBase;
-import wxdgaming.boot.batis.struct.DbTable;
+import wxdgaming.boot2.starter.batis.ann.DbTable;
 
 /**
  * 异常记录
@@ -13,7 +13,7 @@ import wxdgaming.boot.batis.struct.DbTable;
  **/
 @Getter
 @Setter
-@DbTable(name = "record_error")
+@DbTable(tableName = "record_error")
 public class ErrorRecord extends RecordBase {
 
 }

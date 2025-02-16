@@ -3,9 +3,8 @@ package wxdgaming.backends.entity;
 import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Getter;
 import lombok.Setter;
-import wxdgaming.boot.batis.EntityLongUID;
-import wxdgaming.boot.batis.struct.DbColumn;
-import wxdgaming.boot.batis.struct.DbTable;
+import wxdgaming.boot2.starter.batis.EntityLongUID;
+import wxdgaming.boot2.starter.batis.ann.DbColumn;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -18,7 +17,6 @@ import java.io.Serializable;
  **/
 @Getter
 @Setter
-@DbTable(mappedSuperclass = true)
 public class RecordBase extends EntityLongUID implements Serializable {
 
     @Serial private static final long serialVersionUID = 1L;
@@ -28,11 +26,11 @@ public class RecordBase extends EntityLongUID implements Serializable {
     private long logTime;
     /** 不写入数据库的用于验证的 */
     @JSONField(ordinal = -1)
-    @DbColumn(alligator = true)
+    @DbColumn(ignore = true)
     private String token;
     /** 不写入数据库的用于验证的 */
     @JSONField(ordinal = 4)
-    @DbColumn(alligator = true)
+    @DbColumn(ignore = true)
     private int gameId;
 
     public int intUid() {

@@ -5,9 +5,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import wxdgaming.backends.entity.RecordBase;
-import wxdgaming.boot.batis.enums.ColumnType;
-import wxdgaming.boot.batis.struct.DbColumn;
-import wxdgaming.boot.batis.struct.DbTable;
+import wxdgaming.boot2.starter.batis.ColumnType;
+import wxdgaming.boot2.starter.batis.ann.DbColumn;
+import wxdgaming.boot2.starter.batis.ann.DbTable;
 
 import java.util.LinkedHashMap;
 
@@ -20,7 +20,7 @@ import java.util.LinkedHashMap;
 @Getter
 @Setter
 @Accessors(chain = true)
-@DbTable(name = "record_game")
+@DbTable(tableName = "record_game")
 public class GameRecord extends RecordBase {
 
     @JSONField(ordinal = 3)
@@ -37,14 +37,14 @@ public class GameRecord extends RecordBase {
     @JSONField(ordinal = 14)
     private String url;
     @JSONField(ordinal = 15)
-    @DbColumn(index = true, columnType = ColumnType.Varchar, length = 128)
+    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String appToken;
-    @DbColumn(index = true, columnType = ColumnType.Varchar, length = 128)
+    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String rechargeToken;
-    @DbColumn(index = true, columnType = ColumnType.Varchar, length = 128)
+    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String logToken;
     @JSONField(ordinal = 16)
-    @DbColumn(index = true, columnType = ColumnType.Text)
+    @DbColumn(columnType = ColumnType.String, length = 30000)
     private LinkedHashMap<String, String> tableMapping = new LinkedHashMap<>();
 
 }

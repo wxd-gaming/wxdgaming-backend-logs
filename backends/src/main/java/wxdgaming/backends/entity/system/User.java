@@ -3,10 +3,10 @@ package wxdgaming.backends.entity.system;
 import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Getter;
 import lombok.Setter;
-import wxdgaming.boot.batis.EntityLongUID;
-import wxdgaming.boot.batis.enums.ColumnType;
-import wxdgaming.boot.batis.struct.DbColumn;
-import wxdgaming.boot.batis.struct.DbTable;
+import wxdgaming.boot2.starter.batis.ColumnType;
+import wxdgaming.boot2.starter.batis.EntityLongUID;
+import wxdgaming.boot2.starter.batis.ann.DbColumn;
+import wxdgaming.boot2.starter.batis.ann.DbTable;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -29,15 +29,15 @@ public class User extends EntityLongUID implements Serializable {
     @DbColumn(index = true)
     private long createdTime;
     @JSONField(ordinal = 10)
-    @DbColumn(index = true, columnType = ColumnType.Varchar, length = 128)
+    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String account;
 
     @JSONField(ordinal = 11)
-    @DbColumn(columnType = ColumnType.Varchar, length = 512)
+    @DbColumn(columnType = ColumnType.String, length = 512)
     private String pwd;
 
     @JSONField(ordinal = 12)
-    @DbColumn(index = true, columnType = ColumnType.Varchar, length = 11)
+    @DbColumn(index = true, columnType = ColumnType.String, length = 11)
     private String phone;
     @JSONField(ordinal = 13)
     private boolean disConnect;

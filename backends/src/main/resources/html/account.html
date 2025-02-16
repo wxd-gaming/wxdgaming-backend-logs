@@ -67,7 +67,9 @@
                         return
                     }
                     items = responseText.data;
-                    nextPage(-1000);
+                    items = responseText.data;dataCount = Number(responseText.rowCount);
+                    $("#lab_row_count").text(dataCount);
+                    nextPage(-999999999999999);
                 },
                 (errorMsg) => {
                     wxd.message.alert("异常：" + errorMsg);
@@ -141,7 +143,6 @@
         <td style="width: 140px;">
             <a href="#" onclick="ban('/gm/001/002/003/banLogin', '${row.uid}');return false;" title="封号和解封">封号</a>
             <a href="#" onclick="ban('/gm/001/002/003/banChat', '${row.uid}');return false;" title="禁言和解禁">禁言</a>
-            <a href="#" onclick="ban('/gm/001/002/003/clearRank', '${row.uid}');return false;" title="清理排行榜">排行榜</a>
             <a href="#" onclick="ban('/gm/001/002/003/kickout', '${row.uid}');return false;" title="踢出下线并且清理内存">踢人</a>
         </td>
         <td tips="true" style="width: 40px;">${index}</td>
@@ -176,7 +177,7 @@
     <br>
     <input id="account" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="账户"/>
 </div>
-<div class="tableDom" style="position: absolute;left: 10px;top: 50px;right: 15px;bottom: 35px;padding-right: 10px;border-radius: 0;overflow: auto;">
+<div class="tableDom" style="position: absolute;left: 10px;top: 80px;right: 15px;bottom: 35px;">
     <table>
         <thead>
         <tr>

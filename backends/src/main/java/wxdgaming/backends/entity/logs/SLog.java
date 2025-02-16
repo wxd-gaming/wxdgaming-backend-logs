@@ -5,11 +5,11 @@ import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Getter;
 import lombok.Setter;
 import wxdgaming.backends.entity.RecordBase;
-import wxdgaming.boot.batis.enums.ColumnType;
-import wxdgaming.boot.batis.sql.pgsql.Partition;
-import wxdgaming.boot.batis.struct.DbColumn;
-import wxdgaming.boot.batis.struct.TableName;
-import wxdgaming.boot.core.collection.MapOf;
+import wxdgaming.boot2.core.collection.MapOf;
+import wxdgaming.boot2.starter.batis.ColumnType;
+import wxdgaming.boot2.starter.batis.EntityName;
+import wxdgaming.boot2.starter.batis.ann.DbColumn;
+import wxdgaming.boot2.starter.batis.sql.ann.Partition;
 
 /**
  * 服务日志
@@ -19,14 +19,14 @@ import wxdgaming.boot.core.collection.MapOf;
  **/
 @Getter
 @Setter
-public class SLog extends RecordBase implements TableName {
+public class SLog extends RecordBase implements EntityName {
 
     @JSONField(ordinal = -1)
-    @DbColumn(index = true, columnType = ColumnType.Varchar, length = 128)
+    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String logType;
-    @JSONField(ordinal = 4)
-    @DbColumn(index = true)
     @Partition
+    @JSONField(ordinal = 4)
+    @DbColumn(key = true)
     private int dayKey;
     @JSONField(ordinal = 8)
     @DbColumn(index = true)
@@ -35,13 +35,13 @@ public class SLog extends RecordBase implements TableName {
     @DbColumn(index = true)
     private int mainId;
     @JSONField(ordinal = 10)
-    @DbColumn(index = true, columnType = ColumnType.Varchar, length = 128)
+    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String account;
     @JSONField(ordinal = 11)
-    @DbColumn(index = true, columnType = ColumnType.Varchar, length = 128)
+    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String roleId;
     @JSONField(ordinal = 12)
-    @DbColumn(index = true, columnType = ColumnType.Varchar, length = 128)
+    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String roleName;
     @JSONField(ordinal = 13)
     @DbColumn(columnType = ColumnType.Json)
@@ -49,7 +49,7 @@ public class SLog extends RecordBase implements TableName {
 
 
     @JSONField(serialize = false)
-    @Override public String getTableName() {
+    @Override public String tableName() {
         long logTime = getLogTime();
         if (logTime == 0) {
             setLogTime(System.currentTimeMillis());

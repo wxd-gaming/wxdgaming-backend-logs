@@ -2,10 +2,10 @@ package wxdgaming.backends.entity.logs;
 
 import lombok.Getter;
 import lombok.Setter;
-import wxdgaming.boot.batis.EntityLongUID;
-import wxdgaming.boot.batis.enums.ColumnType;
-import wxdgaming.boot.batis.struct.DbColumn;
-import wxdgaming.boot.batis.struct.DbTable;
+import wxdgaming.boot2.starter.batis.ColumnType;
+import wxdgaming.boot2.starter.batis.EntityLongUID;
+import wxdgaming.boot2.starter.batis.ann.DbColumn;
+import wxdgaming.boot2.starter.batis.ann.DbTable;
 
 /**
  * 区服记录
@@ -15,7 +15,7 @@ import wxdgaming.boot.batis.struct.DbTable;
  **/
 @Getter
 @Setter
-@DbTable
+@DbTable(tableName = "server_record")
 public class ServerRecord extends EntityLongUID {
 
     /** 是否启用 */
@@ -25,31 +25,31 @@ public class ServerRecord extends EntityLongUID {
     @DbColumn(index = true)
     private int ordinal;
     /** 平台 */
-    @DbColumn(columnType = ColumnType.Varchar, length = 128)
+    @DbColumn(columnType = ColumnType.String, length = 128)
     private String platform;
     /** 服务器id */
-    @DbColumn(columnType = ColumnType.Varchar, length = 128)
+    @DbColumn(columnType = ColumnType.String, length = 128)
     private int sid;
     /** 服务器id */
-    @DbColumn(columnType = ColumnType.Varchar, length = 128)
+    @DbColumn(columnType = ColumnType.String, length = 128)
     private int mainSid;
     /** 服务器名字 */
-    @DbColumn(columnType = ColumnType.Varchar, length = 128)
+    @DbColumn(columnType = ColumnType.String, length = 128)
     private String name;
     /** 服务器显示名 */
-    @DbColumn(columnType = ColumnType.Varchar, length = 128)
+    @DbColumn(columnType = ColumnType.String, length = 128)
     private String showName;
     /** 开服时间 */
-    @DbColumn(columnType = ColumnType.Varchar, length = 128)
+    @DbColumn(columnType = ColumnType.String, length = 128)
     private String openTime;
     /** 维护时间 */
-    @DbColumn(columnType = ColumnType.Varchar, length = 128)
+    @DbColumn(columnType = ColumnType.String, length = 128)
     private String maintainTime;
     /** ip */
-    @DbColumn(columnType = ColumnType.Varchar, length = 128)
+    @DbColumn(columnType = ColumnType.String, length = 128)
     private String wlan;
     /** ip */
-    @DbColumn(columnType = ColumnType.Varchar, length = 128)
+    @DbColumn(columnType = ColumnType.String, length = 128)
     private String lan;
     /** 端口 */
     @DbColumn()
@@ -61,7 +61,7 @@ public class ServerRecord extends EntityLongUID {
     @DbColumn()
     private String status;
     /** 版本 */
-    @DbColumn(columnType = ColumnType.Varchar, length = 128)
+    @DbColumn(columnType = ColumnType.String, length = 128)
     private String version;
     /** 注册账户 */
     @DbColumn()

@@ -7,16 +7,16 @@ import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.entity.logs.AccountRecord;
 import wxdgaming.backends.mudole.game.GameService;
 import wxdgaming.backends.mudole.slog.SLogService;
-import wxdgaming.boot.batis.sql.pgsql.PgsqlDataHelper;
-import wxdgaming.boot.core.lang.RunResult;
-import wxdgaming.boot.core.str.StringUtil;
-import wxdgaming.boot.core.str.json.FastJsonUtil;
-import wxdgaming.boot.core.timer.MyClock;
-import wxdgaming.boot.net.controller.ann.Body;
-import wxdgaming.boot.net.controller.ann.Param;
-import wxdgaming.boot.net.controller.ann.TextController;
-import wxdgaming.boot.net.controller.ann.TextMapping;
-import wxdgaming.boot.net.web.hs.HttpSession;
+import wxdgaming.boot2.core.ann.Body;
+import wxdgaming.boot2.core.ann.Param;
+import wxdgaming.boot2.core.chatset.StringUtils;
+import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
+import wxdgaming.boot2.core.lang.RunResult;
+import wxdgaming.boot2.core.timer.MyClock;
+import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
+import wxdgaming.boot2.starter.net.server.ann.HttpRequest;
+import wxdgaming.boot2.starter.net.server.ann.RequestMapping;
+import wxdgaming.boot2.starter.net.server.http.HttpContext;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ import java.util.List;
  **/
 @Slf4j
 @Singleton
-@TextController(path = "account")
+@RequestMapping(path = "account")
 public class AccountApi {
 
     final GameService gameService;
@@ -40,10 +40,10 @@ public class AccountApi {
         this.SLogService = SLogService;
     }
 
-    @TextMapping
-    public RunResult push(HttpSession httpSession, @Body AccountRecord accountRecord) {
+    @HttpRequest
+    public RunResult push(HttpContext httpContext, @Body AccountRecord accountRecord) {
         if (accountRecord.getGameId() == 0) return RunResult.error("gameId is null");
-        if (StringUtil.emptyOrNull(accountRecord.getToken())) return RunResult.error("token is null");
+        if (StringUtils.isBlank(accountRecord.getToken())) return RunResult.error("token is null");
         if (accountRecord.getUid() == 0) {
             accountRecord.setUid(gameService.newId(accountRecord.getGameId()));
         }
@@ -52,7 +52,7 @@ public class AccountApi {
         }
         accountRecord.setLogTime(System.currentTimeMillis());
         PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(accountRecord.getGameId());
-        AccountRecord entity = pgsqlDataHelper.queryEntityByWhere(AccountRecord.class, "account = ?", accountRecord.getAccount());
+        AccountRecord entity = pgsqlDataHelper.findByWhere(AccountRecord.class, "account = ?", accountRecord.getAccount());
         if (entity == null) {
             pgsqlDataHelper.insert(accountRecord);
         } else {
@@ -63,16 +63,16 @@ public class AccountApi {
         return RunResult.ok().data(accountRecord);
     }
 
-    @TextMapping
-    public RunResult list(HttpSession httpSession,
+    @HttpRequest
+    public RunResult list(HttpContext httpContext,
                           @Param("gameId") Integer gameId,
                           @Param(value = "account", required = false) String account) {
         PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
         List<AccountRecord> accountRecords;
-        if (StringUtil.emptyOrNull(account)) {
-            accountRecords = pgsqlDataHelper.queryEntities(AccountRecord.class);
+        if (StringUtils.isBlank(account)) {
+            accountRecords = pgsqlDataHelper.findAll(AccountRecord.class);
         } else {
-            accountRecords = pgsqlDataHelper.queryEntitiesWhere(AccountRecord.class, "account = ?", account);
+            accountRecords = pgsqlDataHelper.findListByWhere(AccountRecord.class, "account = ?", account);
         }
         List<JSONObject> list = accountRecords.stream()
                 .map(FastJsonUtil::toJSONObject)
@@ -82,6 +82,6 @@ public class AccountApi {
                     jsonObject.put("data", jsonObject.getString("data"));
                 })
                 .toList();
-        return RunResult.ok().fluentPut("data", list).fluentPut("length", list.size());
+        return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", list.size());
     }
 }

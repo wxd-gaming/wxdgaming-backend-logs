@@ -4,8 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.jupiter.api.RepeatedTest;
 import wxdgaming.backends.entity.logs.AccountRecord;
-import wxdgaming.boot.core.lang.RandomUtils;
-import wxdgaming.boot.core.str.StringUtil;
+import wxdgaming.boot2.core.chatset.StringUtils;
+import wxdgaming.boot2.core.util.RandomUtils;
 
 /**
  * test
@@ -33,7 +33,7 @@ public class AccountApiTest extends GameApiTest {
     @Test
     @RepeatedTest(100)
     public void pushAccountList() {
-        account = StringUtil.getRandomString(18);
+        account = StringUtils.randomString(18);
         pushAccount();
     }
 

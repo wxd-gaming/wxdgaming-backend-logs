@@ -7,13 +7,13 @@ import io.jsonwebtoken.Jws;
 import io.netty.handler.codec.http.cookie.Cookie;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.entity.system.User;
-import wxdgaming.boot.core.lang.RunResult;
-import wxdgaming.boot.core.str.JwtUtils;
-import wxdgaming.boot.core.str.StringUtil;
-import wxdgaming.boot.core.threading.ThreadContext;
-import wxdgaming.boot.net.http.HttpHeadNameType;
-import wxdgaming.boot.net.web.hs.HttpSession;
-import wxdgaming.boot.starter.pgsql.PgsqlService;
+import wxdgaming.boot2.core.chatset.StringUtils;
+import wxdgaming.boot2.core.lang.RunResult;
+import wxdgaming.boot2.core.threading.ThreadContext;
+import wxdgaming.boot2.core.util.JwtUtils;
+import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
+import wxdgaming.boot2.starter.net.http.HttpHeadNameType;
+import wxdgaming.boot2.starter.net.server.http.HttpContext;
 
 /**
  * 登录服务
@@ -32,13 +32,13 @@ public class LoginService {
         this.dataHelper = dataHelper;
     }
 
-    public RunResult checkLogin(HttpSession session) {
+    public RunResult checkLogin(HttpContext httpContext) {
         String token = null;
-        Cookie cookie = session.getReqCookies().findCookie(HttpHeadNameType.AUTHORIZATION.getValue());
+        Cookie cookie = httpContext.getRequest().getReqCookies().findCookie(HttpHeadNameType.AUTHORIZATION.getValue());
         if (cookie != null) token = cookie.value();
-        else token = session.header(HttpHeadNameType.AUTHORIZATION.getValue());
+        else token = httpContext.getRequest().header(HttpHeadNameType.AUTHORIZATION.getValue());
 
-        if (StringUtil.emptyOrNull(token)) {
+        if (StringUtils.isBlank(token)) {
             return RunResult.error("未登录");
         }
 
@@ -48,7 +48,7 @@ public class LoginService {
             if (userId == null) {
                 return RunResult.error("未登录");
             }
-            User user = dataHelper.queryEntityByWhere(User.class, "uid = ?", userId);
+            User user = dataHelper.findByWhere(User.class, "uid = ?", userId);
             if (user == null) {
                 return RunResult.error("账号异常");
             }

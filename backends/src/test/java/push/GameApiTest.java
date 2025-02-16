@@ -5,9 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import wxdgaming.backends.entity.RecordBase;
 import wxdgaming.backends.entity.system.GameRecord;
-import wxdgaming.boot.core.collection.MapOf;
-import wxdgaming.boot.core.lang.RunResult;
-import wxdgaming.boot.httpclient.apache.HttpBuilder;
+import wxdgaming.boot2.core.collection.MapOf;
+import wxdgaming.boot2.core.lang.RunResult;
+import wxdgaming.boot2.core.threading.ExecutorConfig;
+import wxdgaming.boot2.core.threading.ExecutorUtil;
+import wxdgaming.boot2.starter.net.httpclient.HttpBuilder;
 
 import java.util.LinkedHashMap;
 
@@ -20,12 +22,17 @@ import java.util.LinkedHashMap;
 @Slf4j
 public class GameApiTest {
 
-    protected int gameId = 1;
+    protected int gameId = 2;
     protected String appToken = "34g3fy";
     protected String logToken = "42e8sxgm5FVF18b3iSNQVR0jof3FIUMgD6p922pUm36aubm70Tn5C7A5b3m8NlaE";
 
+    static {
+        ExecutorUtil.init(new ExecutorConfig());
+    }
+
     public String push(String path, RecordBase base) {
-        String json = base.toJson();
+
+        String json = base.toJsonString();
         return push(path, json);
     }
 
@@ -48,7 +55,7 @@ public class GameApiTest {
         String push = push("game/listLogType", jsonObject.toJSONString());
         RunResult runResult = RunResult.parse(push);
         if (runResult.code() != 1)
-            throw new RuntimeException(runResult.errorMsg());
+            throw new RuntimeException(runResult.msg());
         return runResult.data(JSONObject.class);
     }
 

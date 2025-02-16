@@ -1,12 +1,13 @@
 package wxdgaming.backends;
 
-import wxdgaming.boot.starter.AppContext;
+
+import wxdgaming.boot2.core.RunApplication;
+import wxdgaming.boot2.starter.WxdApplication;
 
 public class BackendsStart {
 
     public static void main(String[] args) {
-        AppContext.boot(BackendsStart.class);
-        AppContext.start(true, 1, "backends", "backends");
+        RunApplication run = WxdApplication.run(BackendsStart.class);
     }
 
 }

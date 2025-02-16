@@ -6,16 +6,16 @@ import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.entity.system.GameRecord;
 import wxdgaming.backends.mudole.game.GameService;
-import wxdgaming.boot.batis.sql.pgsql.PgsqlDataHelper;
-import wxdgaming.boot.core.lang.RunResult;
-import wxdgaming.boot.core.str.StringUtil;
-import wxdgaming.boot.core.str.json.FastJsonUtil;
-import wxdgaming.boot.core.timer.MyClock;
-import wxdgaming.boot.net.controller.ann.Body;
-import wxdgaming.boot.net.controller.ann.TextController;
-import wxdgaming.boot.net.controller.ann.TextMapping;
-import wxdgaming.boot.net.web.hs.HttpSession;
-import wxdgaming.boot.starter.pgsql.PgsqlService;
+import wxdgaming.boot2.core.ann.Body;
+import wxdgaming.boot2.core.chatset.StringUtils;
+import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
+import wxdgaming.boot2.core.lang.RunResult;
+import wxdgaming.boot2.core.timer.MyClock;
+import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
+import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
+import wxdgaming.boot2.starter.net.server.ann.HttpRequest;
+import wxdgaming.boot2.starter.net.server.ann.RequestMapping;
+import wxdgaming.boot2.starter.net.server.http.HttpContext;
 
 import java.util.List;
 
@@ -27,7 +27,7 @@ import java.util.List;
  **/
 @Slf4j
 @Singleton
-@TextController(path = "game")
+@RequestMapping(path = "/game")
 public class GameApi {
 
     final PgsqlService pgsqlService;
@@ -39,14 +39,14 @@ public class GameApi {
         this.pgsqlService = pgsqlService;
     }
 
-    @TextMapping
-    public RunResult push(HttpSession session, @Body GameRecord gameRecord) {
-        GameRecord queryEntity = pgsqlService.queryEntity(GameRecord.class, gameRecord.getUid());
+    @HttpRequest
+    public RunResult push(HttpContext session, @Body GameRecord gameRecord) {
+        GameRecord queryEntity = pgsqlService.findById(GameRecord.class, gameRecord.getUid());
         if (queryEntity == null) {
             gameRecord.setCreateTime(System.currentTimeMillis());
-            gameRecord.setAppToken(StringUtil.getRandomString(12));
-            gameRecord.setRechargeToken(StringUtil.getRandomString(18));
-            gameRecord.setLogToken(StringUtil.getRandomString(32));
+            gameRecord.setAppToken(StringUtils.randomString(12));
+            gameRecord.setRechargeToken(StringUtils.randomString(18));
+            gameRecord.setLogToken(StringUtils.randomString(32));
             pgsqlService.insert(gameRecord);
             gameService.addGameCache(gameRecord);
         } else {
@@ -62,8 +62,8 @@ public class GameApi {
         return RunResult.ok();
     }
 
-    @TextMapping
-    public RunResult menu(HttpSession session) {
+    @HttpRequest
+    public RunResult menu(HttpContext session) {
         List<JSONObject> list = gameService.getGameId2GameRecordMap().values().stream()
                 .map(FastJsonUtil::toJSONObject)
                 .peek(jsonObject -> {
@@ -71,22 +71,22 @@ public class GameApi {
                     jsonObject.entrySet().removeIf(v -> v.getKey().toLowerCase().endsWith("token"));
                 })
                 .toList();
-        return RunResult.ok().fluentPut("data", list).fluentPut("length", list.size());
+        return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", list.size());
     }
 
-    @TextMapping
-    public RunResult list(HttpSession session) {
+    @HttpRequest
+    public RunResult list(HttpContext session) {
         List<JSONObject> list = gameService.getGameId2GameRecordMap().values().stream()
                 .map(FastJsonUtil::toJSONObject)
                 .peek(jsonObject -> {
                     jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm", jsonObject.getLong("createTime")));
                 })
                 .toList();
-        return RunResult.ok().fluentPut("data", list).fluentPut("length", list.size());
+        return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", list.size());
     }
 
-    @TextMapping
-    public RunResult addLogType(HttpSession session, JSONObject data) {
+    @HttpRequest
+    public RunResult addLogType(HttpContext session, JSONObject data) {
         Integer gameId = data.getInteger("gameId");
         String token = data.getString("token");
         RunResult runResult = gameService.checkAppToken(gameId, token);
@@ -106,8 +106,8 @@ public class GameApi {
         return RunResult.ok();
     }
 
-    @TextMapping
-    public RunResult listLogType(HttpSession session, JSONObject data) {
+    @HttpRequest
+    public RunResult listLogType(HttpContext session, JSONObject data) {
         Integer gameId = data.getInteger("gameId");
         String token = data.getString("token");
         RunResult runResult = gameService.checkAppToken(gameId, token);

@@ -4,9 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>wxdgaming</groupId>
-        <artifactId>wxdgaming.backend</artifactId>
-        <version>j21-003</version>
+        <groupId>wxdgaming.dev</groupId>
+        <artifactId>wxdgaming.dev</artifactId>
+        <version>1.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>backends</artifactId>
