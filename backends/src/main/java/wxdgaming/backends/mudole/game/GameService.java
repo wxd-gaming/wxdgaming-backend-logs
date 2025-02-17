@@ -75,13 +75,14 @@ public class GameService {
         PgsqlDataHelper dataHelper = gameId2PgsqlDataHelperMap.computeIfAbsent(gameRecord.getUid().intValue(), k -> {
             String dbName = "game_db_" + k;
             SqlConfig clone = pgsqlService.getSqlConfig().clone(dbName);
-            clone.setScanPackage(LogScan.class .getPackageName());
+            clone.setScanPackage(LogScan.class.getPackageName());
             PgsqlDataHelper pgsqlDataHelper = new PgsqlDataHelper(clone);
             return pgsqlDataHelper;
         });
 
+        Map<String, String> dbTableMap = dataHelper.findTableMap();
         for (Map.Entry<String, String> entry : gameRecord.getTableMapping().entrySet()) {
-            checkSLogTable(dataHelper, entry.getKey());
+            checkSLogTable(dataHelper, dbTableMap, entry.getKey());
             /*TODO 处理分区表 */
             LocalDateTime localDate = LocalDateTime.now();
             for (int i = 0; i < 50; i++) {
@@ -90,7 +91,7 @@ public class GameService {
                 localDate = localDate.plusDays(1);
                 String to = MyClock.formatDate("yyyyMMdd", localDate);
                 String partition_table_name = entry.getKey() + "_" + form;
-                if (dataHelper.getDbTableMap().containsKey(partition_table_name))
+                if (dbTableMap.containsKey(partition_table_name))
                     continue;
                 String string = "CREATE TABLE %s PARTITION OF %s FOR VALUES FROM (%s) TO (%s)"
                         .formatted(partition_table_name, entry.getKey(), form, to);
@@ -101,13 +102,14 @@ public class GameService {
     }
 
     public void checkSLogTable(PgsqlDataHelper pgsqlDataHelper, String logTableName) {
+        Map<String, String> dbTableMap = pgsqlDataHelper.findTableMap();
+        checkSLogTable(pgsqlDataHelper, dbTableMap, logTableName);
+    }
+
+    public void checkSLogTable(PgsqlDataHelper pgsqlDataHelper, Map<String, String> dbTableMap, String logTableName) {
         logTableName = logTableName.toLowerCase();
-        if (pgsqlDataHelper.getDbTableMap().containsKey(logTableName)) return;
-
+        if (dbTableMap.containsKey(logTableName)) return;
         pgsqlDataHelper.checkTable(SLog.class, logTableName, "");
-
-        pgsqlDataHelper.getDbTableMap().clear();
-        pgsqlDataHelper.getDbTableStructMap().clear();
     }
 
     public RunResult checkAppToken(Integer gameId, String token) {
