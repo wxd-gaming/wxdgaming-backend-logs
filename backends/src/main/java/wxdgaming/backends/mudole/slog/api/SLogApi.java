@@ -72,6 +72,7 @@ public class SLogApi {
         LocalDate localDate = MyClock.localDate(sLog.getLogTime());
         sLog.setDayKey(localDate.getYear() * 10000 + localDate.getMonthValue() * 100 + localDate.getDayOfMonth());
         pgsqlDataHelper.getSqlDataBatch().insert(sLog);
+        // pgsqlDataHelper.getSqlDataBatch().insert(sLog);
         return RunResult.ok();
     }
 

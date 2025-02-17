@@ -3,8 +3,8 @@ package wxdgaming.backends.admin.login.api;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
-import wxdgaming.backends.admin.AdminService;
 import wxdgaming.backends.admin.login.LoginService;
+import wxdgaming.backends.admin.user.UserService;
 import wxdgaming.backends.entity.system.User;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.io.Objects;
@@ -46,7 +46,7 @@ public class LoginApi {
             return RunResult.error("账号不存在");
         }
 
-        String md5Sign = Md5Util.md5DigestEncode(String.valueOf(user.getUid()), user.getAccount(), AdminService.PWDKEY, pwd);
+        String md5Sign = Md5Util.md5DigestEncode(String.valueOf(user.getUid()), user.getAccount(), UserService.PWDKEY, pwd);
         if (!Objects.equals(md5Sign, user.getPwd())) {
             return RunResult.error("密码错误");
         }
@@ -59,7 +59,7 @@ public class LoginApi {
         long daysMillis = TimeUnit.DAYS.toMillis(6);
 
         String outToken = JwtUtils.createJwtBuilder(daysMillis)
-                .claim("userId", user.getUid())
+                .claim("account", user.getAccount())
                 .compact();
 
         httpContext.getResponse().getResponseCookie().addCookie(HttpHeadNameType.AUTHORIZATION.getValue(), outToken, "/", null, daysMillis);

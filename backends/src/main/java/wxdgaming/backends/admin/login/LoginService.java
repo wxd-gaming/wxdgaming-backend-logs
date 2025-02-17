@@ -6,12 +6,12 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.netty.handler.codec.http.cookie.Cookie;
 import lombok.extern.slf4j.Slf4j;
+import wxdgaming.backends.admin.user.UserService;
 import wxdgaming.backends.entity.system.User;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.ThreadContext;
 import wxdgaming.boot2.core.util.JwtUtils;
-import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
 import wxdgaming.boot2.starter.net.http.HttpHeadNameType;
 import wxdgaming.boot2.starter.net.server.http.HttpContext;
 
@@ -25,11 +25,11 @@ import wxdgaming.boot2.starter.net.server.http.HttpContext;
 @Singleton
 public class LoginService {
 
-    final PgsqlService dataHelper;
+    private final UserService userService;
 
     @Inject
-    public LoginService(PgsqlService dataHelper) {
-        this.dataHelper = dataHelper;
+    public LoginService(UserService userService) {
+        this.userService = userService;
     }
 
     public RunResult checkLogin(HttpContext httpContext) {
@@ -44,11 +44,11 @@ public class LoginService {
 
         try {
             Jws<Claims> claimsJws = JwtUtils.parseJWT(token);
-            Long userId = claimsJws.getPayload().get("userId", Long.class);
-            if (userId == null) {
+            String account = claimsJws.getPayload().get("account", String.class);
+            if (account == null) {
                 return RunResult.error("未登录");
             }
-            User user = dataHelper.findByWhere(User.class, "uid = ?", userId);
+            User user = userService.findByAccount(account);
             if (user == null) {
                 return RunResult.error("账号异常");
             }
@@ -58,6 +58,7 @@ public class LoginService {
             ThreadContext.putContent("user", user);
             return RunResult.ok();
         } catch (Exception e) {
+            log.error("登录校验失败", e);
             return RunResult.error("登录已过期");
         }
     }
