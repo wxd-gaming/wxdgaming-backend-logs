@@ -53,6 +53,13 @@ public class SLogApi {
         if (sLog.getGameId() == 0) return RunResult.error("gameId is null");
         if (StringUtils.isBlank(sLog.getToken())) return RunResult.error("token is null");
 
+        GameRecord gameRecord = this.gameService.getGameId2GameRecordMap().get(sLog.getGameId());
+        if (gameRecord == null)
+            return RunResult.error("gameId is error");
+
+        if (Objects.equals(gameRecord.getLogToken(), sLog.getToken()))
+            return RunResult.error("game log token error");
+
         PgsqlDataHelper pgsqlDataHelper = this.gameService.pgsqlDataHelper(sLog.getGameId());
 
         if (sLog.getUid() == 0)
