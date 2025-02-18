@@ -79,6 +79,7 @@ public class GameService {
             SqlConfig clone = pgsqlService.getSqlConfig().clone(dbName);
             clone.setScanPackage(LogScan.class.getPackageName());
             PgsqlDataHelper pgsqlDataHelper = new PgsqlDataHelper(clone);
+            pgsqlDataHelper.start();
             return pgsqlDataHelper;
         });
 

@@ -30,11 +30,6 @@ public class AdminService {
     @Start
     @Sort(100)
     public void start() throws Exception {
-        ReflectContext reflectContext = ReflectContext.Builder.of(User.class.getPackageName()).build();
-        reflectContext.classWithSuper(Entity.class)
-                .forEach(cls -> {
-                    pgsqlService.checkTable(cls);
-                });
 
     }
 
