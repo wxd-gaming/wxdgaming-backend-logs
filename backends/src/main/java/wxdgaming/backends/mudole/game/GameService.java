@@ -14,6 +14,7 @@ import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.batis.sql.SqlConfig;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
+import wxdgaming.boot2.starter.scheduled.ann.Scheduled;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -47,7 +48,8 @@ public class GameService {
         scheduled();
     }
 
-    // @Scheduled("0 0 0")
+    /** 每日凌晨检查数据库，检查表分区信息 */
+    @Scheduled("0 0 0")
     public void scheduled() {
         List<GameRecord> gameRecords = pgsqlService.findAll(GameRecord.class);
         for (GameRecord gameRecord : gameRecords) {
@@ -87,16 +89,11 @@ public class GameService {
             LocalDateTime localDate = LocalDateTime.now();
             for (int i = 0; i < 50; i++) {
                 /*创建表分区*/
-                String form = MyClock.formatDate("yyyyMMdd", localDate);
+                String from = MyClock.formatDate("yyyyMMdd", localDate);
                 localDate = localDate.plusDays(1);
                 String to = MyClock.formatDate("yyyyMMdd", localDate);
-                String partition_table_name = entry.getKey() + "_" + form;
-                if (dbTableMap.containsKey(partition_table_name))
-                    continue;
-                String string = "CREATE TABLE %s PARTITION OF %s FOR VALUES FROM (%s) TO (%s)"
-                        .formatted(partition_table_name, entry.getKey(), form, to);
-                dataHelper.executeUpdate(string);
-                log.info("数据库 {} 表 {} 创建分区 {}", dataHelper.getDbName(), entry.getKey(), partition_table_name);
+                dataHelper.addPartition(dbTableMap, entry.getKey(), from, to);
+                log.info("数据库 {} 表 {} 创建分区 from:{} to: {}", dataHelper.getDbName(), entry.getKey(), from, to);
             }
         }
     }
