@@ -9,6 +9,19 @@
     "virtualCoreSize": 100,
     "virtualMaxSize": 200
   },
+  "scheduled": {
+    "coreSize": 1
+  },
+  "http.client": {
+    "core": 20,
+    "max": 300,
+    "resetTimeM": 30,
+    "connectionRequestTimeout": 1000,
+    "connectTimeOut": 3000,
+    "readTimeout": 3000,
+    "keepAliveTimeout": 30000,
+    "sslProtocol": "TLS"
+  },
   "socket.server": {
     "debug": false,
     "port": 19000,
