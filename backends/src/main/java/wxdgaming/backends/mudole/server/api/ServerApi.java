@@ -6,8 +6,8 @@ import wxdgaming.backends.entity.logs.ServerRecord;
 import wxdgaming.backends.mudole.game.GameService;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.lang.RunResult;
-import wxdgaming.boot2.starter.net.server.ann.HttpRequest;
-import wxdgaming.boot2.starter.net.server.ann.RequestMapping;
+import wxdgaming.boot2.starter.net.ann.HttpRequest;
+import wxdgaming.boot2.starter.net.ann.RequestMapping;
 import wxdgaming.boot2.starter.net.server.http.HttpContext;
 
 /**

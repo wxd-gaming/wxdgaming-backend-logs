@@ -1,4 +1,6 @@
 {
+  "debug": true,
+  "sid": 1,
   "executor": {
     "defaultCoreSize": 2,
     "defaultMaxSize": 4,
@@ -10,18 +12,40 @@
   "socket.server": {
     "debug": false,
     "port": 19000,
+    "enabledTcp": false,
     "enabledHttp": true,
     "enabledWebSocket": false,
-    "idleTimeout": 0,
-    "maxAggregatorLength": 64,
-    "maxFrameBytes": -1,
-    "maxFrameLength": -1,
-    "readTimeout": 0,
+    "webSocketPrefix": "",
     "sslProtocolType": null,
     "sslKeyStorePath": "",
     "sslPasswordPath": "",
+    "maxFrameBytes": -1,
+    "maxFrameLength": -1,
+    "maxAggregatorLength": 64,
+    "readTimeout": 0,
+    "writeTimeout": 0,
+    "idleTimeout": 0
+  },
+  "socket.client": {
+    "debug": false,
+    "host": "127.0.0.1",
+    "port": 0,
+    "enabledTcp": true,
+    "enabledWebSocket": false,
     "webSocketPrefix": "",
-    "writeTimeout": 0
+    "enableReconnection": true,
+    "enabledSSL": true,
+    "sslProtocolType": "TLS",
+    "sslKeyStorePath": "",
+    "sslPasswordPath": "",
+    "maxFrameBytes": -1,
+    "maxFrameLength": -1,
+    "maxAggregatorLength": 64,
+    "maxConnectionCount": 1,
+    "readTimeout": 0,
+    "writeTimeout": 0,
+    "idleTimeout": 0,
+    "connectTimeout": 500
   },
   "db.pgsql": {
     "debug": true,
@@ -29,8 +53,10 @@
     "url": "jdbc:postgresql://192.168.137.10:5432/backend",
     "username": "postgres",
     "password": "test",
-    "maxPoolSize": 20,
+    "connectionTimeoutMs": 2000,
     "minPoolSize": 5,
+    "maxPoolSize": 20,
+    "idleTimeoutM": 10,
     "scanPackage": "wxdgaming.backends.entity.system"
   },
   "other": {

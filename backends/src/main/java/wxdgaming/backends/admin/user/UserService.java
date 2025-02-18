@@ -8,6 +8,7 @@ import wxdgaming.boot2.core.BootConfig;
 import wxdgaming.boot2.core.ann.Sort;
 import wxdgaming.boot2.core.ann.Start;
 import wxdgaming.boot2.core.format.HexId;
+import wxdgaming.boot2.core.util.AssertUtil;
 import wxdgaming.boot2.core.util.Md5Util;
 import wxdgaming.boot2.starter.batis.sql.JdbcCache;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
@@ -35,7 +36,9 @@ public class UserService {
     public UserService(PgsqlService pgsqlService) {
         this.pgsqlService = pgsqlService;
         ROOT = BootConfig.getIns().getNestedValue("other.root", String.class);
+        AssertUtil.assertNull(ROOT, "json path=other.root root 账号配置异常");
         PWDKEY = BootConfig.getIns().getNestedValue("other.pwd-key", String.class);
+        AssertUtil.assertNull(ROOT, "json path=other.pwd-key 密码 md5 私钥配置异常");
         userCache = new JdbcCache<User, String>(this.pgsqlService, 120/*120分钟*/) {
             @Override protected User loader(String account) {
                 return pgsqlService.findByWhere(User.class, "account = ?", account);

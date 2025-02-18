@@ -13,8 +13,8 @@ import wxdgaming.boot2.core.util.JwtUtils;
 import wxdgaming.boot2.core.util.Md5Util;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
 import wxdgaming.boot2.starter.net.http.HttpHeadNameType;
-import wxdgaming.boot2.starter.net.server.ann.HttpRequest;
-import wxdgaming.boot2.starter.net.server.ann.RequestMapping;
+import wxdgaming.boot2.starter.net.ann.HttpRequest;
+import wxdgaming.boot2.starter.net.ann.RequestMapping;
 import wxdgaming.boot2.starter.net.server.http.HttpContext;
 
 import java.util.concurrent.TimeUnit;

@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import wxdgaming.backends.admin.login.LoginService;
 import wxdgaming.boot2.core.lang.RunResult;
-import wxdgaming.boot2.starter.net.server.ann.HttpRequest;
+import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.server.http.HttpContext;
 import wxdgaming.boot2.starter.net.server.http.HttpFilter;
 

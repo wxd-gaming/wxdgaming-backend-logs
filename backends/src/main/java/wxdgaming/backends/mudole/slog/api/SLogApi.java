@@ -14,11 +14,11 @@ import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
 import wxdgaming.boot2.core.io.Objects;
 import wxdgaming.boot2.core.lang.RunResult;
-import wxdgaming.boot2.core.threading.ThreadInfo;
+import wxdgaming.boot2.core.threading.ExecutorWith;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
-import wxdgaming.boot2.starter.net.server.ann.HttpRequest;
-import wxdgaming.boot2.starter.net.server.ann.RequestMapping;
+import wxdgaming.boot2.starter.net.ann.HttpRequest;
+import wxdgaming.boot2.starter.net.ann.RequestMapping;
 import wxdgaming.boot2.starter.net.server.http.HttpContext;
 
 import java.time.LocalDate;
@@ -45,7 +45,7 @@ public class SLogApi {
     }
 
     @HttpRequest()
-    @ThreadInfo(vt = true)
+    @ExecutorWith(useVirtualThread = true)
     public RunResult push(HttpContext httpContext, @Body SLog sLog) {
 
         log.info("sLog - {}", sLog.toJsonString());
@@ -77,7 +77,7 @@ public class SLogApi {
     }
 
     @HttpRequest()
-    @ThreadInfo(vt = true)
+    @ExecutorWith(useVirtualThread = true)
     public RunResult list(HttpContext httpSession,
                           @Param("gameId") Integer gameId,
                           @Param("logType") String logType,
