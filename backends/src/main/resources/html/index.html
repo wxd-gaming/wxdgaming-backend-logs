@@ -34,7 +34,7 @@
                     if (responseText.code === 1) {
                         getMenu();
                     } else {
-                        wxd.message.alert(responseText.error, "Error", "确认", () => {
+                        wxd.message.alert(responseText.msg, "Error", "确认", () => {
                             window.top.location.href = "/login.html";
                         });
                     }

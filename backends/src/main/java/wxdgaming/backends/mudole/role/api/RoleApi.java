@@ -5,7 +5,9 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.entity.logs.RoleRecord;
-import wxdgaming.backends.mudole.game.GameService;
+import wxdgaming.backends.entity.system.User;
+import wxdgaming.backends.admin.game.GameService;
+import wxdgaming.backends.mudole.role.RoleService;
 import wxdgaming.backends.mudole.slog.SLogService;
 import wxdgaming.boot2.core.ann.Body;
 import wxdgaming.boot2.core.ann.Param;
@@ -36,64 +38,83 @@ public class RoleApi {
 
     final GameService gameService;
     final SLogService SLogService;
+    final RoleService roleService;
 
     @Inject
-    public RoleApi(GameService gameService, SLogService SLogService) {
+    public RoleApi(GameService gameService, SLogService SLogService, RoleService roleService) {
         this.gameService = gameService;
         this.SLogService = SLogService;
+        this.roleService = roleService;
     }
 
-    @HttpRequest
+    @HttpRequest(authority = 2)
     @ExecutorWith(useVirtualThread = true)
-    public RunResult push(HttpContext httpContext, @Body RoleRecord roleRecord) {
+    public RunResult push(HttpContext httpContext, @Body RoleRecord record) {
 
-        log.info("role - {}", roleRecord.toJsonString());
+        log.info("role - {}", record.toJsonString());
 
-        if (roleRecord.getGameId() == 0) return RunResult.error("gameId is null");
-        if (StringUtils.isBlank(roleRecord.getToken())) return RunResult.error("token is null");
+        if (record.getGameId() == 0) return RunResult.error("gameId is null");
+        if (StringUtils.isBlank(record.getToken())) return RunResult.error("token is null");
 
-        PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(roleRecord.getGameId());
+        PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(record.getGameId());
 
-        RoleRecord entity = pgsqlDataHelper.findByWhere(
-                RoleRecord.class,
-                "account = ? AND  roleid= ? AND createsid=?",
-                roleRecord.getAccount(), roleRecord.getRoleId(), roleRecord.getCreateSid()
-        );
+        record.setLogTime(System.currentTimeMillis());
 
-        roleRecord.setLogTime(System.currentTimeMillis());
+        RoleRecord entity = roleService.roleRecord(record.getGameId(), record.getAccount(), record.getRoleId());
 
         if (entity == null) {
-            if (roleRecord.getUid() == 0) {
-                long newId = gameService.newId(roleRecord.getGameId());
-                roleRecord.setUid(newId);
+            if (record.getUid() == 0) {
+                long newId = gameService.newId(record.getGameId());
+                record.setUid(newId);
             }
-            if (roleRecord.getCreateTime() == 0) {
-                roleRecord.setCreateTime(System.currentTimeMillis());
+            if (record.getCreateTime() == 0) {
+                record.setCreateTime(System.currentTimeMillis());
             }
-            pgsqlDataHelper.insert(roleRecord);
+            pgsqlDataHelper.getSqlDataBatch().insert(record);
             return RunResult.ok().msg("新增");
         } else {
-            roleRecord.setUid(entity.getUid());
-            roleRecord.setCreateTime(Math.min(roleRecord.getCreateTime(), entity.getCreateTime()));
-            roleRecord.setCreateSid(entity.getCreateSid());
-            pgsqlDataHelper.update(roleRecord);
+            record.setUid(entity.getUid());
+            record.setAccount(entity.getAccount());
+            record.setCreateTime(Math.min(record.getCreateTime(), entity.getCreateTime()));
+            record.setCreateSid(entity.getCreateSid());
+            pgsqlDataHelper.getSqlDataBatch().update(record);
             return RunResult.ok().msg("修改");
         }
     }
 
-    @HttpRequest
-    public RunResult list(HttpContext httpContext,
-                          @Param("gameId") Integer gameId,
-                          @Param(value = "account", required = false) String account,
-                          @Param(value = "roleId", required = false) String roleId,
-                          @Param(value = "roleName", required = false) String roleName,
-                          @Param(value = "curSid", required = false) int curSid,
-                          @Param(value = "createSid", required = false) int createSid) {
+    @HttpRequest(authority = 2)
+    public RunResult delete(HttpContext httpContext,
+                            @Param(path = "gameId") Integer gameId,
+                            @Param(path = "account") String account,
+                            @Param(path = "roleId") String roleId) {
 
-        log.info("{}", (Object) ThreadContext.context("user"));
+        User user = ThreadContext.context("user");
+        log.info("{}", user);
 
         PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
-        List<RoleRecord> accountRecords;
+        RoleRecord entity = roleService.roleRecord(gameId, account, roleId);
+        if (entity != null) {
+            entity.setDel(1);
+            pgsqlDataHelper.getSqlDataBatch().update(entity);
+            return RunResult.ok();
+        }
+        return RunResult.error("角色不存在");
+    }
+
+    @HttpRequest
+    public RunResult list(HttpContext httpContext,
+                          @Param(path = "gameId") Integer gameId,
+                          @Param(path = "account", required = false) String account,
+                          @Param(path = "roleId", required = false) String roleId,
+                          @Param(path = "roleName", required = false) String roleName,
+                          @Param(path = "curSid", required = false) int curSid,
+                          @Param(path = "createSid", required = false) int createSid) {
+
+        User user = ThreadContext.context("user");
+        log.info("{}", user);
+
+        PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
+
         String sqlWhere = "";
         Object[] args = new Object[1];
         if (StringUtils.isNotBlank(account)) {
@@ -134,10 +155,11 @@ public class RoleApi {
             args[args.length - 1] = createSid;
         }
 
+        List<RoleRecord> accountRecords;
         if (StringUtils.isBlank(sqlWhere)) {
-            accountRecords = pgsqlDataHelper.findAll(RoleRecord.class);
+            accountRecords = pgsqlDataHelper.findList(RoleRecord.class);
         } else {
-            accountRecords = pgsqlDataHelper.findListByWhere(RoleRecord.class, sqlWhere, args);
+            accountRecords = pgsqlDataHelper.findListBySql(RoleRecord.class, sqlWhere, args);
         }
 
         List<JSONObject> list = accountRecords.stream()

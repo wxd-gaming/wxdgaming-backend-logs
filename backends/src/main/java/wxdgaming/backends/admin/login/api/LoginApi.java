@@ -40,7 +40,7 @@ public class LoginApi {
     }
 
     @HttpRequest
-    public RunResult login(HttpContext httpContext, @Param(value = "account") String account, @Param(value = "pwd") String pwd) {
+    public RunResult login(HttpContext httpContext, @Param(path = "account") String account, @Param(path = "pwd") String pwd) {
         User user = dataHelper.findByWhere(User.class, "account = ?", account);
         if (user == null) {
             return RunResult.error("账号不存在");

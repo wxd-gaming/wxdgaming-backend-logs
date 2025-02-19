@@ -2,6 +2,7 @@ package wxdgaming.backends.entity.logs;
 
 import lombok.Getter;
 import lombok.Setter;
+import wxdgaming.backends.entity.RecordBase;
 import wxdgaming.boot2.starter.batis.ColumnType;
 import wxdgaming.boot2.starter.batis.EntityLongUID;
 import wxdgaming.boot2.starter.batis.ann.DbColumn;
@@ -16,7 +17,7 @@ import wxdgaming.boot2.starter.batis.ann.DbTable;
 @Getter
 @Setter
 @DbTable(tableName = "server_record")
-public class ServerRecord extends EntityLongUID {
+public class ServerRecord extends RecordBase {
 
     /** 是否启用 */
     @DbColumn(index = true)
@@ -25,43 +26,43 @@ public class ServerRecord extends EntityLongUID {
     @DbColumn(index = true)
     private int ordinal;
     /** 平台 */
-    @DbColumn(columnType = ColumnType.String, length = 128)
+    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String platform;
     /** 服务器id */
-    @DbColumn(columnType = ColumnType.String, length = 128)
+    @DbColumn(index = true)
     private int sid;
     /** 服务器id */
-    @DbColumn(columnType = ColumnType.String, length = 128)
+    @DbColumn(index = true)
     private int mainSid;
     /** 服务器名字 */
-    @DbColumn(columnType = ColumnType.String, length = 128)
+    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String name;
     /** 服务器显示名 */
-    @DbColumn(columnType = ColumnType.String, length = 128)
+    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String showName;
     /** 开服时间 */
-    @DbColumn(columnType = ColumnType.String, length = 128)
+    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String openTime;
     /** 维护时间 */
-    @DbColumn(columnType = ColumnType.String, length = 128)
+    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String maintainTime;
     /** ip */
-    @DbColumn(columnType = ColumnType.String, length = 128)
+    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String wlan;
     /** ip */
-    @DbColumn(columnType = ColumnType.String, length = 128)
+    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String lan;
     /** 端口 */
-    @DbColumn()
+    @DbColumn(index = true)
     private int port;
     /** web 端口 */
-    @DbColumn()
+    @DbColumn(index = true)
     private int webPort;
     /** 状态 */
-    @DbColumn()
+    @DbColumn(index = true)
     private String status;
     /** 版本 */
-    @DbColumn(columnType = ColumnType.String, length = 128)
+    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String version;
     /** 注册账户 */
     @DbColumn()

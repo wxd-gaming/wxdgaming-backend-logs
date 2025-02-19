@@ -1,7 +1,11 @@
 package wxdgaming.backends.mudole.role;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import wxdgaming.backends.entity.logs.RoleRecord;
+import wxdgaming.backends.admin.game.GameService;
+import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 
 /**
  * 角色服务
@@ -12,4 +16,23 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Singleton
 public class RoleService {
+
+    final GameService gameService;
+
+    @Inject
+    public RoleService(GameService gameService) {
+        this.gameService = gameService;
+    }
+
+
+    public RoleRecord roleRecord(Integer gameId, String account, String roleId) {
+        PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
+
+        return pgsqlDataHelper.findByWhere(
+                RoleRecord.class,
+                "account = ? AND  roleid= ?",
+                account, roleId
+        );
+    }
+
 }

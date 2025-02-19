@@ -4,14 +4,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.logs.SLog;
 import wxdgaming.backends.entity.system.GameRecord;
-import wxdgaming.backends.mudole.game.GameService;
 import wxdgaming.backends.mudole.slog.SLogService;
 import wxdgaming.boot2.core.ann.Body;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.chatset.StringUtils;
-import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
 import wxdgaming.boot2.core.io.Objects;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.ExecutorWith;
@@ -44,21 +43,10 @@ public class SLogApi {
         this.SLogService = SLogService;
     }
 
-    @HttpRequest()
+    @HttpRequest(authority = 2)
     @ExecutorWith(useVirtualThread = true)
     public RunResult push(HttpContext httpContext, @Body SLog sLog) {
-
         log.info("sLog - {}", sLog.toJsonString());
-
-        if (sLog.getGameId() == 0) return RunResult.error("gameId is null");
-        if (StringUtils.isBlank(sLog.getToken())) return RunResult.error("token is null");
-
-        GameRecord gameRecord = this.gameService.getGameId2GameRecordMap().get(sLog.getGameId());
-        if (gameRecord == null)
-            return RunResult.error("gameId is error");
-
-        if (Objects.equals(gameRecord.getLogToken(), sLog.getToken()))
-            return RunResult.error("game log token error");
 
         PgsqlDataHelper pgsqlDataHelper = this.gameService.pgsqlDataHelper(sLog.getGameId());
 
@@ -79,14 +67,14 @@ public class SLogApi {
     @HttpRequest()
     @ExecutorWith(useVirtualThread = true)
     public RunResult list(HttpContext httpSession,
-                          @Param("gameId") Integer gameId,
-                          @Param("logType") String logType,
-                          @Param("pageIndex") Integer pageIndex,
-                          @Param("pageSize") Integer pageSize,
-                          @Param(value = "account", required = false) String account,
-                          @Param(value = "roleId", required = false) String roleId,
-                          @Param(value = "roleName", required = false) String roleName,
-                          @Param(value = "dataJson", required = false) String dataJson) {
+                          @Param(path = "gameId") Integer gameId,
+                          @Param(path = "logType") String logType,
+                          @Param(path = "pageIndex") Integer pageIndex,
+                          @Param(path = "pageSize") Integer pageSize,
+                          @Param(path = "account", required = false) String account,
+                          @Param(path = "roleId", required = false) String roleId,
+                          @Param(path = "roleName", required = false) String roleName,
+                          @Param(path = "dataJson", required = false) String dataJson) {
 
         if (gameId == null || gameId == 0) return RunResult.error("gameId is null");
 
@@ -153,14 +141,10 @@ public class SLogApi {
 
         long rowCount = pgsqlDataHelper.tableCount(logType, sqlWhere, args);
 
-        List<SLog> slogs = pgsqlDataHelper.findListBySql(
-                SLog.class,
-                sql,
-                args
-        );
+        List<SLog> slogs = pgsqlDataHelper.findListBySql(SLog.class, sql, args);
 
         List<JSONObject> list = slogs.stream()
-                .map(FastJsonUtil::toJSONObject)
+                .map(SLog::toJSONObject)
                 .peek(jsonObject -> {
                     jsonObject.put("logTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("logTime")));
                     jsonObject.put("data", jsonObject.getString("data"));

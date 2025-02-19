@@ -16,25 +16,29 @@ import wxdgaming.boot2.core.util.RandomUtils;
 @Slf4j
 public class AccountApiTest extends GameApiTest {
 
-    protected String account = "wxd-gaming";
-
     @Test
-    public void pushAccount() {
-        AccountRecord record = new AccountRecord();
-        record.setGameId(gameId);
-        record.setToken(appToken);
-        record.setAccount(account);
-        record.setLastJoinSid(RandomUtils.random(1, 100));
-        record.setLastJoinTime(System.currentTimeMillis());
-        record.getData().fluentPut("channel", "huawei").fluentPut("os", "huawei");
-        push("account/push", record);
+    public void pushAccount() throws Exception {
+        String logToken = findLogToken();
+        pushAccount(logToken);
     }
 
     @Test
     @RepeatedTest(100)
-    public void pushAccountList() {
-        account = StringUtils.randomString(18);
-        pushAccount();
+    public void pushAccountList() throws Exception {
+        String logToken = findLogToken();
+        pushAccount(logToken);
     }
+
+    public void pushAccount(String loginToken) throws Exception {
+        AccountRecord record = new AccountRecord();
+        record.setGameId(gameId);
+        record.setToken(loginToken);
+        record.setAccount(StringUtils.randomString(8));
+        record.setLastJoinSid(RandomUtils.random(1, 100));
+        record.setLastJoinTime(System.currentTimeMillis());
+        record.getData().fluentPut("channel", "huawei").fluentPut("os", "huawei");
+        post("account/push", record);
+    }
+
 
 }

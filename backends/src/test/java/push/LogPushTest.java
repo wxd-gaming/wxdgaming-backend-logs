@@ -3,16 +3,18 @@ package push;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import org.junit.jupiter.api.RepeatedTest;
 import wxdgaming.backends.entity.logs.SLog;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.collection.MapOf;
 import wxdgaming.boot2.core.format.HexId;
 import wxdgaming.boot2.core.util.RandomUtils;
-import wxdgaming.boot2.starter.net.httpclient.HttpBuilder;
+import wxdgaming.boot2.starter.net.httpclient.PostText;
+import wxdgaming.boot2.starter.net.httpclient.Response;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 日志push
@@ -26,13 +28,23 @@ public class LogPushTest extends RoleApiTest {
     static HexId hexId = new HexId(1);
 
     @Test
-    @RepeatedTest(590000)
     public void pushItemLog() {
-        AtomicInteger forCount = new AtomicInteger(50);
-        int ff = forCount.get();
-        for (int i = 0; i < ff; i++) {
+        String logToken = findLogToken();
+        pushItemLog(logToken, 1);
+    }
 
-            // List<String> strings = List.of("item_log");
+    @Test
+    public void pushItemLogList() {
+        String logToken = findLogToken();
+        for (int i = 0; i < 50000; i++) {
+            pushItemLog(logToken, 100);
+        }
+    }
+
+
+    public void pushItemLog(String logToken, int count) {
+        List<CompletableFuture<Response<PostText>>> futures = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
             SLog sLog = new SLog();
             sLog.setGameId(gameId);
             sLog.setToken(logToken);
@@ -51,27 +63,34 @@ public class LogPushTest extends RoleApiTest {
                     .fluentPut("bind", "true");
 
             String json = sLog.toJsonString();
-            // log.info("{}", json);
-            // HttpBuilder.postJson("http://127.0.0.1:19000/log/push", json).request().bodyString();
-            // forCount.decrementAndGet();
-
-            HttpBuilder.postJson("http://127.0.0.1:19000/log/push", json)
-                    .retry(2)
-                    .async()
-                    .whenComplete((resp, throwable) -> {
-                        forCount.decrementAndGet();
-                        System.out.println(resp.bodyString());
-                    });
+            CompletableFuture<Response<PostText>> async = post("log/push", json);
+            futures.add(async);
         }
-        while (forCount.get() > 0) {}
+        for (CompletableFuture<Response<PostText>> future : futures) {
+            Response<PostText> join = future.join();
+            if (join.responseCode() != 200 || join.bodyRunResult().code() != 1) {
+                log.error("{}", join.bodyString());
+            }
+        }
     }
 
     @Test
-    @RepeatedTest(9)
     public void pushLoginLog() {
-        AtomicInteger forCount = new AtomicInteger(50);
-        int ff = forCount.get();
-        for (int i = 0; i < ff; i++) {
+        String logToken = findLogToken();
+        pushLoginLog(logToken, 1);
+    }
+
+    @Test
+    public void pushLoginLogList() {
+        String logToken = findLogToken();
+        for (int i = 0; i < 50000; i++) {
+            pushLoginLog(logToken, 100);
+        }
+    }
+
+    public void pushLoginLog(String logToken, int count) {
+        List<CompletableFuture<Response<PostText>>> futures = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
 
             // List<String> strings = List.of("item_log");
             SLog sLog = new SLog();
@@ -94,21 +113,16 @@ public class LogPushTest extends RoleApiTest {
                     .fluentPut("login_channel", "google")
                     .fluentPut("login_version", "1.0.0")
             ;
-
             String json = sLog.toJsonString();
-            // log.info("{}", json);
-            // HttpBuilder.postJson("http://127.0.0.1:19000/log/push", json).request().bodyString();
-            // forCount.decrementAndGet();
-
-            HttpBuilder.postJson("http://127.0.0.1:19000/log/push", json)
-                    .retry(2)
-                    .async()
-                    .whenComplete((resp, throwable) -> {
-                        forCount.decrementAndGet();
-                        System.out.println(resp.bodyString());
-                    });
+            CompletableFuture<Response<PostText>> async = post("log/push", json);
+            futures.add(async);
         }
-        while (forCount.get() > 0) {}
+        for (CompletableFuture<Response<PostText>> future : futures) {
+            Response<PostText> join = future.join();
+            if (join.responseCode() != 200) {
+                log.error("{}", join.bodyString());
+            }
+        }
     }
 
     @Test

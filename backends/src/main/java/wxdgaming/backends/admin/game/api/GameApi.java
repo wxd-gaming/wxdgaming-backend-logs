@@ -1,12 +1,13 @@
-package wxdgaming.backends.mudole.game.api;
+package wxdgaming.backends.admin.game.api;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.system.GameRecord;
-import wxdgaming.backends.mudole.game.GameService;
 import wxdgaming.boot2.core.ann.Body;
+import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
 import wxdgaming.boot2.core.lang.RunResult;
@@ -39,9 +40,9 @@ public class GameApi {
         this.pgsqlService = pgsqlService;
     }
 
-    @HttpRequest
+    @HttpRequest(authority = 9)
     public RunResult push(HttpContext session, @Body GameRecord gameRecord) {
-        GameRecord queryEntity = pgsqlService.findById(GameRecord.class, gameRecord.getUid());
+        GameRecord queryEntity = gameService.gameRecord(gameRecord.getUid().intValue());
         if (queryEntity == null) {
             gameRecord.setCreateTime(System.currentTimeMillis());
             gameRecord.setAppToken(StringUtils.randomString(12));
@@ -51,7 +52,7 @@ public class GameApi {
             gameService.addGameCache(gameRecord);
         } else {
             gameRecord.setUid(queryEntity.getUid());
-            gameRecord.setCreateTime(Math.min(gameRecord.getCreateTime(), queryEntity.getCreateTime()));
+            gameRecord.setCreateTime(queryEntity.getCreateTime());
             gameRecord.setTableMapping(queryEntity.getTableMapping());
             gameRecord.setAppToken(queryEntity.getAppToken());
             gameRecord.setRechargeToken(queryEntity.getRechargeToken());
@@ -62,7 +63,13 @@ public class GameApi {
         return RunResult.ok();
     }
 
-    @HttpRequest
+    @HttpRequest(authority = 9)
+    public RunResult find(HttpContext session, @Param(path = "gameId") int gameId) {
+        GameRecord entity = gameService.gameRecord(gameId);
+        return RunResult.ok().data(entity);
+    }
+
+    @HttpRequest(authority = 9)
     public RunResult menu(HttpContext session) {
         List<JSONObject> list = gameService.getGameId2GameRecordMap().values().stream()
                 .map(FastJsonUtil::toJSONObject)
@@ -74,7 +81,7 @@ public class GameApi {
         return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", list.size());
     }
 
-    @HttpRequest
+    @HttpRequest(authority = 9)
     public RunResult list(HttpContext session) {
         List<JSONObject> list = gameService.getGameId2GameRecordMap().values().stream()
                 .map(FastJsonUtil::toJSONObject)
@@ -85,7 +92,7 @@ public class GameApi {
         return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", list.size());
     }
 
-    @HttpRequest
+    @HttpRequest(authority = 9)
     public RunResult addLogType(HttpContext session, JSONObject data) {
         Integer gameId = data.getInteger("gameId");
         String token = data.getString("token");
@@ -106,7 +113,7 @@ public class GameApi {
         return RunResult.ok();
     }
 
-    @HttpRequest
+    @HttpRequest(authority = 9)
     public RunResult listLogType(HttpContext session, JSONObject data) {
         Integer gameId = data.getInteger("gameId");
         String token = data.getString("token");

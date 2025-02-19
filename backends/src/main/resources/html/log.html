@@ -14,7 +14,7 @@
     <link rel="stylesheet" type="text/css" href="/style/table.css"/>
 
     <style>
-        html, body {display: block;width: 100%;height: 100%;overflow: hidden;overflow-x: auto;background: rgba(214, 213, 213, 0.7);}
+        html, body {display: block;width: 100%;height: 100%;overflow: hidden;overflow-x: auto;background: rgb(255, 255, 255);}
 
         html, body, div, table, tr, td {margin: 0;border: 0;box-sizing: border-box;}
 
@@ -71,7 +71,7 @@
             wxd.netty.post(url, urlQuery.toString(),
                 function (responseText) {
                     if (responseText.code !== 1) {
-                        wxd.message.alert("异常：" + responseText.error);
+                        wxd.message.alert("异常：" + responseText.msg);
                         return
                     }
                     items = responseText.data;
@@ -140,10 +140,10 @@
         function createRow(index, row) {
             let tr = `
     <tr>
-        <td style="width: 140px;">
+        <td style="width: 70px;">
             <a href="#" onclick="ban('/gm/001/002/003/banLogin', '${row.uid}');return false;" title="删除">删除</a>
         </td>
-        <td tips="true" style="width: 40px;">${index}</td>
+        <td tips="true" style="width: 70px;">${index}</td>
         <td tips="true" style="width: 140px;">${row.logTime}</td>
         <td tips="true" style="width: 200px;">${row.account}</td>
         <td tips="true" style="width: 140px;">${row.roleId}</td>
@@ -179,12 +179,12 @@
     <br>
     <input id="dataJson" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="a=b"/>
 </div>
-<div class="tableDom" style="position: absolute;left: 10px;top: 150px;right: 15px;bottom: 35px;">
+<div class="tableDom" style="position: absolute;left: 10px;top: 100px;right: 15px;bottom: 35px;">
     <table>
         <thead>
         <tr>
-            <th style="width: 140px;">操作</th>
-            <th style="width: 40px;">序号</th>
+            <th style="width: 70px;">操作</th>
+            <th style="width: 70px;">序号</th>
             <th style="width: 140px;">日志时间</th>
             <th style="width: 200px;">账号</th>
             <th style="width: 140px;">角色ID</th>

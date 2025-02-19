@@ -41,7 +41,7 @@
                     if (responseText.code === 1) {
                         window.top.location.href = "/index.html";
                     } else {
-                        wxd.message.alert(responseText.error);
+                        wxd.message.alert(responseText.msg);
                     }
                 }, function (error) {
                     wxd.message.alert(error);

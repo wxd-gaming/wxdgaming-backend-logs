@@ -1,6 +1,7 @@
 package push;
 
 import com.alibaba.fastjson.JSONObject;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import wxdgaming.backends.entity.RecordBase;
@@ -10,8 +11,13 @@ import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.ExecutorConfig;
 import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.starter.net.httpclient.HttpBuilder;
+import wxdgaming.boot2.starter.net.httpclient.PostText;
+import wxdgaming.boot2.starter.net.httpclient.Response;
 
 import java.util.LinkedHashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * test
@@ -23,46 +29,98 @@ import java.util.LinkedHashMap;
 public class GameApiTest {
 
     protected int gameId = 2;
-    protected String appToken = "34g3fy";
-    protected String logToken = "42e8sxgm5FVF18b3iSNQVR0jof3FIUMgD6p922pUm36aubm70Tn5C7A5b3m8NlaE";
+
+    protected AtomicBoolean logined = new AtomicBoolean();
 
     static {
-        ExecutorUtil.init(new ExecutorConfig());
+        ExecutorUtil.init(ExecutorConfig.INSTANCE);
     }
 
-    public String push(String path, RecordBase base) {
-
+    public void post(String path, RecordBase base) throws Exception {
         String json = base.toJsonString();
-        return push(path, json);
+        CompletableFuture<Response<PostText>> post = post(path, json);
+        Response<PostText> postTextResponse = post.join();
+        postTextResponse.systemOut();
     }
 
-    public String push(String path, String json) {
-        System.out.println(json);
-        String string = HttpBuilder.postJson("http://127.0.0.1:19000/" + path, json)
-                .retry(2)
-                .request()
-                .bodyString();
-        System.out.println(string);
-        return string;
+    public CompletableFuture<Response<PostText>> post(String path, String json) {
+        login();
+        if (path.startsWith("/")) path = path.substring(1);
+        return  HttpBuilder.postJson("http://127.0.0.1:19000/" + path, json)
+                .readTimeout(10000)
+                // .header(HttpHeaderNames.AUTHORIZATION.toString(), token)
+                .async();
     }
+
 
     public JSONObject listLogType() {
         JSONObject jsonObject = MapOf.newJSONObject();
         jsonObject
                 .fluentPut("gameId", gameId)
-                .fluentPut("token", appToken);
+                .fluentPut("token", findAppToken());
 
-        String push = push("game/listLogType", jsonObject.toJSONString());
+        String push = HttpBuilder.postJson("game/listLogType", jsonObject.toJSONString()).request().bodyString();
         RunResult runResult = RunResult.parse(push);
         if (runResult.code() != 1)
             throw new RuntimeException(runResult.msg());
         return runResult.data(JSONObject.class);
     }
 
+    public String findAppToken() {
+        login();
+        JSONObject jsonObject = MapOf.newJSONObject().fluentPut("gameId", gameId);
+        Response<PostText> postTextResponse = HttpBuilder
+                .postJson(
+                        "http://127.0.0.1:19000/game/find",
+                        jsonObject.toJSONString()
+                )
+                .request();
+        int i = postTextResponse.responseCode();
+        RunResult runResult = RunResult.parse(postTextResponse.bodyString());
+        if (runResult.code() != 1)
+            throw new RuntimeException(runResult.msg());
+        String appToken = runResult.getNestedValue("data.appToken", String.class);
+        System.out.println("token: " + appToken);
+        return appToken;
+    }
+
+    public String findLogToken() {
+        login();
+        JSONObject jsonObject = MapOf.newJSONObject().fluentPut("gameId", gameId);
+        Response<PostText> postTextResponse = HttpBuilder.postJson("http://127.0.0.1:19000/game/find", jsonObject.toJSONString())
+                .request();
+        int i = postTextResponse.responseCode();
+        RunResult runResult = RunResult.parse(postTextResponse.bodyString());
+        if (runResult.code() != 1)
+            throw new RuntimeException(runResult.msg());
+        String logToken = runResult.getNestedValue("data.logToken", String.class);
+        System.out.println("token: " + logToken);
+        return logToken;
+    }
+
+    public void login() {
+        if (logined.get()) {
+            return;
+        }
+        JSONObject jsonObject = MapOf.newJSONObject();
+        jsonObject
+                .fluentPut("account", "wxdgaming")
+                .fluentPut("pwd", "123456");
+        Response<PostText> postTextResponse = HttpBuilder.postJson("http://127.0.0.1:19000/login", jsonObject.toJSONString())
+                .request();
+        int i = postTextResponse.responseCode();
+        String token = postTextResponse.cookie(HttpHeaderNames.AUTHORIZATION.toString());
+        RunResult runResult = RunResult.parse(postTextResponse.bodyString());
+        if (runResult.code() != 1)
+            throw new RuntimeException(runResult.msg());
+        System.out.println("token: " + token);
+        logined.set(true);
+    }
+
     @Test
-    public void pushGame() {
+    public void pushGame() throws Exception {
         GameRecord gameRecord = new GameRecord();
-        gameRecord.setUid(2L);
+        gameRecord.setUid(9L);
         gameRecord.setName("野火燎原");
         gameRecord.setIcon("icon");
         gameRecord.setDesc("desc");
@@ -73,7 +131,7 @@ public class GameApiTest {
         tableMapping.put("log_pay", "支付日志");
         tableMapping.put("log_login", "登录日志");
 
-        push("game/push", gameRecord);
+        post("game/push", gameRecord);
     }
 
     @Test
@@ -81,11 +139,11 @@ public class GameApiTest {
         JSONObject jsonObject = MapOf.newJSONObject();
         jsonObject
                 .fluentPut("gameId", gameId)
-                .fluentPut("token", appToken)
+                .fluentPut("token", findAppToken())
                 .fluentPut("logType", "log_lv")
                 .fluentPut("logComment", "等级日志");
 
-        push("game/addLogType", jsonObject.toJSONString());
+        post("game/addLogType", jsonObject.toJSONString());
     }
 
 

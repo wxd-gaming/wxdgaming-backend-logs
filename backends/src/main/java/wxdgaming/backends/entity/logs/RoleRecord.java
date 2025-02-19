@@ -60,4 +60,8 @@ public class RoleRecord extends RecordBase {
     @JSONField(ordinal = 13)
     @DbColumn(columnType = ColumnType.Json)
     private final JSONObject data = MapOf.newJSONObject();
+
+    @JSONField(ordinal = 14)
+    @DbColumn(index = true)
+    private int del;
 }

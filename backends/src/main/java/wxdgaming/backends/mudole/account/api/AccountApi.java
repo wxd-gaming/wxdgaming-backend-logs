@@ -4,8 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.logs.AccountRecord;
-import wxdgaming.backends.mudole.game.GameService;
 import wxdgaming.backends.mudole.slog.SLogService;
 import wxdgaming.boot2.core.ann.Body;
 import wxdgaming.boot2.core.ann.Param;
@@ -40,7 +40,7 @@ public class AccountApi {
         this.SLogService = SLogService;
     }
 
-    @HttpRequest
+    @HttpRequest(authority = 2)
     public RunResult push(HttpContext httpContext, @Body AccountRecord accountRecord) {
         if (accountRecord.getGameId() == 0) return RunResult.error("gameId is null");
         if (StringUtils.isBlank(accountRecord.getToken())) return RunResult.error("token is null");
@@ -60,17 +60,20 @@ public class AccountApi {
             accountRecord.setCreateTime(Math.min(accountRecord.getCreateTime(), entity.getCreateTime()));
             pgsqlDataHelper.update(accountRecord);
         }
+        accountRecord.setToken("");
+        accountRecord.setGameId(0);
         return RunResult.ok().data(accountRecord);
     }
 
-    @HttpRequest
+    @HttpRequest(authority = 9)
     public RunResult list(HttpContext httpContext,
-                          @Param("gameId") Integer gameId,
-                          @Param(value = "account", required = false) String account) {
+                          @Param(path = "gameId") Integer gameId,
+                          @Param(path = "account", required = false) String account) {
         PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
+
         List<AccountRecord> accountRecords;
         if (StringUtils.isBlank(account)) {
-            accountRecords = pgsqlDataHelper.findAll(AccountRecord.class);
+            accountRecords = pgsqlDataHelper.findList(AccountRecord.class);
         } else {
             accountRecords = pgsqlDataHelper.findListByWhere(AccountRecord.class, "account = ?", account);
         }

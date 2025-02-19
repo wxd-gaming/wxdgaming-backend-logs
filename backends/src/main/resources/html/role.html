@@ -68,10 +68,11 @@
             wxd.netty.post(url, urlQuery.toString(),
                 function (responseText) {
                     if (responseText.code !== 1) {
-                        wxd.message.alert("异常：" + responseText.error);
+                        wxd.message.alert("异常：" + responseText.msg);
                         return
                     }
-                    items = responseText.data;dataCount = Number(responseText.rowCount);
+                    items = responseText.data;
+                    dataCount = Number(responseText.rowCount);
                     $("#lab_row_count").text(dataCount);
                     nextPage(-999999999999999);
                 },

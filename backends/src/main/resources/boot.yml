@@ -11,54 +11,39 @@ scheduled:
   coreSize: 1
 http:
   client:
-    core: 20                                                #连接池的核心连接数
-    max: 300                                                #连接池的最大连接数
-    resetTimeM: 30                                          #连接池重置时间，时间太长连接池会异常 单位分钟
-    sslProtocol: TLS                                        #ssl 类型
-    connectTimeOut: 3000                                    #创建连接超时时间
-    connectionRequestTimeout: 1000                          #从连接池获取连接超时
-    keepAliveTimeout: 30000                                 #连接有效时间
-    readTimeout: 3000                                       #读取超时时间
+    core: 20                            #连接池的核心连接数
+    max: 300                            #连接池的最大连接数
+    resetTimeM: 30                      #连接池重置时间，时间太长连接池会异常 单位分钟
+    sslProtocol: TLS                    #ssl 类型
+    connectTimeOut: 3000                #创建连接超时时间
+    connectionRequestTimeout: 1000      #从连接池获取连接超时
+    keepAliveTimeout: 30000             #连接有效时间
+    readTimeout: 3000                   #读取超时时间
+  server:
+    showRequest: false
+    showResponse: false
 socket:
   server:
     debug: false
     port: 19000
-    enabledHttp: true                                         #是否启用http
-    enabledTcp: false                                         #是否启用tcp
-    enabledWebSocket: false                                   #是否启用websocket
-    webSocketPrefix: ""                                       #websocket前缀
-    maxAggregatorLength: 64                                   #聚合器最大长度
-    maxFrameBytes: -1                                         #单个消息最大长度
-    maxFrameLength: -1                                        #一秒钟接收消息最大数量
-    sslProtocolType: TLS                                      #ssll类型
-    sslKeyStorePath: ""                                       #jks证书路径
-    sslPasswordPath: ""                                       #jks证书密码路径
+    enabledHttp: true                                        #是否启用http
+    enabledTcp: true                                         #是否启用tcp
+    enabledWebSocket: true                                  #是否启用websocket
+    webSocketPrefix: "/ws"                                   #websocket前缀
+    maxAggregatorLength: 64                                  #聚合器最大长度
+    maxFrameBytes: -1                                        #单个消息最大长度
+    maxFrameLength: -1                                       #一秒钟接收消息最大数量
+    sslProtocolType: TLS                                     #ssll类型
+    sslKeyStorePath: "jks/wxdtest-1.8.jks"                   #jks证书路径
+    sslPasswordPath: "jks/wxdtest-1.8.jks.pwd"               #jks证书密码路径
     idleTimeout: 0
     writeTimeout: 0
     readTimeout: 0
-  client:
-    debug: false
-    host: 127.0.0.1
-    port: 0
-    connectTimeout: 500                                       #创建链接的超时时间
-    enabledTcp: true                                          #是否启用tcp
-    enabledWebSocket: false                                   #是否启用websocket
-    webSocketPrefix: ""                                       #websocket前缀
-    enableReconnection: true                                  #是否启用重连
-    enabledSSL: true
-    maxAggregatorLength: 64                                   #聚合器最大长度
-    maxConnectionCount: 1
-    maxFrameBytes: -1                                         #单个消息最大长度
-    maxFrameLength: -1                                        #一秒钟接收消息最大数量
-    sslProtocolType: TLS                                      #ssll类型
-    sslKeyStorePath: ""                                       #jks证书路径
-    sslPasswordPath: ""                                       #jks证书密码路径
-    idleTimeout: 0
-    writeTimeout: 0
-    readTimeout: 0
+    recvByteBufM: 12                                          #接收缓冲区大小 单位MB
+    writeByteBufM: 12                                         #发送缓冲区大小 单位MB
 db:
   pgsql:
-    debug: true                                                 #调试模式将会显示sql语句
+    debug: false                                                 #调试模式将会显示sql语句
     driverClassName: "org.postgresql.Driver"
     url: "jdbc:postgresql://192.168.137.10:5432/backend"
     username: "postgres"

@@ -1,4 +1,4 @@
-package wxdgaming.backends.mudole.game;
+package wxdgaming.backends.admin.game;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -51,7 +51,7 @@ public class GameService {
     /** 每日凌晨检查数据库，检查表分区信息 */
     @Scheduled("0 0 0")
     public void scheduled() {
-        List<GameRecord> gameRecords = pgsqlService.findAll(GameRecord.class);
+        List<GameRecord> gameRecords = pgsqlService.findList(GameRecord.class);
         for (GameRecord gameRecord : gameRecords) {
             addGameCache(gameRecord);
         }
@@ -67,6 +67,10 @@ public class GameService {
     public long newId(int gameId) {
         HexId hexId = gameId2HexMap.computeIfAbsent(gameId, HexId::new);
         return hexId.newId();
+    }
+
+    public GameRecord gameRecord(int gameId) {
+        return gameId2GameRecordMap.get(gameId);
     }
 
     public PgsqlDataHelper pgsqlDataHelper(int gameId) {
@@ -94,7 +98,6 @@ public class GameService {
                 localDate = localDate.plusDays(1);
                 String to = MyClock.formatDate("yyyyMMdd", localDate);
                 dataHelper.addPartition(dbTableMap, entry.getKey(), from, to);
-                log.info("数据库 {} 表 {} 创建分区 from:{} to: {}", dataHelper.getDbName(), entry.getKey(), from, to);
             }
         }
     }
