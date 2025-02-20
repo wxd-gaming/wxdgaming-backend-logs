@@ -5,7 +5,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.admin.game.GameService;
-import wxdgaming.backends.entity.logs.AccountRecord;
+import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.mudole.slog.SLogService;
 import wxdgaming.boot2.core.ann.Body;
 import wxdgaming.boot2.core.ann.Param;
@@ -50,14 +50,15 @@ public class AccountApi {
         if (accountRecord.getCreateTime() == 0) {
             accountRecord.setCreateTime(System.currentTimeMillis());
         }
-        accountRecord.setLogTime(System.currentTimeMillis());
         PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(accountRecord.getGameId());
         AccountRecord entity = pgsqlDataHelper.findByWhere(AccountRecord.class, "account = ?", accountRecord.getAccount());
         if (entity == null) {
+            accountRecord.checkDataKey();
             pgsqlDataHelper.insert(accountRecord);
         } else {
             accountRecord.setUid(entity.getUid());
-            accountRecord.setCreateTime(Math.min(accountRecord.getCreateTime(), entity.getCreateTime()));
+            accountRecord.setCreateTime(entity.getCreateTime());
+            accountRecord.setDayKey(entity.getDayKey());
             pgsqlDataHelper.update(accountRecord);
         }
         accountRecord.setToken("");

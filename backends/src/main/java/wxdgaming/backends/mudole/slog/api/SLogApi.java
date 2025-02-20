@@ -5,8 +5,8 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.admin.game.GameService;
-import wxdgaming.backends.entity.logs.SLog;
-import wxdgaming.backends.entity.system.GameRecord;
+import wxdgaming.backends.entity.games.logs.SLog;
+import wxdgaming.backends.entity.system.Game;
 import wxdgaming.backends.mudole.slog.SLogService;
 import wxdgaming.boot2.core.ann.Body;
 import wxdgaming.boot2.core.ann.Param;
@@ -20,7 +20,6 @@ import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.ann.RequestMapping;
 import wxdgaming.boot2.starter.net.server.http.HttpContext;
 
-import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -53,12 +52,8 @@ public class SLogApi {
         if (sLog.getUid() == 0)
             sLog.setUid(gameService.newId(sLog.getGameId()));
 
-        if (sLog.getLogTime() == 0) {
-            sLog.setLogTime(System.currentTimeMillis());
-        }
+        sLog.checkDataKey();
 
-        LocalDate localDate = MyClock.localDate(sLog.getLogTime());
-        sLog.setDayKey(localDate.getYear() * 10000 + localDate.getMonthValue() * 100 + localDate.getDayOfMonth());
         pgsqlDataHelper.getSqlDataBatch().insert(sLog);
         // pgsqlDataHelper.getSqlDataBatch().insert(sLog);
         return RunResult.ok();
@@ -78,13 +73,13 @@ public class SLogApi {
 
         if (gameId == null || gameId == 0) return RunResult.error("gameId is null");
 
-        GameRecord gameRecord = gameService.getGameId2GameRecordMap().get(gameId);
+        Game game = gameService.getGameId2GameRecordMap().get(gameId);
 
-        if (gameRecord == null) {
+        if (game == null) {
             return RunResult.error("gameId error");
         }
 
-        if (!gameRecord.getTableMapping().containsKey(logType)) {
+        if (!game.getTableMapping().containsKey(logType)) {
             return RunResult.error("log type error");
         }
 

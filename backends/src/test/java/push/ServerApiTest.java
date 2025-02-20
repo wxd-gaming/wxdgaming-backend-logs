@@ -2,8 +2,7 @@ package push;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import org.junit.jupiter.api.RepeatedTest;
-import wxdgaming.backends.entity.logs.ServerRecord;
+import wxdgaming.backends.entity.games.logs.ServerRecord;
 import wxdgaming.boot2.core.util.RandomUtils;
 import wxdgaming.boot2.starter.net.httpclient.PostText;
 import wxdgaming.boot2.starter.net.httpclient.Response;

@@ -1,8 +1,10 @@
 package push;
 
 import org.junit.Test;
-import wxdgaming.backends.entity.logs.RoleRecord;
+import org.junit.jupiter.api.RepeatedTest;
+import wxdgaming.backends.entity.games.logs.RoleRecord;
 import wxdgaming.boot2.core.chatset.StringUtils;
+import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.util.RandomUtils;
 import wxdgaming.boot2.starter.net.httpclient.PostText;
 import wxdgaming.boot2.starter.net.httpclient.Response;
@@ -10,6 +12,7 @@ import wxdgaming.boot2.starter.net.httpclient.Response;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 角色api操作
@@ -23,27 +26,42 @@ public class RoleApiTest extends AccountApiTest {
 
     @Test
     public void test() throws Exception {
-        List<CompletableFuture> futures = new ArrayList<>();
         String logToken = findLogToken();
-        for (int i = 1; i <= 1000; i++) {
-            RoleRecord roleRecord = new RoleRecord();
-            roleRecord.setGameId(gameId);
-            roleRecord.setToken(logToken);
-            roleRecord.setAccount(StringUtils.randomString(8));
-            roleRecord.setCreateSid(RandomUtils.random(1, 100));
-            roleRecord.setCurSid(RandomUtils.random(1, 100));
-            roleRecord.setCreateTime(System.currentTimeMillis());
-            roleRecord.setRoleId(String.valueOf(i));
-            roleRecord.setRoleName(StringUtils.randomString(8));
-            roleRecord.setJob("魔剑士");
-            roleRecord.setSex("男");
-            roleRecord.setLv(RandomUtils.random(1, 100));
-            roleRecord.getData().fluentPut("channel", "huawei");
-            CompletableFuture<Response<PostText>> completableFuture = post("role/push", roleRecord.toJsonString());
+        test(logToken, 1000);
+    }
+
+    @Test
+    @RepeatedTest(99)
+    public void testList() throws Exception {
+        String logToken = findLogToken();
+        test(logToken, 1000);
+    }
+
+    public void test(String logToken, int count) throws Exception {
+        List<CompletableFuture<Response<PostText>>> futures = new ArrayList<>();
+        for (int i = 1; i <= count; i++) {
+            RoleRecord record = new RoleRecord();
+            record.setGameId(gameId);
+            record.setToken(logToken);
+            record.setAccount(randomAccount());
+            record.setCreateSid(RandomUtils.random(1, 100));
+            record.setCurSid(RandomUtils.random(1, 100));
+            record.setCreateTime(randomCreateTime());
+            record.setRoleId(String.valueOf(i));
+            record.setRoleName(StringUtils.randomString(8));
+            record.setJob("魔剑士");
+            record.setSex("男");
+            record.setLv(RandomUtils.random(1, 100));
+            record.getData().fluentPut("channel", "huawei");
+            CompletableFuture<Response<PostText>> completableFuture = post("role/push", record.toJsonString());
             futures.add(completableFuture);
         }
-        for (CompletableFuture future : futures) {
-            future.join();
+        for (CompletableFuture<Response<PostText>> future : futures) {
+            Response<PostText> join = future.join();
+            RunResult runResult = join.bodyRunResult();
+            if (join.responseCode() != 200 || runResult.code() != 1) {
+                System.out.println(join.bodyString());
+            }
         }
     }
 

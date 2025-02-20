@@ -52,7 +52,7 @@ db:
     connectionTimeoutMs: 2000                                   #链接超时单位毫秒
     idleTimeoutM: 10                                            #空闲超时单位分钟
     minPoolSize: 5                                              #最小连接数
-    maxPoolSize: 20                                             #最大连接数
+    maxPoolSize: 100                                            #最大连接数
 
 other:
   root: "wxdgaming"

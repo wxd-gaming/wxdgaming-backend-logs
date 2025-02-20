@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>角色列表</title>
+    <title>账号留存</title>
 
     <script charset="utf-8" type="text/javascript" src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
     <script charset="utf-8" type="text/javascript" src="/js/com.wxd.js"></script>
@@ -16,7 +16,7 @@
     <style>
         html, body {display: block;width: 100%;height: 100%;overflow: hidden;overflow-x: auto;background: rgba(214, 213, 213, 0.7);}
 
-        html, body, div, table, tr, td {margin: 0;border: 0;box-sizing: border-box;}
+        html, body, div, table, tr, td {margin: 0px;border: 0px;box-sizing: border-box;}
 
         a:link {color: #0866b4;}
 
@@ -27,45 +27,19 @@
         input {margin-top: 5px;border: slategrey 1px solid;border-radius: 5px;height: 22px;}
 
         input[type=text] {width: 160px;}
+
+        th, td {text-align: center;}
     </style>
 
     <script>
         let pathname = window.location.protocol + "//" + window.location.host + "" + window.location.pathname;
-        let items = [];
-        let dataCount = 0;
-
-        function ban(url, uid) {
-            let urlQuery = new wxd.Map().loadSearch();
-            urlQuery.put("uid", uid);
-            wxd.netty.post(url, urlQuery.toString(),
-                function (responseText) {
-                    wxd.message.alert(
-                        JSON.stringify(responseText),
-                        "提示：",
-                        "关闭",
-                        () => {
-                            setTimeout(() => {
-                                search();
-                            }, 1);
-                        }
-                    );
-                },
-                (errorMsg) => {
-                    wxd.message.alert("异常：" + errorMsg);
-                },
-                false
-            );
-        }
 
         function search() {
             wxd.loading();
             let urlQuery = new wxd.Map().loadSearch();
-            urlQuery.put("account", $("#account").val());
-            urlQuery.put("roleId", $("#roleId").val());
-            urlQuery.put("roleName", $("#roleName").val());
-            urlQuery.put("curSid", $("#curSid").val());
-            urlQuery.put("createSid", $("#createSid").val())
-            let url = "/role/list";
+            urlQuery.put("pageIndex", pageIndex());
+            urlQuery.put("pageSize", pageSize());
+            let url = "/account/stat/list";
             wxd.netty.post(url, urlQuery.toString(),
                 function (responseText) {
                     if (responseText.code !== 1) {
@@ -75,7 +49,8 @@
                     items = responseText.data;
                     dataCount = Number(responseText.rowCount);
                     $("#lab_row_count").text(dataCount);
-                    nextPage(-999999999999999);
+                    pageMaxIndex();
+                    showData();
                 },
                 (errorMsg) => {
                     wxd.message.alert("异常：" + errorMsg);
@@ -95,7 +70,9 @@
 
         function pageMaxIndex() {
             let limit = pageSize();
-            return items.length % limit === 0 ? items.length / limit : Math.floor(items.length / limit) + 1;
+            let number = dataCount % limit === 0 ? dataCount / limit : Math.floor(dataCount / limit) + 1;
+            $("#lab_page_max").text(number);
+            return number;
         }
 
         function nextPage(change) {
@@ -112,10 +89,9 @@
             localStorage.setItem(pathname + "-page-max", pageSize().toString());
 
             $("#lab_page_index").text(index);
-            $("#lab_page_max").text(maxIndex);
+
             if (change > -100 && oldPageIndex === index) return
-            wxd.loading();
-            showData();
+            search();
         }
 
         async function showData() {
@@ -126,11 +102,7 @@
             let limit = pageSize();
             skip = skip * limit;
             await wxd.delayed((index) => {
-                let newVar = skip + index;
-                if (newVar >= items.length) {
-                    return false;
-                }
-                $("tbody:first").append(createRow(skip + index + 1, items[skip + index]));
+                $("tbody:first").append(createRow(skip + index + 1, items[index]));
             }, 10, limit)
             // var index = 0;
             // responseText.data.forEach((row) => {
@@ -141,29 +113,47 @@
             wxd.loading_close();
         }
 
+        let items = [];
+
         function createRow(index, row) {
             let tr = `
     <tr>
-        <td style="width: 140px;">
-            <a href="#" onclick="ban('/gm/001/002/003/banLogin', '${row.uid}');return false;" title="封号和解封">封号</a>
-            <a href="#" onclick="ban('/gm/001/002/003/banChat', '${row.uid}');return false;" title="禁言和解禁">禁言</a>
-            <a href="#" onclick="ban('/gm/001/002/003/kickout', '${row.uid}');return false;" title="踢出下线并且清理内存">踢人</a>
-        </td>
-        <td tips="true" style="width: 40px;">${index}</td>
-        <td tips="true" style="width: 200px;">${row.account}</td>
-        <td tips="true" style="width: 80px;">${row.createSid}</td>
-        <td tips="true" style="width: 80px;">${row.curSid}</td>
-        <td tips="true" style="width: 140px;">${row.roleId}</td>
-        <td tips="true" style="width: 120px;">${row.roleName}</td>
-        <td tips="true" style="width: 140px;">${row.createTime}</td>
-        <td tips="true" style="width: 40px;">${row.sex}</td>
-        <td tips="true" style="width: 70px;">${row.job}</td>
-        <td tips="true" style="width: 40px;">${row.lv}</td>
-        <td tips="true" style="">${row.data}</td>
+        <td tips="true" style="width: 50px;">${index}</td>
+        <td tips="true" style="width: 80px;">${row.uid}</td>
+        <td tips="true" style="width: 70px;">${row.registerNum}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["2"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["3"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["4"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["5"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["6"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["7"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["8"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["9"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["10"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["11"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["12"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["13"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["14"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["15"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["16"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["17"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["18"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["19"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["20"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["30"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["40"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["50"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["60"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["70"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["80"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["90"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["100"]}</td>
+        <td tips="true" style="width: 70px;">${row.dayStatNumMap["120"]}</td>
     </tr>
 `;
             return tr;
         }
+
 
         $(() => {
             /*读取本地存储，根据个人爱好查看数据*/
@@ -175,34 +165,50 @@
         });
 
     </script>
+
 </head>
 
 <body>
 <div style="padding-left: 10px; padding-top: 8px; text-align: left;vertical-align: center;">
     <input type="button" value="搜索" onclick="search();">
     <br>
-    <input id="account" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="账号"/>
-    <input id="roleId" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="角色id"/>
-    <input id="roleName" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="角色名字"/>
-    <input id="createSid" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="创建区服"/>
-    <input id="curSid" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="当前区服"/>
+    <input id="account" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="账户"/>
 </div>
 <div class="tableDom" style="position: absolute;left: 10px;top: 80px;right: 15px;bottom: 35px;">
     <table>
         <thead>
         <tr>
-            <th style="width: 140px;">操作</th>
-            <th style="width: 40px;">序号</th>
-            <th style="width: 200px;">账号</th>
-            <th style="width: 80px;">创建区服</th>
-            <th style="width: 80px;">当前区服</th>
-            <th style="width: 140px;">角色ID</th>
-            <th style="width: 120px;">角色名字</th>
-            <th style="width: 140px;">创建时间</th>
-            <th style="width: 40px;">性别</th>
-            <th style="width: 70px;">职业</th>
-            <th style="width: 40px;">等级</th>
-            <th style="">记录</th>
+            <th style="width: 50px;">序号</th>
+            <th style="width: 80px;">日期</th>
+            <th style="width: 70px;">注册</th>
+            <th style="width: 70px;">次留</th>
+            <th style="width: 70px;">3留</th>
+            <th style="width: 70px;">4留</th>
+            <th style="width: 70px;">5留</th>
+            <th style="width: 70px;">6留</th>
+            <th style="width: 70px;">7留</th>
+            <th style="width: 70px;">8留</th>
+            <th style="width: 70px;">9留</th>
+            <th style="width: 70px;">10留</th>
+            <th style="width: 70px;">11留</th>
+            <th style="width: 70px;">12留</th>
+            <th style="width: 70px;">13留</th>
+            <th style="width: 70px;">14留</th>
+            <th style="width: 70px;">15留</th>
+            <th style="width: 70px;">16留</th>
+            <th style="width: 70px;">17留</th>
+            <th style="width: 70px;">18留</th>
+            <th style="width: 70px;">19留</th>
+            <th style="width: 70px;">20留</th>
+            <th style="width: 70px;">30留</th>
+            <th style="width: 70px;">40留</th>
+            <th style="width: 70px;">50留</th>
+            <th style="width: 70px;">60留</th>
+            <th style="width: 70px;">70留</th>
+            <th style="width: 70px;">80留</th>
+            <th style="width: 70px;">90留</th>
+            <th style="width: 70px;">100留</th>
+            <th style="width: 70px;">120留</th>
         </tr>
         </thead>
         <tbody>
@@ -210,7 +216,6 @@
         </tbody>
     </table>
 </div>
-
 <div style="position: absolute;left: 2px;right: 2px;bottom: 5px;padding: 2px;border-radius: 0px;overflow: auto;text-align: center;">
     <div>
         <label for="page_size">共</label>

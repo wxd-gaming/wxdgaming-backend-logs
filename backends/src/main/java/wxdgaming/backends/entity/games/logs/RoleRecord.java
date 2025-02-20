@@ -1,10 +1,9 @@
-package wxdgaming.backends.entity.logs;
+package wxdgaming.backends.entity.games.logs;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Getter;
 import lombok.Setter;
-import wxdgaming.backends.entity.RecordBase;
 import wxdgaming.boot2.core.collection.MapOf;
 import wxdgaming.boot2.starter.batis.ColumnType;
 import wxdgaming.boot2.starter.batis.ann.DbColumn;
@@ -21,47 +20,43 @@ import wxdgaming.boot2.starter.batis.ann.DbTable;
 @DbTable(tableName = "record_role")
 public class RoleRecord extends RecordBase {
 
-    @JSONField(ordinal = 3)
-    @DbColumn(index = true)
-    private long createTime;
-
-    @JSONField(ordinal = 5)
+    @JSONField(ordinal = 20)
     @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String account;
 
-    @JSONField(ordinal = 6)
+    @JSONField(ordinal = 21)
     @DbColumn(index = true)
     private int createSid;
 
-    @JSONField(ordinal = 7)
+    @JSONField(ordinal = 22)
     @DbColumn(index = true)
     private int curSid;
 
-    @JSONField(ordinal = 8)
+    @JSONField(ordinal = 23)
     @DbColumn(index = true, columnType = ColumnType.String, length = 64)
     private String roleId;
 
-    @JSONField(ordinal = 9)
+    @JSONField(ordinal = 24)
     @DbColumn(index = true, columnType = ColumnType.String, length = 64)
     private String roleName;
 
-    @JSONField(ordinal = 10)
+    @JSONField(ordinal = 25)
     @DbColumn(index = true, columnType = ColumnType.String, length = 12)
     private String job;
 
-    @JSONField(ordinal = 11)
+    @JSONField(ordinal = 26)
     @DbColumn(index = true, columnType = ColumnType.String, length = 12)
     private String sex;
 
-    @JSONField(ordinal = 12)
+    @JSONField(ordinal = 27)
     @DbColumn(index = true)
     private int lv;
 
-    @JSONField(ordinal = 13)
+    @JSONField(ordinal = 28)
     @DbColumn(columnType = ColumnType.Json)
     private final JSONObject data = MapOf.newJSONObject();
 
-    @JSONField(ordinal = 14)
+    @JSONField(ordinal = 29)
     @DbColumn(index = true)
     private int del;
 }

@@ -4,7 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
-import wxdgaming.backends.entity.logs.SLog;
+import wxdgaming.backends.entity.games.logs.SLog;
 import wxdgaming.boot2.core.format.HexId;
 import wxdgaming.boot2.core.util.RandomUtils;
 import wxdgaming.boot2.starter.batis.sql.SqlConfig;

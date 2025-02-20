@@ -31,6 +31,8 @@
 
     <script>
         let pathname = window.location.protocol + "//" + window.location.host + "" + window.location.pathname;
+        let items = [];
+        let dataCount = 0;
 
         function ban(url, uid) {
             let urlQuery = new wxd.Map().loadSearch();
@@ -89,7 +91,9 @@
 
         function pageMaxIndex() {
             let limit = pageSize();
-            return items.length % limit === 0 ? items.length / limit : Math.floor(items.length / limit) + 1;
+            let number = dataCount % limit === 0 ? dataCount / limit : Math.floor(dataCount / limit) + 1;
+            $("#lab_page_max").text(number);
+            return number;
         }
 
         function nextPage(change) {
@@ -135,7 +139,7 @@
             wxd.loading_close();
         }
 
-        let items = [];
+
 
         function createRow(index, row) {
             let tr = `

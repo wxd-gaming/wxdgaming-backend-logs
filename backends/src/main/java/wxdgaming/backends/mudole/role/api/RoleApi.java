@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
-import wxdgaming.backends.entity.logs.RoleRecord;
+import wxdgaming.backends.entity.games.logs.RoleRecord;
 import wxdgaming.backends.entity.system.User;
 import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.mudole.role.RoleService;
@@ -58,8 +58,6 @@ public class RoleApi {
 
         PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(record.getGameId());
 
-        record.setLogTime(System.currentTimeMillis());
-
         RoleRecord entity = roleService.roleRecord(record.getGameId(), record.getAccount(), record.getRoleId());
 
         if (entity == null) {
@@ -70,12 +68,14 @@ public class RoleApi {
             if (record.getCreateTime() == 0) {
                 record.setCreateTime(System.currentTimeMillis());
             }
+            record.checkDataKey();
             pgsqlDataHelper.getSqlDataBatch().insert(record);
             return RunResult.ok().msg("新增");
         } else {
             record.setUid(entity.getUid());
             record.setAccount(entity.getAccount());
-            record.setCreateTime(Math.min(record.getCreateTime(), entity.getCreateTime()));
+            record.setCreateTime(entity.getCreateTime());
+            record.setDayKey(entity.getDayKey());
             record.setCreateSid(entity.getCreateSid());
             pgsqlDataHelper.getSqlDataBatch().update(record);
             return RunResult.ok().msg("修改");

@@ -3,10 +3,12 @@ package push;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import wxdgaming.backends.entity.logs.SLog;
+import org.junit.jupiter.api.RepeatedTest;
+import wxdgaming.backends.entity.games.logs.SLog;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.collection.MapOf;
 import wxdgaming.boot2.core.format.HexId;
+import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.util.RandomUtils;
 import wxdgaming.boot2.starter.net.httpclient.PostText;
 import wxdgaming.boot2.starter.net.httpclient.Response;
@@ -50,8 +52,8 @@ public class LogPushTest extends RoleApiTest {
             sLog.setToken(logToken);
             sLog.setLogType("log_item");
             sLog.setUid(hexId.newId());
-            sLog.setLogTime(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(RandomUtils.random(0, 45)));
-            sLog.setAccount(StringUtils.randomString(8));
+            sLog.setCreateTime(randomCreateTime());
+            sLog.setAccount(randomAccount());
             sLog.setRoleId(String.valueOf(RandomUtils.random(1, 1000)));
             sLog.setRoleName(StringUtils.randomString(8));
             sLog.setMainId(1);
@@ -81,11 +83,10 @@ public class LogPushTest extends RoleApiTest {
     }
 
     @Test
+    @RepeatedTest(5000)
     public void pushLoginLogList() {
         String logToken = findLogToken();
-        for (int i = 0; i < 50000; i++) {
-            pushLoginLog(logToken, 100);
-        }
+        pushLoginLog(logToken, 1000);
     }
 
     public void pushLoginLog(String logToken, int count) {
@@ -98,8 +99,8 @@ public class LogPushTest extends RoleApiTest {
             sLog.setToken(logToken);
             sLog.setLogType("log_login");
             sLog.setUid(hexId.newId());
-            sLog.setLogTime(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(RandomUtils.random(0, 45)));
-            sLog.setAccount(StringUtils.randomString(8));
+            sLog.setCreateTime(randomCreateTime());
+            sLog.setAccount(randomAccount());
             sLog.setRoleId(String.valueOf(RandomUtils.random(1, 1000)));
             sLog.setRoleName(StringUtils.randomString(8));
             sLog.setMainId(1);
@@ -114,13 +115,14 @@ public class LogPushTest extends RoleApiTest {
                     .fluentPut("login_version", "1.0.0")
             ;
             String json = sLog.toJsonString();
-            CompletableFuture<Response<PostText>> async = post("log/push", json);
-            futures.add(async);
+            CompletableFuture<Response<PostText>> post = post("log/push", json);
+            futures.add(post);
         }
         for (CompletableFuture<Response<PostText>> future : futures) {
             Response<PostText> join = future.join();
-            if (join.responseCode() != 200) {
-                log.error("{}", join.bodyString());
+            RunResult runResult = join.bodyRunResult();
+            if (join.responseCode() != 200 || runResult.code() != 1) {
+                System.out.println(join.bodyString());
             }
         }
     }

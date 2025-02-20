@@ -4,19 +4,21 @@ import com.alibaba.fastjson.JSONObject;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import wxdgaming.backends.entity.RecordBase;
-import wxdgaming.backends.entity.system.GameRecord;
+import wxdgaming.backends.entity.system.Game;
+import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.collection.MapOf;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.ExecutorConfig;
 import wxdgaming.boot2.core.threading.ExecutorUtil;
+import wxdgaming.boot2.core.util.RandomUtils;
+import wxdgaming.boot2.starter.batis.Entity;
 import wxdgaming.boot2.starter.net.httpclient.HttpBuilder;
 import wxdgaming.boot2.starter.net.httpclient.PostText;
 import wxdgaming.boot2.starter.net.httpclient.Response;
 
 import java.util.LinkedHashMap;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -36,8 +38,8 @@ public class GameApiTest {
         ExecutorUtil.init(ExecutorConfig.INSTANCE);
     }
 
-    public void post(String path, RecordBase base) throws Exception {
-        String json = base.toJsonString();
+    public void post(String path, Entity entity) throws Exception {
+        String json = entity.toJsonString();
         CompletableFuture<Response<PostText>> post = post(path, json);
         Response<PostText> postTextResponse = post.join();
         postTextResponse.systemOut();
@@ -46,8 +48,8 @@ public class GameApiTest {
     public CompletableFuture<Response<PostText>> post(String path, String json) {
         login();
         if (path.startsWith("/")) path = path.substring(1);
-        return  HttpBuilder.postJson("http://127.0.0.1:19000/" + path, json)
-                .readTimeout(10000)
+        return HttpBuilder.postJson("http://127.0.0.1:19000/" + path, json)
+                .readTimeout(30000)
                 // .header(HttpHeaderNames.AUTHORIZATION.toString(), token)
                 .async();
     }
@@ -76,7 +78,7 @@ public class GameApiTest {
                 )
                 .request();
         int i = postTextResponse.responseCode();
-        RunResult runResult = RunResult.parse(postTextResponse.bodyString());
+        RunResult runResult = postTextResponse.bodyRunResult();
         if (runResult.code() != 1)
             throw new RuntimeException(runResult.msg());
         String appToken = runResult.getNestedValue("data.appToken", String.class);
@@ -117,21 +119,34 @@ public class GameApiTest {
         logined.set(true);
     }
 
+    private final char[] chars = new char[]{'a', 'b', 'c', 'd'};
+
+    public String randomAccount() {
+        return StringUtils.randomString(chars, 8);
+    }
+
+    public long randomCreateTime() {
+        int random = RandomUtils.random(0, 120);
+        random = random - 120;
+        return System.currentTimeMillis() + TimeUnit.DAYS.toMillis(random);
+    }
+
     @Test
     public void pushGame() throws Exception {
-        GameRecord gameRecord = new GameRecord();
-        gameRecord.setUid(9L);
-        gameRecord.setName("野火燎原");
-        gameRecord.setIcon("icon");
-        gameRecord.setDesc("desc");
-        gameRecord.setUrl("url");
+        Game game = new Game();
+        game.setUid((long) gameId);
+        game.setName("神剑诀");
+        game.setIcon("icon");
+        game.setDesc("desc");
+        game.setUrl("url");
+        game.setCreateTime(randomCreateTime());
 
-        LinkedHashMap<String, String> tableMapping = gameRecord.getTableMapping();
+        LinkedHashMap<String, String> tableMapping = game.getTableMapping();
         tableMapping.put("log_item", "道具日志");
         tableMapping.put("log_pay", "支付日志");
         tableMapping.put("log_login", "登录日志");
 
-        post("game/push", gameRecord);
+        post("game/push", game);
     }
 
     @Test

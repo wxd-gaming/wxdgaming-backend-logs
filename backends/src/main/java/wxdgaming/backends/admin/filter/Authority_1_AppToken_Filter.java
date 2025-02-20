@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.admin.game.GameService;
-import wxdgaming.backends.entity.system.GameRecord;
+import wxdgaming.backends.entity.system.Game;
 import wxdgaming.boot2.core.io.Objects;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
@@ -41,11 +41,11 @@ public class Authority_1_AppToken_Filter extends HttpFilter {
             if (token == null) {
                 return RunResult.error("参数token不能为空");
             }
-            GameRecord gameRecord = gameService.gameRecord(gameId);
-            if (gameRecord == null) {
+            Game game = gameService.gameRecord(gameId);
+            if (game == null) {
                 return RunResult.error("gameId is not exist");
             }
-            if (!Objects.equals(gameRecord.getAppToken(), token)) {
+            if (!Objects.equals(game.getAppToken(), token)) {
                 return RunResult.error("game log token error");
             }
         }

@@ -1,8 +1,8 @@
-package wxdgaming.backends.entity.system;
+package wxdgaming.backends.entity.games;
 
 import lombok.Getter;
 import lombok.Setter;
-import wxdgaming.backends.entity.RecordBase;
+import wxdgaming.boot2.starter.batis.EntityLongUID;
 import wxdgaming.boot2.starter.batis.ann.DbTable;
 
 /**
@@ -14,6 +14,6 @@ import wxdgaming.boot2.starter.batis.ann.DbTable;
 @Getter
 @Setter
 @DbTable(tableName = "record_error")
-public class ErrorRecord extends RecordBase {
+public class ErrorRecord extends EntityLongUID {
 
 }

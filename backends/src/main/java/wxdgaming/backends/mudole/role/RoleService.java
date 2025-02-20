@@ -3,7 +3,7 @@ package wxdgaming.backends.mudole.role;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
-import wxdgaming.backends.entity.logs.RoleRecord;
+import wxdgaming.backends.entity.games.logs.RoleRecord;
 import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 
