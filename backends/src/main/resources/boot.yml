@@ -43,7 +43,7 @@ socket:
     writeByteBufM: 12                                         #发送缓冲区大小 单位MB
 db:
   pgsql:
-    debug: false                                                 #调试模式将会显示sql语句
+    debug: true                                                 #调试模式将会显示sql语句
     driverClassName: "org.postgresql.Driver"
     url: "jdbc:postgresql://192.168.137.10:5432/backend"
     username: "postgres"
@@ -53,6 +53,8 @@ db:
     idleTimeoutM: 10                                            #空闲超时单位分钟
     minPoolSize: 5                                              #最小连接数
     maxPoolSize: 100                                            #最大连接数
+    batchSubmitSize: 500                                        #批量提交数量
+    batchThreadSize: 1                                          #批量提交线程数
 
 other:
   root: "wxdgaming"

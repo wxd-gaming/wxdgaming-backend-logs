@@ -60,6 +60,8 @@
         function search() {
             wxd.loading();
             let urlQuery = new wxd.Map().loadSearch();
+            urlQuery.put("pageIndex", pageIndex());
+            urlQuery.put("pageSize", pageSize());
             urlQuery.put("account", $("#account").val());
             let url = "/account/list";
             wxd.netty.post(url, urlQuery.toString(),
@@ -69,9 +71,10 @@
                         return
                     }
                     items = responseText.data;
-                    items = responseText.data;dataCount = Number(responseText.rowCount);
+                    dataCount = Number(responseText.rowCount);
                     $("#lab_row_count").text(dataCount);
-                    nextPage(-999999999999999);
+                    pageMaxIndex();
+                    showData();
                 },
                 (errorMsg) => {
                     wxd.message.alert("异常：" + errorMsg);
@@ -110,10 +113,9 @@
             localStorage.setItem(pathname + "-page-max", pageSize().toString());
 
             $("#lab_page_index").text(index);
-            $("#lab_page_max").text(maxIndex);
+
             if (change > -100 && oldPageIndex === index) return
-            wxd.loading();
-            showData();
+            search();
         }
 
         async function showData() {
@@ -124,11 +126,7 @@
             let limit = pageSize();
             skip = skip * limit;
             await wxd.delayed((index) => {
-                let newVar = skip + index;
-                if (newVar >= items.length) {
-                    return false;
-                }
-                $("tbody:first").append(createRow(skip + index + 1, items[skip + index]));
+                $("tbody:first").append(createRow(skip + index + 1, items[index]));
             }, 10, limit)
             // var index = 0;
             // responseText.data.forEach((row) => {
@@ -138,7 +136,6 @@
             wxd.message.tips_init_bind(); //初始化
             wxd.loading_close();
         }
-
 
 
         function createRow(index, row) {

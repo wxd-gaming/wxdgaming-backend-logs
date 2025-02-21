@@ -8,9 +8,11 @@ import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.games.logs.ServerRecord;
 import wxdgaming.boot2.core.ann.Body;
 import wxdgaming.boot2.core.ann.Param;
+import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.timer.MyClock;
+import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.ann.RequestMapping;
@@ -41,32 +43,71 @@ public class ServerApi {
                           @Param(path = "gameId") int gameId,
                           @Body ServerRecord serverRecord) {
         PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
-        ServerRecord queryEntity = pgsqlDataHelper.findByWhere(ServerRecord.class, "sid=?", serverRecord.getSid());
+        if (serverRecord.getSid() == null || serverRecord.getSid() == 0) {
+            return RunResult.error("uid is null");
+        }
+        ServerRecord queryEntity = pgsqlDataHelper.findByKey(ServerRecord.class, serverRecord.getSid());
         serverRecord.setUpdateTime(System.currentTimeMillis());
         if (queryEntity == null) {
-            serverRecord.setUid(gameService.newId(gameId));
             pgsqlDataHelper.getSqlDataBatch().insert(serverRecord);
         } else {
-            serverRecord.setUid(queryEntity.getUid());
+            serverRecord.setSid(queryEntity.getSid());
             pgsqlDataHelper.getSqlDataBatch().update(serverRecord);
         }
         return RunResult.ok();
     }
 
     @HttpRequest(authority = 9)
-    public RunResult list(HttpContext httpContext, @Param(path = "gameId") int gameId) {
+    public RunResult list(HttpContext httpContext,
+                          @Param(path = "gameId") int gameId,
+                          @Param(path = "pageIndex") int pageIndex,
+                          @Param(path = "pageSize") int pageSize,
+                          @Param(path = "sid", required = false) String sid,
+                          @Param(path = "mainSid", required = false) String mainSid,
+                          @Param(path = "name", required = false) String name,
+                          @Param(path = "showName", required = false) String showName,
+                          @Param(path = "wlan", required = false) String wlan,
+                          @Param(path = "lan", required = false) String lan) {
+
         PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
-        List<JSONObject> list = pgsqlDataHelper
-                .findList(ServerRecord.class)
-                .stream()
+
+        SqlQueryBuilder sqlQueryBuilder = pgsqlDataHelper.queryBuilder();
+        sqlQueryBuilder.sqlByEntity(ServerRecord.class);
+
+        if (StringUtils.isNotBlank(sid)) {
+            sqlQueryBuilder.pushWhere("sid = ?", Integer.parseInt(sid));
+        }
+
+        if (StringUtils.isNotBlank(mainSid)) {
+            sqlQueryBuilder.pushWhere("mainsid = ?", Integer.parseInt(mainSid));
+        }
+
+        sqlQueryBuilder.pushWhereByValueNotNull("name = ?", name);
+        sqlQueryBuilder.pushWhereByValueNotNull("showname = ?", showName);
+        sqlQueryBuilder.pushWhereByValueNotNull("wlan=?", wlan);
+        sqlQueryBuilder.pushWhereByValueNotNull("lan=?", lan);
+
+        sqlQueryBuilder.setOrderBy("sid desc");
+        if (pageIndex > 0) {
+            sqlQueryBuilder.setSkip((pageIndex - 1) * pageSize);
+        }
+
+        if (pageSize <= 10) pageSize = 10;
+        if (pageSize > 1000) pageSize = 1000;
+
+        sqlQueryBuilder.setLimit(pageSize);
+
+        long rowCount = sqlQueryBuilder.findCount();
+        List<ServerRecord> records = sqlQueryBuilder.findList2Entity(ServerRecord.class);
+
+        List<JSONObject> list = records.stream()
                 .map(FastJsonUtil::toJSONObject)
                 .peek(jsonObject -> {
-                    jsonObject.put("logTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("logTime")));
                     jsonObject.put("updateTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("updateTime")));
                 })
                 .toList();
 
-        return RunResult.ok().data(list).fluentPut("rowCount", list.size());
+        return RunResult.ok().data(list).fluentPut("rowCount", rowCount);
     }
 
 }

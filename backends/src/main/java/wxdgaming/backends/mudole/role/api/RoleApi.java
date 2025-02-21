@@ -4,9 +4,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
 import wxdgaming.backends.entity.system.User;
-import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.mudole.role.RoleService;
 import wxdgaming.backends.mudole.slog.SLogService;
 import wxdgaming.boot2.core.ann.Body;
@@ -17,12 +17,13 @@ import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.ExecutorWith;
 import wxdgaming.boot2.core.threading.ThreadContext;
 import wxdgaming.boot2.core.timer.MyClock;
+import wxdgaming.boot2.core.util.NumberUtil;
+import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.ann.RequestMapping;
 import wxdgaming.boot2.starter.net.server.http.HttpContext;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -103,64 +104,42 @@ public class RoleApi {
 
     @HttpRequest
     public RunResult list(HttpContext httpContext,
-                          @Param(path = "gameId") Integer gameId,
+                          @Param(path = "gameId") int gameId,
+                          @Param(path = "pageIndex") int pageIndex,
+                          @Param(path = "pageSize") int pageSize,
                           @Param(path = "account", required = false) String account,
                           @Param(path = "roleId", required = false) String roleId,
                           @Param(path = "roleName", required = false) String roleName,
-                          @Param(path = "curSid", required = false) int curSid,
-                          @Param(path = "createSid", required = false) int createSid) {
+                          @Param(path = "curSid", required = false) String curSid,
+                          @Param(path = "createSid", required = false) String createSid) {
 
         User user = ThreadContext.context("user");
         log.info("{}", user);
 
         PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
-
-        String sqlWhere = "";
-        Object[] args = new Object[1];
-        if (StringUtils.isNotBlank(account)) {
-            sqlWhere = "account = ?";
-            args[args.length - 1] = account;
+        SqlQueryBuilder queryBuilder = pgsqlDataHelper.queryBuilder();
+        queryBuilder.sqlByEntity(RoleRecord.class);
+        queryBuilder.pushWhereByValueNotNull("account=?", account);
+        queryBuilder.pushWhereByValueNotNull("roleid=?", roleId);
+        queryBuilder.pushWhereByValueNotNull("rolename=?", roleName);
+        if (StringUtils.isNotBlank(curSid)) {
+            queryBuilder.pushWhereByValueNotNull("cursid=?", NumberUtil.parseInt(curSid, 0));
         }
-        if (StringUtils.isNotBlank(roleId)) {
-            if (!sqlWhere.isEmpty()) {
-                sqlWhere += " AND ";
-                args = Arrays.copyOf(args, args.length + 1);
-            }
-            sqlWhere += "roleid = ?";
-            args[args.length - 1] = roleId;
-
-        }
-        if (StringUtils.isNotBlank(roleName)) {
-            if (!sqlWhere.isEmpty()) {
-                sqlWhere += " AND ";
-                args = Arrays.copyOf(args, args.length + 1);
-            }
-            sqlWhere += "rolename = ?";
-            args[args.length - 1] = roleName;
-        }
-        if (curSid > 0) {
-            if (!sqlWhere.isEmpty()) {
-                sqlWhere += " AND ";
-                args = Arrays.copyOf(args, args.length + 1);
-            }
-            sqlWhere += "cursid = ?";
-            args[args.length - 1] = curSid;
-        }
-        if (createSid > 0) {
-            if (!sqlWhere.isEmpty()) {
-                sqlWhere += " AND ";
-                args = Arrays.copyOf(args, args.length + 1);
-            }
-            sqlWhere += "createsid = ?";
-            args[args.length - 1] = createSid;
+        if (StringUtils.isNotBlank(createSid)) {
+            queryBuilder.pushWhereByValueNotNull("createsid=?", NumberUtil.parseInt(createSid, 0));
         }
 
-        List<RoleRecord> accountRecords;
-        if (StringUtils.isBlank(sqlWhere)) {
-            accountRecords = pgsqlDataHelper.findList(RoleRecord.class);
-        } else {
-            accountRecords = pgsqlDataHelper.findListBySql(RoleRecord.class, sqlWhere, args);
+        queryBuilder.setOrderBy("createtime desc");
+        if (pageIndex > 0) {
+            queryBuilder.setSkip((pageIndex - 1) * pageSize);
         }
+
+        if (pageSize <= 10) pageSize = 10;
+        if (pageSize > 1000) pageSize = 1000;
+        queryBuilder.setLimit(pageSize);
+
+        long rowCount = queryBuilder.findCount();
+        List<RoleRecord> accountRecords = queryBuilder.findList2Entity(RoleRecord.class);
 
         List<JSONObject> list = accountRecords.stream()
                 .map(FastJsonUtil::toJSONObject)
@@ -169,7 +148,7 @@ public class RoleApi {
                     jsonObject.put("data", jsonObject.getString("data"));
                 })
                 .toList();
-        return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", list.size());
+        return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", rowCount);
     }
 
 }

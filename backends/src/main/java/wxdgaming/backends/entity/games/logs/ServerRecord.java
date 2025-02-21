@@ -1,10 +1,12 @@
 package wxdgaming.backends.entity.games.logs;
 
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Getter;
 import lombok.Setter;
+import wxdgaming.boot2.core.collection.MapOf;
 import wxdgaming.boot2.starter.batis.ColumnType;
-import wxdgaming.boot2.starter.batis.EntityLongUID;
+import wxdgaming.boot2.starter.batis.Entity;
 import wxdgaming.boot2.starter.batis.ann.DbColumn;
 import wxdgaming.boot2.starter.batis.ann.DbTable;
 
@@ -17,50 +19,50 @@ import wxdgaming.boot2.starter.batis.ann.DbTable;
 @Getter
 @Setter
 @DbTable(tableName = "record_server")
-public class ServerRecord extends EntityLongUID {
+public class ServerRecord extends Entity {
 
     /** 不写入数据库的用于验证的 */
-    @JSONField(ordinal = 10)
+    @JSONField(ordinal = 1)
     @DbColumn(ignore = true)
     private String token;
     /** 不写入数据库的用于验证的 */
-    @JSONField(ordinal = 11)
+    @JSONField(ordinal = 2)
     @DbColumn(ignore = true)
     private int gameId;
-    /** 最后更新时间 */
-    @DbColumn()
+
+    @DbColumn(key = true)
+    @JSONField(ordinal = 10)
+    private Integer sid = 0;
+    /** 服务器id */
     @JSONField(ordinal = 12)
-    private long updateTime;
-    /** 是否启用 */
-    @DbColumn(index = true)
-    @JSONField(ordinal = 13)
-    private boolean enabled;
-    /** 顺序 */
-    @DbColumn(index = true)
-    @JSONField(ordinal = 14)
-    private int ordinal;
-    /** 平台 */
-    @JSONField(ordinal = 15)
-    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
-    private String platform;
-    /** 服务器id */
-    @JSONField(ordinal = 16)
-    @DbColumn(index = true)
-    private int sid;
-    /** 服务器id */
-    @JSONField(ordinal = 17)
     @DbColumn(index = true)
     private int mainSid;
+    /** 平台 */
+    @JSONField(ordinal = 13)
+    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
+    private String platform;
     /** 服务器名字 */
-    @JSONField(ordinal = 18)
+    @JSONField(ordinal = 14)
     @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String name;
     /** 服务器显示名 */
-    @JSONField(ordinal = 19)
+    @JSONField(ordinal = 15)
     @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String showName;
+    /** 最后更新时间 */
+    @DbColumn()
+    @JSONField(ordinal = 16)
+    private long updateTime;
+    /** 是否启用 */
+    @DbColumn(index = true)
+    @JSONField(ordinal = 17)
+    private boolean enabled;
+    /** 顺序 */
+    @DbColumn(index = true)
+    @JSONField(ordinal = 18)
+    private int ordinal;
     /** 开服时间 */
-    @JSONField(ordinal = 20)
+    @JSONField(ordinal = 19)
     @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String openTime;
     /** 维护时间 */
@@ -87,10 +89,6 @@ public class ServerRecord extends EntityLongUID {
     @JSONField(ordinal = 26)
     @DbColumn(index = true)
     private String status;
-    /** 版本 */
-    @JSONField(ordinal = 27)
-    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
-    private String version;
     /** 注册账户 */
     @JSONField(ordinal = 28)
     @DbColumn()
@@ -111,4 +109,7 @@ public class ServerRecord extends EntityLongUID {
     @JSONField(ordinal = 32)
     @DbColumn()
     private long rechargeCount;
+    @JSONField(ordinal = 99)
+    @DbColumn(columnType = ColumnType.Json)
+    private final JSONObject data = MapOf.newJSONObject();
 }

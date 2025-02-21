@@ -52,11 +52,10 @@ public class RoleRecord extends RecordBase {
     @DbColumn(index = true)
     private int lv;
 
-    @JSONField(ordinal = 28)
-    @DbColumn(columnType = ColumnType.Json)
-    private final JSONObject data = MapOf.newJSONObject();
-
     @JSONField(ordinal = 29)
     @DbColumn(index = true)
     private int del;
+    @JSONField(ordinal = 99)
+    @DbColumn(columnType = ColumnType.Json)
+    private final JSONObject data = MapOf.newJSONObject();
 }

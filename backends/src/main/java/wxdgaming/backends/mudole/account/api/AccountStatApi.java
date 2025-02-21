@@ -36,21 +36,20 @@ public class AccountStatApi {
 
     @HttpRequest(authority = 9)
     public RunResult list(HttpContext httpContext, @Param(path = "gameId") int gameId,
-                          @Param(path = "pageIndex") Integer pageIndex,
-                          @Param(path = "pageSize") Integer pageSize) {
+                          @Param(path = "pageIndex") int pageIndex,
+                          @Param(path = "pageSize") int pageSize) {
         PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
         String tableName = pgsqlDataHelper.tableMapping(AccountStat.class).getTableName();
         String sql = "select * from " + tableName + " order by uid desc ";
         long rowCount = pgsqlDataHelper.tableCount(AccountStat.class);
 
-        if (pageIndex != null && pageIndex > 0) {
+        if (pageIndex > 0) {
             sql += " offset " + (pageIndex - 1) * pageSize;
         }
 
-        if (pageSize == null || pageSize <= 10) pageSize = 10;
+        if (pageSize <= 10) pageSize = 10;
         if (pageSize > 1000) pageSize = 1000;
         sql += " limit " + pageSize;
-
 
         List<JSONObject> list = pgsqlDataHelper.findListBySql(AccountStat.class, sql)
                 .stream()

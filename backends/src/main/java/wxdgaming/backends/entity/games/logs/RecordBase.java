@@ -40,10 +40,6 @@ public class RecordBase extends EntityLongUID implements Serializable {
     @DbColumn(index = true)
     private long createTime;
 
-    public int intUid() {
-        return getUid().intValue();
-    }
-
     public void checkDataKey() {
         if (getCreateTime() == 0) {
             setCreateTime(System.currentTimeMillis());

@@ -3,6 +3,7 @@ package push;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import wxdgaming.backends.entity.games.logs.ServerRecord;
+import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.util.RandomUtils;
 import wxdgaming.boot2.starter.net.httpclient.PostText;
 import wxdgaming.boot2.starter.net.httpclient.Response;
@@ -37,10 +38,10 @@ public class ServerApiTest extends GameApiTest {
         for (int i = 1; i <= count; i++) {
             ServerRecord serverRecord = new ServerRecord();
             serverRecord.setGameId(gameId);
-            serverRecord.setSid(RandomUtils.random(1, 16000));
+            serverRecord.setSid(i);
             serverRecord.setMainSid(0);
             serverRecord.setName("测试服");
-            serverRecord.setShowName("测试服");
+            serverRecord.setShowName(StringUtils.randomString(4));
             serverRecord.setOpenTime("2025-01-24 14:02");
             serverRecord.setMaintainTime("2025-01-24 14:02");
             serverRecord.setWlan("wxd-gaming");
@@ -48,13 +49,13 @@ public class ServerApiTest extends GameApiTest {
             serverRecord.setPort(19000);
             serverRecord.setWebPort(19001);
             serverRecord.setStatus("online");
-            serverRecord.setVersion("1.0.0");
             serverRecord.setRegisterUserCount(RandomUtils.random(1, 1000));
             serverRecord.setRegisterRoleCount(RandomUtils.random(1, 1000));
             serverRecord.setOnlineRoleCount(RandomUtils.random(1, 1000));
             serverRecord.setActiveRoleCount(RandomUtils.random(1, 1000));
             serverRecord.setRechargeCount(RandomUtils.random(1, 1000));
             serverRecord.setUpdateTime(System.currentTimeMillis());
+            serverRecord.getData().fluentPut("version", "v1.0.1");
             serverRecord.setToken(loginToken);
             CompletableFuture<Response<PostText>> post = post("server/push", serverRecord.toJsonString());
             futures.add(post);

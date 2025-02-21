@@ -42,7 +42,7 @@ public class GameApi {
 
     @HttpRequest(authority = 9)
     public RunResult push(HttpContext session, @Body Game game) {
-        Game queryEntity = gameService.gameRecord(game.getUid().intValue());
+        Game queryEntity = gameService.gameRecord(game.getUid());
         if (queryEntity == null) {
             game.setCreateTime(System.currentTimeMillis());
             game.setAppToken(StringUtils.randomString(12));

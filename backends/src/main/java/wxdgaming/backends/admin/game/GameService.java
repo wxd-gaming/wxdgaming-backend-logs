@@ -66,7 +66,7 @@ public class GameService {
     }
 
     public void addGameCache(Game game) {
-        int gameId = game.getUid().intValue();
+        int gameId = game.getUid();
         initDataHelper(game);
         gameId2GameRecordMap.put(gameId, game);
         gameId2HexMap.putIfAbsent(gameId, new HexId(game.getUid()));
@@ -86,7 +86,7 @@ public class GameService {
     }
 
     public void initDataHelper(Game game) {
-        PgsqlDataHelper dataHelper = gameId2PgsqlDataHelperMap.computeIfAbsent(game.getUid().intValue(), k -> {
+        PgsqlDataHelper dataHelper = gameId2PgsqlDataHelperMap.computeIfAbsent(game.getUid(), k -> {
             String dbName = "game_db_" + k;
             SqlConfig clone = pgsqlService.getSqlConfig().clone(dbName);
             clone.setScanPackage(GameTableScan.class.getPackageName());

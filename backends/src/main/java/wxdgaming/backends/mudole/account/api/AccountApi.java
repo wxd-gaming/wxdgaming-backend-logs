@@ -9,10 +9,10 @@ import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.mudole.slog.SLogService;
 import wxdgaming.boot2.core.ann.Body;
 import wxdgaming.boot2.core.ann.Param;
-import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.timer.MyClock;
+import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.ann.RequestMapping;
@@ -67,16 +67,31 @@ public class AccountApi {
     @HttpRequest(authority = 9)
     public RunResult list(HttpContext httpContext,
                           @Param(path = "gameId") Integer gameId,
+                          @Param(path = "pageIndex") int pageIndex,
+                          @Param(path = "pageSize") int pageSize,
                           @Param(path = "account", required = false) String account) {
         PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
 
-        List<AccountRecord> accountRecords;
-        if (StringUtils.isBlank(account)) {
-            accountRecords = pgsqlDataHelper.findList(AccountRecord.class);
-        } else {
-            accountRecords = pgsqlDataHelper.findListByWhere(AccountRecord.class, "account = ?", account);
+        SqlQueryBuilder queryBuilder = pgsqlDataHelper.queryBuilder();
+        queryBuilder
+                .sqlByEntity(AccountRecord.class)
+                .pushWhereByValueNotNull("account=?", account)
+        ;
+
+        queryBuilder.setOrderBy("createtime desc");
+
+        if (pageIndex > 0) {
+            queryBuilder.setSkip((pageIndex - 1) * pageSize);
         }
-        List<JSONObject> list = accountRecords.stream()
+
+        if (pageSize <= 10) pageSize = 10;
+        if (pageSize > 1000) pageSize = 1000;
+        queryBuilder.setLimit(pageSize);
+
+        long rowCount = queryBuilder.findCount();
+        List<AccountRecord> records = queryBuilder.findList2Entity(AccountRecord.class);
+
+        List<JSONObject> list = records.stream()
                 .map(FastJsonUtil::toJSONObject)
                 .peek(jsonObject -> {
                     jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("createTime")));
@@ -84,6 +99,6 @@ public class AccountApi {
                     jsonObject.put("data", jsonObject.getString("data"));
                 })
                 .toList();
-        return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", list.size());
+        return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", rowCount);
     }
 }

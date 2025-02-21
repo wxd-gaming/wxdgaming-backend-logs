@@ -27,7 +27,7 @@ public class RoleApiTest extends AccountApiTest {
     @Test
     public void test() throws Exception {
         String logToken = findLogToken();
-        test(logToken, 1000);
+        test(logToken, 1);
     }
 
     @Test
@@ -44,9 +44,9 @@ public class RoleApiTest extends AccountApiTest {
             record.setGameId(gameId);
             record.setToken(logToken);
             record.setAccount(randomAccount());
+            record.setCreateTime(randomCreateTime());
             record.setCreateSid(RandomUtils.random(1, 100));
             record.setCurSid(RandomUtils.random(1, 100));
-            record.setCreateTime(randomCreateTime());
             record.setRoleId(String.valueOf(i));
             record.setRoleName(StringUtils.randomString(8));
             record.setJob("魔剑士");

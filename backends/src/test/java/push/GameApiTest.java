@@ -35,7 +35,7 @@ public class GameApiTest {
     protected AtomicBoolean logined = new AtomicBoolean();
 
     static {
-        ExecutorUtil.init(ExecutorConfig.INSTANCE);
+        ExecutorUtil.getInstance().init(ExecutorConfig.INSTANCE);
     }
 
     public void post(String path, Entity entity) throws Exception {

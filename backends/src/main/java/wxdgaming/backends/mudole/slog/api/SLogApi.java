@@ -11,10 +11,10 @@ import wxdgaming.backends.mudole.slog.SLogService;
 import wxdgaming.boot2.core.ann.Body;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.chatset.StringUtils;
-import wxdgaming.boot2.core.io.Objects;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.ExecutorWith;
 import wxdgaming.boot2.core.timer.MyClock;
+import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.ann.RequestMapping;
@@ -59,19 +59,17 @@ public class SLogApi {
         return RunResult.ok();
     }
 
-    @HttpRequest()
+    @HttpRequest(authority = 9)
     @ExecutorWith(useVirtualThread = true)
     public RunResult list(HttpContext httpSession,
                           @Param(path = "gameId") Integer gameId,
                           @Param(path = "logType") String logType,
-                          @Param(path = "pageIndex") Integer pageIndex,
-                          @Param(path = "pageSize") Integer pageSize,
+                          @Param(path = "pageIndex") int pageIndex,
+                          @Param(path = "pageSize") int pageSize,
                           @Param(path = "account", required = false) String account,
                           @Param(path = "roleId", required = false) String roleId,
                           @Param(path = "roleName", required = false) String roleName,
                           @Param(path = "dataJson", required = false) String dataJson) {
-
-        if (gameId == null || gameId == 0) return RunResult.error("gameId is null");
 
         Game game = gameService.getGameId2GameRecordMap().get(gameId);
 
@@ -82,66 +80,42 @@ public class SLogApi {
         if (!game.getTableMapping().containsKey(logType)) {
             return RunResult.error("log type error");
         }
+        PgsqlDataHelper pgsqlDataHelper = this.gameService.pgsqlDataHelper(gameId);
+        SqlQueryBuilder sqlQueryBuilder = pgsqlDataHelper.queryBuilder();
 
-        String sqlWhere = "";
-        Object[] args = new Object[0];
-        if (StringUtils.isNotBlank(account)) {
-            sqlWhere = "account = ?";
-            args = Objects.merge(args, account);
-        }
-        if (StringUtils.isNotBlank(roleId)) {
-            if (!sqlWhere.isEmpty()) {
-                sqlWhere += " AND ";
-            }
-            sqlWhere += "roleid = ?";
-            args = Objects.merge(args, roleId);
-        }
-        if (StringUtils.isNotBlank(roleName)) {
-            if (!sqlWhere.isEmpty()) {
-                sqlWhere += " AND ";
-            }
-            sqlWhere += "rolename = ?";
-            args = Objects.merge(args, roleName);
-        }
+        sqlQueryBuilder
+                .setTableName(logType)
+                .pushWhereByValueNotNull("account=?", account)
+                .pushWhereByValueNotNull("roleid=?", roleId)
+                .pushWhereByValueNotNull("rolename=?", roleName);
 
         if (StringUtils.isNotBlank(dataJson)) {
             String[] split = dataJson.split(",");
             for (String s : split) {
-                if (!sqlWhere.isEmpty()) {
-                    sqlWhere += " AND ";
-                }
                 String[] strings = s.split("=");
-                sqlWhere += "json_extract_path_text(data,'" + strings[0] + "') = ?";
-                args = Objects.merge(args, strings[1]);
+                sqlQueryBuilder.pushWhere("json_extract_path_text(data,'" + strings[0] + "') = ?", strings[1]);
             }
         }
-        String sql = "select * from " + logType;
-        if (StringUtils.isNotBlank(sqlWhere)) {
-            sql += " where " + sqlWhere;
-        } else {
-            args = Objects.ZERO_ARRAY;
+
+        sqlQueryBuilder.setOrderBy("createtime desc");
+
+        if (pageIndex > 0) {
+            sqlQueryBuilder.setSkip((pageIndex - 1) * pageSize);
         }
 
-        sql += " order by logtime desc";
-
-        if (pageIndex != null && pageIndex > 0) {
-            sql += " offset " + (pageIndex - 1) * pageSize;
-        }
-
-        if (pageSize == null || pageSize <= 10) pageSize = 10;
+        if (pageSize <= 10) pageSize = 10;
         if (pageSize > 1000) pageSize = 1000;
-        sql += " limit " + pageSize;
 
-        PgsqlDataHelper pgsqlDataHelper = this.gameService.pgsqlDataHelper(gameId);
+        sqlQueryBuilder.setLimit(pageSize);
 
-        long rowCount = pgsqlDataHelper.tableCount(logType, sqlWhere, args);
+        long rowCount = pgsqlDataHelper.tableCount(logType, sqlQueryBuilder.getWhere(), sqlQueryBuilder.getParameters());
 
-        List<SLog> slogs = pgsqlDataHelper.findListBySql(SLog.class, sql, args);
+        List<SLog> slogs = pgsqlDataHelper.findListBySql(SLog.class, sqlQueryBuilder.buildSelectSql(), sqlQueryBuilder.getParameters());
 
         List<JSONObject> list = slogs.stream()
                 .map(SLog::toJSONObject)
                 .peek(jsonObject -> {
-                    jsonObject.put("logTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("logTime")));
+                    jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("createTime")));
                     jsonObject.put("data", jsonObject.getString("data"));
                 })
                 .toList();

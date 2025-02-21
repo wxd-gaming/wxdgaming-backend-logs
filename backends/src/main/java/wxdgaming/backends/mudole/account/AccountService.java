@@ -93,7 +93,7 @@ public class AccountService {
                 }
             };
 
-            ExecutorUtil.getVirtualExecutor().execute(event);
+            ExecutorUtil.getInstance().getVirtualExecutor().execute(event);
         }
     }
 
