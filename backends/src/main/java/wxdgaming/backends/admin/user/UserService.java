@@ -54,7 +54,7 @@ public class UserService {
         if (user == null) {
             user = new User();
             user.setCreatedTime(System.currentTimeMillis());
-            user.setUid(hexId.newId());
+            user.setUid(1);
             user.setAccount(ROOT);
             user.setPwd(Md5Util.md5DigestEncode(String.valueOf(user.getUid()), user.getAccount(), PWDKEY, "123456"));
             user.setAdmin(true);

@@ -42,8 +42,6 @@ public class AccountApi {
 
     @HttpRequest(authority = 2)
     public RunResult push(HttpContext httpContext, @Body AccountRecord accountRecord) {
-        if (accountRecord.getGameId() == 0) return RunResult.error("gameId is null");
-        if (StringUtils.isBlank(accountRecord.getToken())) return RunResult.error("token is null");
         if (accountRecord.getUid() == 0) {
             accountRecord.setUid(gameService.newId(accountRecord.getGameId()));
         }
@@ -54,16 +52,16 @@ public class AccountApi {
         AccountRecord entity = pgsqlDataHelper.findByWhere(AccountRecord.class, "account = ?", accountRecord.getAccount());
         if (entity == null) {
             accountRecord.checkDataKey();
-            pgsqlDataHelper.insert(accountRecord);
+            pgsqlDataHelper.dataBatch().insert(accountRecord);
         } else {
             accountRecord.setUid(entity.getUid());
             accountRecord.setCreateTime(entity.getCreateTime());
             accountRecord.setDayKey(entity.getDayKey());
-            pgsqlDataHelper.update(accountRecord);
+            pgsqlDataHelper.dataBatch().update(accountRecord);
         }
         accountRecord.setToken("");
         accountRecord.setGameId(0);
-        return RunResult.ok().data(accountRecord);
+        return RunResult.ok();
     }
 
     @HttpRequest(authority = 9)

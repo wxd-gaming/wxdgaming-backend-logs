@@ -134,7 +134,7 @@ public class GameApiTest {
     @Test
     public void pushGame() throws Exception {
         Game game = new Game();
-        game.setUid((long) gameId);
+        game.setUid(gameId);
         game.setName("神剑诀");
         game.setIcon("icon");
         game.setDesc("desc");

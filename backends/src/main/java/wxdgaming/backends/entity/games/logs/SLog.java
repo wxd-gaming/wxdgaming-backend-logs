@@ -38,6 +38,9 @@ public class SLog extends RecordBase implements EntityName {
     @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String roleName;
     @JSONField(ordinal = 25)
+    @DbColumn(index = true)
+    private int lv;
+    @JSONField(ordinal = 99)
     @DbColumn(columnType = ColumnType.Json)
     private final JSONObject data = MapOf.newJSONObject();
 

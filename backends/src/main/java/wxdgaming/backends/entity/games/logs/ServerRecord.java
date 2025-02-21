@@ -16,7 +16,7 @@ import wxdgaming.boot2.starter.batis.ann.DbTable;
  **/
 @Getter
 @Setter
-@DbTable(tableName = "server_record")
+@DbTable(tableName = "record_server")
 public class ServerRecord extends EntityLongUID {
 
     /** 不写入数据库的用于验证的 */

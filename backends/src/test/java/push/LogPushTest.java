@@ -16,7 +16,6 @@ import wxdgaming.boot2.starter.net.httpclient.Response;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 日志push
@@ -58,6 +57,7 @@ public class LogPushTest extends RoleApiTest {
             sLog.setRoleName(StringUtils.randomString(8));
             sLog.setMainId(1);
             sLog.setSId(1);
+            sLog.setLv(RandomUtils.random(1, 100));
             sLog.getData().fluentPut("a", "b")
                     .fluentPut("itemId", RandomUtils.random(1, 100))
                     .fluentPut("itemNum", RandomUtils.random(1, 100))
@@ -105,6 +105,7 @@ public class LogPushTest extends RoleApiTest {
             sLog.setRoleName(StringUtils.randomString(8));
             sLog.setMainId(1);
             sLog.setSId(1);
+            sLog.setLv(RandomUtils.random(1, 100));
             sLog.getData()
                     .fluentPut("a", "b")
                     .fluentPut("login_type", RandomUtils.random(1, 100))

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import wxdgaming.boot2.starter.batis.ColumnType;
+import wxdgaming.boot2.starter.batis.EntityIntegerUID;
 import wxdgaming.boot2.starter.batis.EntityLongUID;
 import wxdgaming.boot2.starter.batis.ann.DbColumn;
 import wxdgaming.boot2.starter.batis.ann.DbTable;
@@ -21,7 +22,7 @@ import java.util.LinkedHashMap;
 @Setter
 @Accessors(chain = true)
 @DbTable
-public class Game extends EntityLongUID {
+public class Game extends EntityIntegerUID {
 
     @JSONField(ordinal = 3)
     @DbColumn(index = true)
