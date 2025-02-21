@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html>
 
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>在线用户</title>
+    <title>游戏统计</title>
 
     <script charset="utf-8" type="text/javascript" src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
     <script charset="utf-8" type="text/javascript" src="/js/com.wxd.js"></script>
@@ -27,47 +27,22 @@
         input {margin-top: 5px;border: slategrey 1px solid;border-radius: 5px;height: 22px;}
 
         input[type=text] {width: 160px;}
+
+        .tableDom table thead th, .tableDom table tbody td {text-align: center;}
     </style>
 
     <script>
-
         let pathname = window.location.protocol + "//" + window.location.host + "" + window.location.pathname;
-        let items = [];
-        let dataCount = 0;
-
-        function operate(sid, opt) {
-            wxd.loading();
-            let urlQuery = new wxd.Map().loadSearch();
-            urlQuery.put("sid", sid);
-            urlQuery.put("operate", opt);
-            let url = "/server/operate";
-            console.log(urlQuery.toString());
-            wxd.netty.post(url, urlQuery.toString(),
-                function (responseText) {
-                    wxd.message.alert(responseText);
-                    wxd.loading_close();
-                },
-                (errorMsg) => {
-                    wxd.loading_close();
-                    wxd.message.alert("异常：" + errorMsg);
-                },
-                false
-            );
-        }
 
         function search() {
             wxd.loading();
             let urlQuery = new wxd.Map().loadSearch();
             urlQuery.put("pageIndex", pageIndex());
             urlQuery.put("pageSize", pageSize());
-            urlQuery.put("sid", $("#sid").val());
-            urlQuery.put("mainSid", $("#mainSid").val());
-            urlQuery.put("name", $("#name").val());
-            urlQuery.put("showName", $("#showName").val());
-            urlQuery.put("wlan", $("#wlan").val());
-            urlQuery.put("lan", $("#lan").val());
-            let url = "/server/list";
-            console.log(urlQuery.toString());
+            urlQuery.put("day", $("#day").val());
+            urlQuery.put("minDay", $("#minDay").val());
+            urlQuery.put("maxDay", $("#maxDay").val());
+            let url = "/stat/game/list";
             wxd.netty.post(url, urlQuery.toString(),
                 function (responseText) {
                     if (responseText.code !== 1) {
@@ -81,12 +56,12 @@
                     showData();
                 },
                 (errorMsg) => {
-                    wxd.loading_close();
                     wxd.message.alert("异常：" + errorMsg);
                 },
                 false
             );
         }
+
 
         function pageSize() {
             return Number($('#page_size').val());
@@ -141,32 +116,26 @@
             wxd.loading_close();
         }
 
+        let items = [];
+
         function createRow(index, row) {
             let tr = `
     <tr>
-            <td style="width: 120px;">
-                <a href="javascript:void(0);" onclick="operate(${row.sid}, 'update');return false;" title="拷贝版本文件更新服务器">备服</a>
-                <a href="javascript:void(0);" onclick="operate(${row.sid}, 'restart');return false;" title="把当前服务器停服后再启动">重启</a>
-                <a href="javascript:void(0);" onclick="operate(${row.sid}, 'stop');return false;" title="把当前服务器停止运行">停止</a>
-            </td>
-            <td tips="true" style="width: 80px;">${row.sid}</td>
-            <td tips="true" style="width: 80px;">${row.mainSid}</td>
-            <td tips="true" style="width: 140px;">${row.name}</td>
-            <td tips="true" style="width: 140px;">${row.showName}</td>
-            <td tips="true" style="width: 130px;">${row.openTime}</td>
-            <td tips="true" style="width: 80px;">${row.registerUserCount}</td>
-            <td tips="true" style="width: 80px;">${row.onlineRoleCount}</td>
-            <td tips="true" style="width: 80px;">${row.activeRoleCount}</td>
-            <td tips="true" style="width: 120px;">${row.rechargeCount}</td>
-            <td tips="true" style="width: 120px;">${row.wlan}</td>
-            <td tips="true" style="width: 120px;">${row.lan}</td>
-            <td tips="true" style="width: 62px;">${row.port}</td>
-            <td tips="true" style="width: 62px;">${row.webPort}</td>
-            <td tips="true" style="width: 120px;">备注</td>
+        <td tips="true" style="width: 50px;">${index}</td>
+        <td tips="true" style="width: 80px;">${row.uid}</td>
+        <td tips="true" style="width: 70px;">${row.loginAccountNum}</td>
+        <td tips="true" style="width: 70px;">${row.registerAccountNum}</td>
+        <td tips="true" style="width: 70px;">${row.registerAccountRechargeNum}</td>
+        <td tips="true" style="width: 70px;">${row.fufeilv}</td>
+        <td tips="true" style="width: 70px;">${row.rechargeOrderNum}</td>
+        <td tips="true" style="width: 170px;">${row.rechargeAmountNum}</td>
+        <td tips="true" style="width: 170px;" title="充值金额 / 今日登录账号数">${row.arpu}</td>
+        <td tips="true" style="width: 170px;" title="充值金额 / 今日充值账号数">${row.arppu}</td>
     </tr>
 `;
             return tr;
         }
+
 
         $(() => {
             /*读取本地存储，根据个人爱好查看数据*/
@@ -182,35 +151,27 @@
 </head>
 
 <body>
-<div style="text-align: left;padding-left: 10px;padding-top: 8px;">
+<div style="padding-left: 10px; padding-top: 8px; text-align: left;vertical-align: center;">
     <input type="button" value="搜索" onclick="search();">
     <br>
-    <input id="sid" type="text" value="" onkeydown="if (event.keyCode===13)search();" placeholder="区服id"/>
-    <input id="mainSid" type="text" value="" onkeydown="if (event.keyCode===13)search();" placeholder="主服id"/>
-    <input id="name" type="text" value="" onkeydown="if (event.keyCode===13)search();" placeholder="区服名字"/>
-    <input id="showName" type="text" value="" onkeydown="if (event.keyCode===13)search();" placeholder="显示名字"/>
-    <input id="wlan" type="text" value="" onkeydown="if (event.keyCode===13)search();" placeholder="外网ip"/>
-    <input id="lan" type="text" value="" onkeydown="if (event.keyCode===13)search();" placeholder="内网ip"/>
+    <input id="day" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="日期"/>
+    <input id="minDay" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="小于这个日期"/>
+    <input id="maxDay" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="大于这个日期"/>
 </div>
 <div class="tableDom" style="position: absolute;left: 10px;top: 80px;right: 15px;bottom: 35px;">
     <table>
         <thead>
         <tr>
-            <th style="width: 120px;">操作</th>
-            <th style="width: 80px;">区服ID</th>
-            <th style="width: 80px;">主服ID</th>
-            <th style="width: 140px;">名字</th>
-            <th style="width: 140px;">显示名字</th>
-            <th style="width: 130px;">开服时间</th>
-            <th style="width: 80px;">注册</th>
-            <th style="width: 80px;">在线</th>
-            <th style="width: 80px;">活跃</th>
-            <th style="width: 120px;">充值</th>
-            <th style="width: 120px;">外网IP</th>
-            <th style="width: 120px;">内网IP</th>
-            <th style="width: 62px;">端口</th>
-            <th style="width: 62px;">WEB端口</th>
-            <th style="width: 120px;">备注</th>
+            <th style="width: 50px;">序号</th>
+            <th style="width: 80px;">日期</th>
+            <th style="width: 70px;">登录</th>
+            <th style="width: 70px;">注册</th>
+            <th style="width: 70px;" title="今日注册付费账号数">付费数</th>
+            <th style="width: 70px;" title="今日注册付费账号数/ 今日注册账号数">付费率</th>
+            <th style="width: 70px;">订单数</th>
+            <th style="width: 170px;">金额</th>
+            <th style="width: 170px;" title="充值金额 / 今日登录账号数">ARPU</th>
+            <th style="width: 170px;" title="充值金额 / 今日充值账号数">ARPPU</th>
         </tr>
         </thead>
         <tbody>

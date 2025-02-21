@@ -43,7 +43,7 @@ socket:
     writeByteBufM: 12                                         #发送缓冲区大小 单位MB
 db:
   pgsql:
-    debug: true                                                 #调试模式将会显示sql语句
+    debug: false                                                 #调试模式将会显示sql语句
     driverClassName: "org.postgresql.Driver"
     url: "jdbc:postgresql://192.168.137.10:5432/backend"
     username: "postgres"

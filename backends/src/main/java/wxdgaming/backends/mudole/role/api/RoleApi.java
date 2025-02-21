@@ -70,7 +70,7 @@ public class RoleApi {
                 record.setCreateTime(System.currentTimeMillis());
             }
             record.checkDataKey();
-            pgsqlDataHelper.getSqlDataBatch().insert(record);
+            pgsqlDataHelper.getDataBatch().insert(record);
             return RunResult.ok().msg("新增");
         } else {
             record.setUid(entity.getUid());
@@ -78,7 +78,7 @@ public class RoleApi {
             record.setCreateTime(entity.getCreateTime());
             record.setDayKey(entity.getDayKey());
             record.setCreateSid(entity.getCreateSid());
-            pgsqlDataHelper.getSqlDataBatch().update(record);
+            pgsqlDataHelper.getDataBatch().update(record);
             return RunResult.ok().msg("修改");
         }
     }
@@ -96,7 +96,7 @@ public class RoleApi {
         RoleRecord entity = roleService.roleRecord(gameId, account, roleId);
         if (entity != null) {
             entity.setDel(1);
-            pgsqlDataHelper.getSqlDataBatch().update(entity);
+            pgsqlDataHelper.getDataBatch().update(entity);
             return RunResult.ok();
         }
         return RunResult.error("角色不存在");

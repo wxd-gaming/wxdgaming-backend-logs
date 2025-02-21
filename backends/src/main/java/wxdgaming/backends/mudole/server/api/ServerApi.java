@@ -49,10 +49,10 @@ public class ServerApi {
         ServerRecord queryEntity = pgsqlDataHelper.findByKey(ServerRecord.class, serverRecord.getSid());
         serverRecord.setUpdateTime(System.currentTimeMillis());
         if (queryEntity == null) {
-            pgsqlDataHelper.getSqlDataBatch().insert(serverRecord);
+            pgsqlDataHelper.getDataBatch().insert(serverRecord);
         } else {
             serverRecord.setSid(queryEntity.getSid());
-            pgsqlDataHelper.getSqlDataBatch().update(serverRecord);
+            pgsqlDataHelper.getDataBatch().update(serverRecord);
         }
         return RunResult.ok();
     }

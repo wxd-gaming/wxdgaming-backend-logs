@@ -142,9 +142,9 @@ public class GameApiTest {
         game.setCreateTime(randomCreateTime());
 
         LinkedHashMap<String, String> tableMapping = game.getTableMapping();
+        tableMapping.put("log_login", "登录日志");
         tableMapping.put("log_item", "道具日志");
         tableMapping.put("log_pay", "支付日志");
-        tableMapping.put("log_login", "登录日志");
 
         post("game/push", game);
     }

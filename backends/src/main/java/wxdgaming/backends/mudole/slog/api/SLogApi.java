@@ -54,7 +54,7 @@ public class SLogApi {
 
         sLog.checkDataKey();
 
-        pgsqlDataHelper.getSqlDataBatch().insert(sLog);
+        pgsqlDataHelper.getDataBatch().insert(sLog);
         // pgsqlDataHelper.getSqlDataBatch().insert(sLog);
         return RunResult.ok();
     }
