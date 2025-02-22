@@ -2,18 +2,21 @@ package push;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import org.junit.jupiter.api.RepeatedTest;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
+import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
+import wxdgaming.boot2.core.io.FileWriteUtil;
 import wxdgaming.boot2.core.lang.RunResult;
+import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.core.util.RandomUtils;
 import wxdgaming.boot2.starter.net.httpclient.PostText;
 import wxdgaming.boot2.starter.net.httpclient.Response;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * test
@@ -24,49 +27,50 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class AccountApiTest extends GameApiTest {
 
+
+    @Test
+    public void createAccount() throws Exception {
+        HashMap<Integer, List<AccountRecord>> recordMap = new HashMap<>();
+        LocalDateTime localDateTime = LocalDateTime.now().plusDays(-(days));
+        for (int i = 1; i <= days; i++) {
+            /*模拟每天注册的人数*/
+            int random = RandomUtils.random(50, 200);
+            LocalDateTime time = localDateTime.plusDays(i);
+            long time2Milli = MyClock.time2Milli(time);
+            System.out.println(time);
+            List<AccountRecord> list = recordMap.computeIfAbsent(i, k -> new ArrayList<>());
+            for (int j = 0; j < random; j++) {
+                AccountRecord record = new AccountRecord();
+                record.setUid(hexId.newId());
+                record.setCreateTime(time2Milli);
+                record.setAccount(i + "-" + j + "-" + randomAccount());
+                record.checkDataKey();
+                record.getData().fluentPut("channel", "huawei").fluentPut("os", "huawei");
+                list.add(record);
+            }
+        }
+        FileWriteUtil.writeString("src/test/resources/account.json", FastJsonUtil.toJsonFmt(recordMap));
+    }
+
     @Test
     public void pushAccount() throws Exception {
         String logToken = findLogToken();
-        pushAccount(logToken, 1);
-    }
-
-    @Test
-    @RepeatedTest(100)
-    public void pushAccountList() throws Exception {
-        String logToken = findLogToken();
-        pushAccount(logToken, 1000);
-    }
-
-    public void pushAccount(String logToken, int count) throws Exception {
-        List<CompletableFuture<Response<PostText>>> futures = new ArrayList<>();
-        for (int i = 1; i <= count; i++) {
-            AccountRecord record = new AccountRecord();
-            record.setGameId(gameId);
-            record.setToken(logToken);
-            record.setCreateTime(randomCreateTime());
-            record.setAccount(randomAccount());
-            record.setLastJoinSid(RandomUtils.random(1, 100));
-            record.setLastJoinTime(System.currentTimeMillis());
-            record.getData().fluentPut("channel", "huawei").fluentPut("os", "huawei");
-            CompletableFuture<Response<PostText>> post = post("account/push", record.toJsonString());
-            futures.add(post);
-        }
-        for (CompletableFuture<Response<PostText>> future : futures) {
-            Response<PostText> join = future.join();
-            RunResult runResult = join.bodyRunResult();
-            if (join.responseCode() != 200 || runResult.code() != 1) {
-                System.out.println(join.bodyString());
+        HashMap<Integer, List<AccountRecord>> accountRecordMap = readAccount();
+        for (Map.Entry<Integer, List<AccountRecord>> entry : accountRecordMap.entrySet()) {
+            List<CompletableFuture<Response<PostText>>> futures = new ArrayList<>();
+            for (AccountRecord record : entry.getValue()) {
+                record.setGameId(gameId);
+                record.setToken(logToken);
+                CompletableFuture<Response<PostText>> post = post("account/push", record.toJsonString());
+                futures.add(post);
+            }
+            for (CompletableFuture<Response<PostText>> future : futures) {
+                Response<PostText> join = future.join();
+                RunResult runResult = join.bodyRunResult();
+                if (join.responseCode() != 200 || runResult.code() != 1) {
+                    System.out.println(join.bodyString());
+                }
             }
         }
     }
-
-    @Test
-    @RepeatedTest(10)
-    public void random() {
-        int random = RandomUtils.random(0, 120);
-        random = random - 120;
-        LocalDateTime localDateTime = LocalDateTime.now().plusDays(random);
-        System.out.println(localDateTime);
-    }
-
 }

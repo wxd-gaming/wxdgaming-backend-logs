@@ -13,18 +13,23 @@ import wxdgaming.boot2.core.ann.Start;
 import wxdgaming.boot2.core.format.HexId;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.reflect.ReflectContext;
+import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.batis.TableMapping;
 import wxdgaming.boot2.starter.batis.ann.DbTable;
 import wxdgaming.boot2.starter.batis.sql.SqlConfig;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
+import wxdgaming.boot2.starter.net.httpclient.PostText;
+import wxdgaming.boot2.starter.net.httpclient.Response;
 import wxdgaming.boot2.starter.scheduled.ann.Scheduled;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -136,13 +141,18 @@ public class GameService {
         if (checkPartition) {
             /*TODO 处理分区表 */
             LocalDateTime localDate = LocalDateTime.now().plusDays(-120);
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (int i = 0; i < 125; i++) {
-                /*创建表分区*/
-                String from = MyClock.formatDate("yyyyMMdd", localDate);
-                localDate = localDate.plusDays(1);
-                String to = MyClock.formatDate("yyyyMMdd", localDate);
-                dataHelper.addPartition(dbTableMap, tableName, from, to);
+                final int fi = i;
+                CompletableFuture<Void> voidCompletableFuture = ExecutorUtil.getInstance().getLogicExecutor().completableFuture(() -> {
+                    /*创建表分区*/
+                    String from = MyClock.formatDate("yyyyMMdd", localDate.plusDays(fi));
+                    String to = MyClock.formatDate("yyyyMMdd", localDate.plusDays(fi + 1));
+                    dataHelper.addPartition(dbTableMap, tableName, from, to);
+                });
+                futures.add(voidCompletableFuture);
             }
+            futures.forEach(CompletableFuture::join);
         }
     }
 

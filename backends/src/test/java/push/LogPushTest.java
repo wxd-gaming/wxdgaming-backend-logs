@@ -4,16 +4,22 @@ import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.jupiter.api.RepeatedTest;
+import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.SLog;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.collection.MapOf;
 import wxdgaming.boot2.core.format.HexId;
+import wxdgaming.boot2.core.lang.DiffTime;
 import wxdgaming.boot2.core.lang.RunResult;
+import wxdgaming.boot2.core.lang.Tick;
+import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.core.util.RandomUtils;
 import wxdgaming.boot2.starter.net.httpclient.PostText;
 import wxdgaming.boot2.starter.net.httpclient.Response;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -25,8 +31,6 @@ import java.util.concurrent.CompletableFuture;
  **/
 @Slf4j
 public class LogPushTest extends RoleApiTest {
-
-    static HexId hexId = new HexId(1);
 
     @Test
     public void pushItemLog() {
@@ -76,31 +80,39 @@ public class LogPushTest extends RoleApiTest {
         }
     }
 
-    @Test
-    public void pushLoginLog() {
-        String logToken = findLogToken();
-        pushLoginLog(logToken, 1);
-    }
 
     @Test
-    @RepeatedTest(5000)
     public void pushLoginLogList() {
         String logToken = findLogToken();
-        pushLoginLog(logToken, 1000);
+        HashMap<Integer, List<AccountRecord>> accountRecordMap = readAccount();
+        for (List<AccountRecord> recordList : accountRecordMap.values()) {
+            for (AccountRecord accountRecord : recordList) {
+                pushLoginLog(logToken, accountRecord);
+            }
+        }
     }
 
-    public void pushLoginLog(String logToken, int count) {
+    public void pushLoginLog(String logToken, AccountRecord accountRecord) {
         List<CompletableFuture<Response<PostText>>> futures = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
 
-            // List<String> strings = List.of("item_log");
+        long createTime = accountRecord.getCreateTime();
+        LocalDateTime localDateTime = MyClock.localDateTime(createTime);
+
+        DiffTime diffTime = new DiffTime();
+        for (int i = 0; i < days; i++) {
+            LocalDateTime plusDays = localDateTime.plusDays(i);
+            long milli = MyClock.time2Milli(plusDays);
+            if (milli > MyClock.millis()) continue;/*当前当前时间不在执行*/
+            int random = 130 - i;
+            boolean randomBoolean = RandomUtils.randomBoolean(random, 131);
+            if (!randomBoolean) continue;
             SLog sLog = new SLog();
             sLog.setGameId(gameId);
             sLog.setToken(logToken);
             sLog.setLogType("log_login");
             sLog.setUid(hexId.newId());
-            sLog.setCreateTime(randomCreateTime());
-            sLog.setAccount(randomAccount());
+            sLog.setCreateTime(milli);
+            sLog.setAccount(accountRecord.getAccount());
             sLog.setRoleId(String.valueOf(RandomUtils.random(1, 1000)));
             sLog.setRoleName(StringUtils.randomString(8));
             sLog.setMainId(1);
@@ -126,6 +138,7 @@ public class LogPushTest extends RoleApiTest {
                 System.out.println(join.bodyString());
             }
         }
+        System.out.println(futures.size() + ", 耗时：" + diffTime.diff() + " ms");
     }
 
     @Test

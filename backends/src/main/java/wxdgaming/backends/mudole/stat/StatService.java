@@ -36,11 +36,12 @@ public class StatService {
         this.gameService = gameService;
     }
 
-    @Scheduled("*/20")
+    @Scheduled("0 */20")
     public void gameStat() {
         Collection<Game> values = gameService.getGameId2GameRecordMap().values();
         final long dayOfStartMillis = MyClock.dayOfStartMillis();
-        LocalDateTime localDateTime = LocalDateTime.now().plusDays(-5);
+        int days = 50;
+        LocalDateTime localDateTime = LocalDateTime.now().plusDays(-days);
         long startTime = MyClock.time2Milli(localDateTime);
         for (Game game : values) {
             PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(game.getUid());
@@ -52,7 +53,7 @@ public class StatService {
             Event event = new Event(TimeUnit.HOURS.toMillis(2), TimeUnit.HOURS.toMillis(2)) {
                 @Override public void onEvent() throws Exception {
                     /*统计留存开始时间*/
-                    for (int i = 0; i < 5; i++) {
+                    for (int i = 0; i < days; i++) {
                         final int day = i;
                         LocalDateTime statLocalDateTime = MyClock.localDateTime(statTime.get()).plusDays(day);
                         int dayKey = (statLocalDateTime.getYear() * 10000 + statLocalDateTime.getMonthValue() * 100 + statLocalDateTime.getDayOfMonth());
@@ -148,11 +149,12 @@ public class StatService {
         }
     }
 
-    @Scheduled("0 0")
+    @Scheduled("0 */20")
     public void accountStat() {
         Collection<Game> values = gameService.getGameId2GameRecordMap().values();
         final long dayOfStartMillis = MyClock.dayOfStartMillis();
-        LocalDateTime localDateTime = LocalDateTime.now().plusDays(-120);
+        int days = 121;
+        LocalDateTime localDateTime = LocalDateTime.now().plusDays(-days);
         long startTime = MyClock.time2Milli(localDateTime);
         for (Game game : values) {
             PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(game.getUid());
@@ -164,7 +166,7 @@ public class StatService {
             Event event = new Event(TimeUnit.HOURS.toMillis(2), TimeUnit.HOURS.toMillis(2)) {
                 @Override public void onEvent() throws Exception {
                     /*统计留存开始时间*/
-                    for (int i = 0; i < 120; i++) {
+                    for (int i = 0; i < days; i++) {
                         final int day = i;
                         LocalDateTime statLocalDateTime = MyClock.localDateTime(statTime.get()).plusDays(day);
                         int registerDayKey = (statLocalDateTime.getYear() * 10000 + statLocalDateTime.getMonthValue() * 100 + statLocalDateTime.getDayOfMonth());
@@ -184,7 +186,7 @@ public class StatService {
                         for (int j = 1; j <= 120; j++) {
                             LocalDateTime loginLocalDateTime = statLocalDateTime.plusDays(j);
                             long time2Milli = MyClock.time2Milli(loginLocalDateTime);
-                            if (time2Milli >= dayOfStartMillis) {
+                            if (time2Milli >= dayOfStartMillis || registerNum == 0) {
                                 /*必须是今天凌晨以前的日期才统计*/
                                 accountStat.getDayStatNumMap().put(String.valueOf(j + 1), "-");
                             } else {

@@ -1,12 +1,17 @@
 package push;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
+import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.system.Game;
 import wxdgaming.boot2.core.chatset.StringUtils;
+import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
 import wxdgaming.boot2.core.collection.MapOf;
+import wxdgaming.boot2.core.format.HexId;
+import wxdgaming.boot2.core.io.FileReadUtil;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.ExecutorConfig;
 import wxdgaming.boot2.core.threading.ExecutorUtil;
@@ -16,7 +21,10 @@ import wxdgaming.boot2.starter.net.httpclient.HttpBuilder;
 import wxdgaming.boot2.starter.net.httpclient.PostText;
 import wxdgaming.boot2.starter.net.httpclient.Response;
 
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,7 +38,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class GameApiTest {
 
+    protected int days = 120;
     protected int gameId = 2;
+    protected HexId hexId = new HexId(gameId);
 
     protected AtomicBoolean logined = new AtomicBoolean();
 
@@ -49,7 +59,7 @@ public class GameApiTest {
         login();
         if (path.startsWith("/")) path = path.substring(1);
         return HttpBuilder.postJson("http://127.0.0.1:19000/" + path, json)
-                .readTimeout(30000)
+                .readTimeout(130000)
                 // .header(HttpHeaderNames.AUTHORIZATION.toString(), token)
                 .async();
     }
@@ -98,6 +108,11 @@ public class GameApiTest {
         String logToken = runResult.getNestedValue("data.logToken", String.class);
         System.out.println("token: " + logToken);
         return logToken;
+    }
+
+    public HashMap<Integer, List<AccountRecord>> readAccount() {
+        String readString = FileReadUtil.readString("account.json", StandardCharsets.UTF_8);
+        return FastJsonUtil.parse(readString, new TypeReference<HashMap<Integer, List<AccountRecord>>>() {});
     }
 
     public void login() {

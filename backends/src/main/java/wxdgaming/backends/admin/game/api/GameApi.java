@@ -66,6 +66,9 @@ public class GameApi {
     @HttpRequest(authority = 9)
     public RunResult find(HttpContext session, @Param(path = "gameId") int gameId) {
         Game entity = gameService.gameRecord(gameId);
+        if (entity == null) {
+            return RunResult.error("gameId is not exist");
+        }
         return RunResult.ok().data(entity);
     }
 
