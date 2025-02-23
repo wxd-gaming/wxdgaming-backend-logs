@@ -70,6 +70,7 @@ public class StatService {
                             gameStat.setRegisterAccountNum(registerAccountNum);
                         }
                         {
+                            /*今日登录的账号数*/
                             Long loginAccountNum = pgsqlDataHelper.executeScalar("SELECT \"count\"(DISTINCT account) FROM record_role_login WHERE daykey=?", Long.class, dayKey);
                             loginAccountNum = Objects.returnNonNull(loginAccountNum, 0L);
                             gameStat.setLoginAccountNum(loginAccountNum);
@@ -90,6 +91,7 @@ public class StatService {
                             gameStat.setRechargeAmountNum(rechargeAmountNum);
                         }
                         {
+                            /*今日充值的账号数*/
                             Long rechargeAccountNum = pgsqlDataHelper.executeScalar("SELECT \"count\"(DISTINCT account) FROM record_recharge WHERE daykey=?", Long.class, dayKey);
                             rechargeAccountNum = Objects.returnNonNull(rechargeAccountNum, 0L);
                             gameStat.setRechargeAccountNum(rechargeAccountNum);
@@ -116,21 +118,23 @@ public class StatService {
                             gameStat.setRechargeOrderNum(rechargeOrderNum);
                         }
                         {
+                            /*ARPU = 今日充值金额 / 今日登录的账号数*/
                             long rechargeAmountNum = gameStat.getRechargeAmountNum();
                             long loginAccountNum = gameStat.getLoginAccountNum();
                             if (loginAccountNum == 0 || rechargeAmountNum == 0) {
                                 gameStat.setArpu("0");
                             } else {
-                                gameStat.setArpu(String.format("%.4f", rechargeAmountNum / 100f / loginAccountNum * 100));
+                                gameStat.setArpu(String.format("%.2f", rechargeAmountNum / 100f / loginAccountNum));
                             }
                         }
                         {
+                            /*ARPPU = 今日充值金额 / 今日充值的账号数*/
                             long rechargeAmountNum = gameStat.getRechargeAmountNum();
-                            long registerAccountNum = gameStat.getRegisterAccountNum();
-                            if (registerAccountNum == 0 || rechargeAmountNum == 0) {
+                            long rechargeAccountNum = gameStat.getRechargeAccountNum();
+                            if (rechargeAccountNum == 0 || rechargeAmountNum == 0) {
                                 gameStat.setArppu("0");
                             } else {
-                                gameStat.setArppu(String.format("%.4f", rechargeAmountNum / 100f / registerAccountNum * 100));
+                                gameStat.setArppu(String.format("%.2f", rechargeAmountNum / 100f / rechargeAccountNum));
                             }
                         }
                         {
