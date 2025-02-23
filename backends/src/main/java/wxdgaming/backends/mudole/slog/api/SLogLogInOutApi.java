@@ -52,7 +52,7 @@ public class SLogLogInOutApi {
 
     @HttpRequest(authority = 2)
     public RunResult pushList4Login(@ThreadParam GameContext gameContext, @Param(path = "data") List<SLog2Login> recordList) {
-        ExecutorUtil.getInstance().getVirtualExecutor().execute(new Event(5000, 10000) {
+        ExecutorUtil.getInstance().getLogicExecutor().execute(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
                 for (SLog2Login record : recordList) {
                     push4Login(gameContext, record);
@@ -70,7 +70,7 @@ public class SLogLogInOutApi {
         String logKey = record.getLogType() + record.getUid();
         boolean haveLogKey = gameContext.getLogKeyCache().containsKey(logKey);
         if (haveLogKey) {
-            gameContext.recordError(record.toJsonString(), "表结构 " + record.getLogType() + " 重复日志记录 " + record.getUid());
+            gameContext.recordError("表结构 " + record.getLogType() + " 重复日志记录 " + record.getUid(), record.toJsonString());
         } else {
 
             record.checkDataKey();
@@ -80,15 +80,15 @@ public class SLogLogInOutApi {
 
             AccountRecord accountRecord = gameContext.getAccountRecord(record.getAccount());
             if (accountRecord == null) {
-                gameContext.recordError(record.toJsonString(), "登录记录 找不到账号 " + record.getAccount());
+                gameContext.recordError("登录记录 找不到账号 " + record.getAccount(), record.toJsonString());
             } else {
                 accountRecord.setLastJoinTime(record.getCreateTime());
                 accountRecord.setLastJoinSid(record.getSId());
                 accountRecord.setOnline(true);
             }
-            RoleRecord roleRecord = gameContext.getRoleRecord(record.getUid());
+            RoleRecord roleRecord = gameContext.getRoleRecord(record.getRoleId());
             if (roleRecord == null) {
-                gameContext.recordError(record.toJsonString(), "登录记录 找不到角色 " + record.getRoleId());
+                gameContext.recordError("登录记录 找不到角色 " + record.getRoleId(), record.toJsonString());
             } else {
                 roleRecord.setLastJoinTime(record.getCreateTime());
                 roleRecord.setLastJoinSid(record.getSId());
@@ -100,7 +100,7 @@ public class SLogLogInOutApi {
 
     @HttpRequest(authority = 2)
     public RunResult pushList4Logout(@ThreadParam GameContext gameContext, @Param(path = "data") List<SLogLogoutParams> recordList) {
-        ExecutorUtil.getInstance().getVirtualExecutor().execute(new Event(5000, 10000) {
+        ExecutorUtil.getInstance().getLogicExecutor().execute(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
                 for (SLogLogoutParams record : recordList) {
                     push4Logout(gameContext, record);

@@ -58,11 +58,10 @@ public class RoleRecord extends RecordBase {
 
     /** 充值金额 */
     @JSONField(ordinal = 30)
-    @DbColumn(columnType = ColumnType.String, length = 15000)
     private AtomicLong rechargeAmount = new AtomicLong();
     /** 充值此时 */
     @JSONField(ordinal = 31)
-    @DbColumn(columnType = ColumnType.String, length = 15000)
+    @DbColumn(index = true)
     private AtomicInteger rechargeCount = new AtomicInteger();
     /** 首次充值时间 */
     @JSONField(ordinal = 32)

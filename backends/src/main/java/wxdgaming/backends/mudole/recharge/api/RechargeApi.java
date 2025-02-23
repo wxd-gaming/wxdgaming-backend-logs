@@ -68,10 +68,9 @@ public class RechargeApi {
                 }
                 accountRecord.setRechargeLastTime(record.getCreateTime());
             } else {
-                gameContext.recordError(record.toJsonString(), "重复充值记录 找不到账号 " + record.getAccount());
+                gameContext.recordError("重复充值记录 找不到账号 " + record.getAccount(), record.toJsonString());
             }
-            long roleId = record.getRoleId();
-            RoleRecord roleRecord = gameContext.getRoleRecord(roleId);
+            RoleRecord roleRecord = gameContext.getRoleRecord(record.getRoleId());
             if (roleRecord != null) {
                 roleRecord.getRechargeAmount().addAndGet(record.getAmount());
                 roleRecord.getRechargeCount().incrementAndGet();
@@ -80,17 +79,17 @@ public class RechargeApi {
                 }
                 roleRecord.setRechargeLastTime(record.getCreateTime());
             } else {
-                gameContext.recordError(record.toJsonString(), "重复充值记录 找不到对应的角色 " + record.getRoleId());
+                gameContext.recordError("重复充值记录 找不到对应的角色 " + record.getRoleId(), record.toJsonString());
             }
         } else {
-            gameContext.recordError(record.toJsonString(), "重复充值记录 " + record.getUid());
+            gameContext.recordError("重复充值记录 " + record.getUid(), record.toJsonString());
         }
         return RunResult.ok();
     }
 
     @HttpRequest(authority = 2)
     public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<RechargeRecord> recordList) {
-        ExecutorUtil.getInstance().getVirtualExecutor().execute(new Event(5000, 10000) {
+        ExecutorUtil.getInstance().getLogicExecutor().execute(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
                 for (RechargeRecord record : recordList) {
                     push(gameContext, record);

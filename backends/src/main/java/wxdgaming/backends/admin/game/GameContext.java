@@ -9,6 +9,7 @@ import wxdgaming.backends.entity.system.Game;
 import wxdgaming.boot2.core.cache.Cache;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.format.HexId;
+import wxdgaming.boot2.core.threading.ThreadContext;
 import wxdgaming.boot2.starter.batis.sql.JdbcCache;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 
@@ -52,6 +53,7 @@ public class GameContext {
         this.dataHelper = dataHelper;
         this.logKeyCache = Cache.<String, Boolean>builder()
                 .cacheName("logKeyCache")
+                .hashArea(100)
                 .heartTime(2, TimeUnit.HOURS)
                 .expireAfterWrite(2, TimeUnit.DAYS)
                 .build();
@@ -123,11 +125,12 @@ public class GameContext {
         return roleRecordJdbcCache.getIfPresent(roleId);
     }
 
-    public void recordError(String data, String errorMessage) {
+    public void recordError(String errorMessage, String data) {
         ErrorRecord errorRecord = new ErrorRecord();
         errorRecord.setUid(getErrorHexId().newId());
         errorRecord.setCreateTime(System.currentTimeMillis());
         errorRecord.setGameId(getGameId());
+        errorRecord.setPath(ThreadContext.context().getString("http-path"));
         errorRecord.setData(data);
         errorRecord.setErrorMessage(errorMessage);
         getDataHelper().getDataBatch().insert(errorRecord);

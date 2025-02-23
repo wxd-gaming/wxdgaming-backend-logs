@@ -2,7 +2,6 @@ package push;
 
 import com.alibaba.fastjson.JSONObject;
 import org.junit.Test;
-import org.junit.jupiter.api.RepeatedTest;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
 import wxdgaming.boot2.core.chatset.StringUtils;
@@ -15,7 +14,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 角色api操作
@@ -28,15 +26,15 @@ public class RoleApiTest extends AccountApiTest {
     protected String roleName = "无心道";
 
     @Test
-    public void test() throws Exception {
+    public void pushRoleList() throws Exception {
         String logToken = findLogToken();
         HashMap<Integer, List<AccountRecord>> accountRecordMap = readAccount();
         for (List<AccountRecord> recordList : accountRecordMap.values()) {
-            test(logToken, recordList);
+            pushRoleList(logToken, recordList);
         }
     }
 
-    public void test(String logToken, List<AccountRecord> recordList) throws Exception {
+    public void pushRoleList(String logToken, List<AccountRecord> recordList) throws Exception {
         List<CompletableFuture<Response<PostText>>> futures = new ArrayList<>();
         for (AccountRecord accountRecord : recordList) {
             RoleRecord record = new RoleRecord();

@@ -34,11 +34,11 @@ public class AccountRecord extends RecordBase {
     private final List<Long> roleList = new ArrayList<>();
     /** 充值金额 */
     @JSONField(ordinal = 22)
-    @DbColumn(index = true, columnType = ColumnType.String, length = 64)
+    @DbColumn(index = true)
     private AtomicLong rechargeAmount = new AtomicLong();
     /** 充值此时 */
     @JSONField(ordinal = 23)
-    @DbColumn(index = true, columnType = ColumnType.String, length = 64)
+    @DbColumn(index = true)
     private AtomicInteger rechargeCount = new AtomicInteger();
     /** 首次充值时间 */
     @JSONField(ordinal = 24)

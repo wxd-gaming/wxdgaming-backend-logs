@@ -59,16 +59,10 @@ public class RoleApi {
         log.info("role - {}", record.toJsonString());
         AccountRecord accountRecord = gameContext.getAccountRecord(record.getAccount());
         if (accountRecord == null) {
-            gameContext.recordError(record.toJsonString(), "角色记录 找不到账号 " + record.getAccount());
+            gameContext.recordError("角色记录 找不到账号 " + record.getAccount(), record.toJsonString());
         } else {
             RoleRecord entity = gameContext.getRoleRecord(record.getUid());
             if (entity == null) {
-                if (record.getUid() == 0) {
-                    record.setUid(gameContext.getGameId());
-                }
-                if (record.getCreateTime() == 0) {
-                    record.setCreateTime(System.currentTimeMillis());
-                }
                 record.checkDataKey();
                 gameContext.getRoleRecordJdbcCache().put(record.getUid(), record);
             } else {
@@ -89,7 +83,7 @@ public class RoleApi {
 
     @HttpRequest(authority = 2)
     public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<RoleRecord> recordList) {
-        ExecutorUtil.getInstance().getVirtualExecutor().execute(new Event(5000, 10000) {
+        ExecutorUtil.getInstance().getLogicExecutor().execute(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
                 for (RoleRecord record : recordList) {
                     push(gameContext, record);
@@ -123,7 +117,10 @@ public class RoleApi {
                           @Param(path = "roleId", required = false) String roleId,
                           @Param(path = "roleName", required = false) String roleName,
                           @Param(path = "curSid", required = false) String curSid,
-                          @Param(path = "createSid", required = false) String createSid) {
+                          @Param(path = "createSid", required = false) String createSid,
+                          @Param(path = "online", required = false) String online,
+                          @Param(path = "rechargeAmount", required = false) String rechargeAmount,
+                          @Param(path = "rechargeCount", required = false) String rechargeCount) {
 
         User user = ThreadContext.context("user");
         log.info("{}", user);
@@ -133,13 +130,26 @@ public class RoleApi {
         SqlQueryBuilder queryBuilder = pgsqlDataHelper.queryBuilder();
         queryBuilder.sqlByEntity(RoleRecord.class);
         queryBuilder.pushWhereByValueNotNull("account=?", account);
-        queryBuilder.pushWhereByValueNotNull("roleid=?", roleId);
+        if (StringUtils.isNotBlank(roleId)) {
+            queryBuilder.pushWhereByValueNotNull("uid=?", NumberUtil.parseLong(roleId, 0));
+        }
         queryBuilder.pushWhereByValueNotNull("rolename=?", roleName);
         if (StringUtils.isNotBlank(curSid)) {
             queryBuilder.pushWhereByValueNotNull("cursid=?", NumberUtil.parseInt(curSid, 0));
         }
         if (StringUtils.isNotBlank(createSid)) {
             queryBuilder.pushWhereByValueNotNull("createsid=?", NumberUtil.parseInt(createSid, 0));
+        }
+        if (StringUtils.isNotBlank(online)) {
+            queryBuilder.pushWhereByValueNotNull("online=?", "1".equals(online));
+        }
+
+        if (StringUtils.isNotBlank(rechargeAmount)) {
+            queryBuilder.pushWhereByValueNotNull("rechargeamount>=?", NumberUtil.parseLong(rechargeAmount, 0L));
+        }
+
+        if (StringUtils.isNotBlank(rechargeCount)) {
+            queryBuilder.pushWhereByValueNotNull("rechargecount>=?", NumberUtil.parseInt(rechargeCount, 0));
         }
 
         queryBuilder.setOrderBy("createtime desc");

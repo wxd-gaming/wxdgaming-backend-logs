@@ -46,7 +46,7 @@ public class ServerApi {
     @HttpRequest(authority = 2)
     public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") ServerRecord record) {
         if (record.getSid() == 0) {
-            gameContext.recordError(record.toJsonString(), "sid为空");
+            gameContext.recordError("sid为空", record.toJsonString());
         } else {
             ServerRecord serverRecord = gameContext.getServerRecordMap().get(record.getSid());
             if (serverRecord == null) {
@@ -80,7 +80,7 @@ public class ServerApi {
 
     @HttpRequest(authority = 2)
     public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<ServerRecord> recordList) {
-        ExecutorUtil.getInstance().getVirtualExecutor().execute(new Event(5000, 10000) {
+        ExecutorUtil.getInstance().getLogicExecutor().execute(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
                 for (ServerRecord record : recordList) {
                     push(gameContext, record);

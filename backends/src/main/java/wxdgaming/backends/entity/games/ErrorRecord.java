@@ -20,10 +20,12 @@ public class ErrorRecord extends EntityLongUID {
 
     private int gameId;
     private long createTime;
-    @DbColumn(columnType = ColumnType.String, length = 100000)
-    private String data;
+    @DbColumn(columnType = ColumnType.String, length = 256)
+    private String path;
     @DbColumn(columnType = ColumnType.String, length = 100000)
     private String errorMessage;
+    @DbColumn(columnType = ColumnType.String, length = 100000)
+    private String data;
 
 
 }

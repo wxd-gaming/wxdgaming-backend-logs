@@ -50,14 +50,14 @@ public class SLogApi {
         log.info("sLog - {}", sLog.toJsonString());
         boolean haveLogType = gameContext.getGame().getTableMapping().containsKey(sLog.getLogType());
         if (!haveLogType) {
-            gameContext.recordError(sLog.toJsonString(), "表结构不存在 " + sLog.getLogType());
+            gameContext.recordError("表结构不存在 " + sLog.getLogType(), sLog.toJsonString());
         } else {
             if (sLog.getUid() == 0)
                 sLog.setUid(gameContext.newId(sLog.getLogType()));
             String logKey = sLog.getLogType() + sLog.getUid();
             boolean haveLogKey = gameContext.getLogKeyCache().containsKey(logKey);
             if (haveLogKey) {
-                gameContext.recordError(sLog.toJsonString(), "表结构 " + sLog.getLogType() + " 重复日志记录 " + sLog.getUid());
+                gameContext.recordError("表结构 " + sLog.getLogType() + " 重复日志记录 " + sLog.getUid(), sLog.toJsonString());
             } else {
                 gameContext.getLogKeyCache().put(logKey, true);
                 sLog.checkDataKey();
@@ -69,7 +69,7 @@ public class SLogApi {
 
     @HttpRequest(authority = 2)
     public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<SLog> recordList) {
-        ExecutorUtil.getInstance().getVirtualExecutor().execute(new Event(5000, 10000) {
+        ExecutorUtil.getInstance().getLogicExecutor().execute(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
                 for (SLog record : recordList) {
                     push(gameContext, record);
