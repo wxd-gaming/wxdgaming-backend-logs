@@ -1,5 +1,6 @@
 package push;
 
+import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
@@ -59,9 +60,11 @@ public class AccountApiTest extends GameApiTest {
         for (Map.Entry<Integer, List<AccountRecord>> entry : accountRecordMap.entrySet()) {
             List<CompletableFuture<Response<PostText>>> futures = new ArrayList<>();
             for (AccountRecord record : entry.getValue()) {
-                record.setGameId(gameId);
-                record.setToken(logToken);
-                CompletableFuture<Response<PostText>> post = post("account/push", record.toJsonString());
+                JSONObject push = new JSONObject()
+                        .fluentPut("gameId", gameId)
+                        .fluentPut("token", logToken)
+                        .fluentPut("data", record);
+                CompletableFuture<Response<PostText>> post = post("account/push", push.toString());
                 futures.add(post);
             }
             for (CompletableFuture<Response<PostText>> future : futures) {
@@ -73,4 +76,30 @@ public class AccountApiTest extends GameApiTest {
             }
         }
     }
+
+    @Test
+    public void pushAccountList() throws Exception {
+        String logToken = findLogToken();
+        HashMap<Integer, List<AccountRecord>> accountRecordMap = readAccount();
+        List<CompletableFuture<Response<PostText>>> futures = new ArrayList<>();
+        for (Map.Entry<Integer, List<AccountRecord>> entry : accountRecordMap.entrySet()) {
+
+            JSONObject push = new JSONObject()
+                    .fluentPut("gameId", gameId)
+                    .fluentPut("token", logToken)
+                    .fluentPut("data", entry.getValue());
+
+            CompletableFuture<Response<PostText>> post = post("account/pushList", push.toJSONString());
+            futures.add(post);
+
+            for (CompletableFuture<Response<PostText>> future : futures) {
+                Response<PostText> join = future.join();
+                RunResult runResult = join.bodyRunResult();
+                if (join.responseCode() != 200 || runResult.code() != 1) {
+                    System.out.println(join.bodyString());
+                }
+            }
+        }
+    }
+
 }

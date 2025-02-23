@@ -25,14 +25,4 @@ public class RoleService {
     }
 
 
-    public RoleRecord roleRecord(Integer gameId, String account, String roleId) {
-        PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
-
-        return pgsqlDataHelper.findByWhere(
-                RoleRecord.class,
-                "account = ? AND  roleid= ?",
-                account, roleId
-        );
-    }
-
 }

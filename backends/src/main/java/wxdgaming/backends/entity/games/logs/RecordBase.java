@@ -24,14 +24,6 @@ public class RecordBase extends EntityLongUID implements Serializable {
 
     @Serial private static final long serialVersionUID = 1L;
 
-    /** 不写入数据库的用于验证的 */
-    @JSONField(ordinal = 10)
-    @DbColumn(ignore = true)
-    private String token;
-    /** 不写入数据库的用于验证的 */
-    @JSONField(ordinal = 11)
-    @DbColumn(ignore = true)
-    private int gameId;
     @Partition
     @JSONField(ordinal = 13)
     @DbColumn(key = true)

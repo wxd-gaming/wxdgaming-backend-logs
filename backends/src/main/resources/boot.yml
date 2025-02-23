@@ -4,7 +4,7 @@ executor:
   defaultCoreSize: 2                   #默认线程池的核心线程数
   defaultMaxSize: 4                    #默认线程池的最大线程数
   logicCoreSize: 10                    #逻辑线程池
-  logicMaxSize: 32                     #逻辑线程池
+  logicMaxSize: 50                     #逻辑线程池
   virtualCoreSize: 100                 #虚拟线程池
   virtualMaxSize: 200                  #虚拟线程池
 scheduled:
@@ -51,7 +51,7 @@ db:
     scanPackage: "wxdgaming.backends.entity.system"             #扫描路径
     connectionTimeoutMs: 2000                                   #链接超时单位毫秒
     idleTimeoutM: 10                                            #空闲超时单位分钟
-    minPoolSize: 5                                              #最小连接数
+    minPoolSize: 15                                             #最小连接数
     maxPoolSize: 100                                            #最大连接数
     batchSubmitSize: 500                                        #批量提交数量
     batchThreadSize: 1                                          #批量提交线程数

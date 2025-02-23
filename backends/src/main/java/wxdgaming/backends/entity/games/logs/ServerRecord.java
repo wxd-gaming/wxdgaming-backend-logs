@@ -21,18 +21,10 @@ import wxdgaming.boot2.starter.batis.ann.DbTable;
 @DbTable(tableName = "record_server")
 public class ServerRecord extends Entity {
 
-    /** 不写入数据库的用于验证的 */
-    @JSONField(ordinal = 1)
-    @DbColumn(ignore = true)
-    private String token;
-    /** 不写入数据库的用于验证的 */
-    @JSONField(ordinal = 2)
-    @DbColumn(ignore = true)
-    private int gameId;
 
     @DbColumn(key = true)
     @JSONField(ordinal = 10)
-    private Integer sid = 0;
+    private int sid = 0;
     /** 服务器id */
     @JSONField(ordinal = 12)
     @DbColumn(index = true)

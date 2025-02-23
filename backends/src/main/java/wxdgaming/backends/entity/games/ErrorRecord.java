@@ -2,7 +2,9 @@ package wxdgaming.backends.entity.games;
 
 import lombok.Getter;
 import lombok.Setter;
+import wxdgaming.boot2.starter.batis.ColumnType;
 import wxdgaming.boot2.starter.batis.EntityLongUID;
+import wxdgaming.boot2.starter.batis.ann.DbColumn;
 import wxdgaming.boot2.starter.batis.ann.DbTable;
 
 /**
@@ -15,5 +17,13 @@ import wxdgaming.boot2.starter.batis.ann.DbTable;
 @Setter
 @DbTable(tableName = "record_error")
 public class ErrorRecord extends EntityLongUID {
+
+    private int gameId;
+    private long createTime;
+    @DbColumn(columnType = ColumnType.String, length = 100000)
+    private String data;
+    @DbColumn(columnType = ColumnType.String, length = 100000)
+    private String errorMessage;
+
 
 }

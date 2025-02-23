@@ -32,8 +32,8 @@ public class SLog extends RecordBase implements EntityName {
     @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String account;
     @JSONField(ordinal = 23)
-    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
-    private String roleId;
+    @DbColumn(index = true)
+    private long roleId;
     @JSONField(ordinal = 24)
     @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String roleName;

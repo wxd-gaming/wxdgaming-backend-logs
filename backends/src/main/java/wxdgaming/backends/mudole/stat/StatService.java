@@ -3,6 +3,7 @@ package wxdgaming.backends.mudole.stat;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.games.AccountStat;
 import wxdgaming.backends.entity.games.GameStat;
@@ -38,13 +39,14 @@ public class StatService {
 
     @Scheduled("0 */20")
     public void gameStat() {
-        Collection<Game> values = gameService.getGameId2GameRecordMap().values();
+        Collection<GameContext> values = gameService.getGameContextHashMap().values();
         final long dayOfStartMillis = MyClock.dayOfStartMillis();
         int days = 50;
         LocalDateTime localDateTime = LocalDateTime.now().plusDays(-days);
         long startTime = MyClock.time2Milli(localDateTime);
-        for (Game game : values) {
-            PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(game.getUid());
+        for (GameContext gameContext : values) {
+            Game game = gameContext.getGame();
+            PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
             /*统计留存开始时间*/
             AtomicLong statTime = new AtomicLong(startTime);
             if (statTime.get() < game.getCreateTime()) {
@@ -68,7 +70,7 @@ public class StatService {
                             gameStat.setRegisterAccountNum(registerAccountNum);
                         }
                         {
-                            Long loginAccountNum = pgsqlDataHelper.executeScalar("SELECT \"count\"(DISTINCT account) FROM log_login WHERE daykey=?", Long.class, dayKey);
+                            Long loginAccountNum = pgsqlDataHelper.executeScalar("SELECT \"count\"(DISTINCT account) FROM record_role_login WHERE daykey=?", Long.class, dayKey);
                             loginAccountNum = Objects.returnNonNull(loginAccountNum, 0L);
                             gameStat.setLoginAccountNum(loginAccountNum);
                         }
@@ -151,13 +153,14 @@ public class StatService {
 
     @Scheduled("0 */20")
     public void accountStat() {
-        Collection<Game> values = gameService.getGameId2GameRecordMap().values();
+        Collection<GameContext> values = gameService.getGameContextHashMap().values();
         final long dayOfStartMillis = MyClock.dayOfStartMillis();
         int days = 121;
         LocalDateTime localDateTime = LocalDateTime.now().plusDays(-days);
         long startTime = MyClock.time2Milli(localDateTime);
-        for (Game game : values) {
-            PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(game.getUid());
+        for (GameContext gameContext : values) {
+            Game game = gameContext.getGame();
+            PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
             /*统计留存开始时间*/
             AtomicLong statTime = new AtomicLong(startTime);
             if (statTime.get() < game.getCreateTime()) {
@@ -193,7 +196,7 @@ public class StatService {
 
                                 int loginDayKey = (loginLocalDateTime.getYear() * 10000 + loginLocalDateTime.getMonthValue() * 100 + loginLocalDateTime.getDayOfMonth());
                                 Long loginNum = pgsqlDataHelper.executeScalar(
-                                        "SELECT \"count\"(DISTINCT ll.account) FROM log_login as ll WHERE ll.account in(SELECT ra.account FROM record_account as ra WHERE ra.daykey= ?) AND ll.daykey=?;",
+                                        "SELECT \"count\"(DISTINCT ll.account) FROM record_role_login as ll WHERE ll.account in(SELECT ra.account FROM record_account as ra WHERE ra.daykey= ?) AND ll.daykey=?;",
                                         Long.class,
                                         registerDayKey, loginDayKey);
 

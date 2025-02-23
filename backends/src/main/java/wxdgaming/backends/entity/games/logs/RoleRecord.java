@@ -9,6 +9,9 @@ import wxdgaming.boot2.starter.batis.ColumnType;
 import wxdgaming.boot2.starter.batis.ann.DbColumn;
 import wxdgaming.boot2.starter.batis.ann.DbTable;
 
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  * 角色记录
  *
@@ -19,6 +22,10 @@ import wxdgaming.boot2.starter.batis.ann.DbTable;
 @Setter
 @DbTable(tableName = "record_role")
 public class RoleRecord extends RecordBase {
+
+    @JSONField(ordinal = 10)
+    @DbColumn(index = true, columnType = ColumnType.String, length = 64)
+    private String roleName;
 
     @JSONField(ordinal = 20)
     @DbColumn(index = true, columnType = ColumnType.String, length = 128)
@@ -31,14 +38,6 @@ public class RoleRecord extends RecordBase {
     @JSONField(ordinal = 22)
     @DbColumn(index = true)
     private int curSid;
-
-    @JSONField(ordinal = 23)
-    @DbColumn(index = true, columnType = ColumnType.String, length = 64)
-    private String roleId;
-
-    @JSONField(ordinal = 24)
-    @DbColumn(index = true, columnType = ColumnType.String, length = 64)
-    private String roleName;
 
     @JSONField(ordinal = 25)
     @DbColumn(index = true, columnType = ColumnType.String, length = 12)
@@ -55,6 +54,40 @@ public class RoleRecord extends RecordBase {
     @JSONField(ordinal = 29)
     @DbColumn(index = true)
     private int del;
+
+
+    /** 充值金额 */
+    @JSONField(ordinal = 30)
+    @DbColumn(columnType = ColumnType.String, length = 15000)
+    private AtomicLong rechargeAmount = new AtomicLong();
+    /** 充值此时 */
+    @JSONField(ordinal = 31)
+    @DbColumn(columnType = ColumnType.String, length = 15000)
+    private AtomicInteger rechargeCount = new AtomicInteger();
+    /** 首次充值时间 */
+    @JSONField(ordinal = 32)
+    @DbColumn(index = true)
+    private long rechargeFirstTime = 0;
+    /** 最后充值时间 */
+    @JSONField(ordinal = 33)
+    @DbColumn(index = true)
+    private long rechargeLastTime = 0;
+
+
+    @JSONField(ordinal = 40)
+    @DbColumn(index = true)
+    private int lastJoinSid;
+    @JSONField(ordinal = 41)
+    @DbColumn(index = true)
+    private long lastJoinTime;
+    /** 最后退出时间 */
+    @JSONField(ordinal = 42)
+    @DbColumn(index = true)
+    private long lastExitTime;
+    @JSONField(ordinal = 43)
+    @DbColumn(index = true)
+    private boolean online;
+
     @JSONField(ordinal = 99)
     @DbColumn(columnType = ColumnType.Json)
     private final JSONObject data = MapOf.newJSONObject();

@@ -4,14 +4,16 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.games.logs.SLog;
-import wxdgaming.backends.entity.system.Game;
 import wxdgaming.backends.mudole.slog.SLogService;
-import wxdgaming.boot2.core.ann.Body;
 import wxdgaming.boot2.core.ann.Param;
+import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.lang.RunResult;
+import wxdgaming.boot2.core.threading.Event;
+import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.threading.ExecutorWith;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
@@ -44,25 +46,44 @@ public class SLogApi {
 
     @HttpRequest(authority = 2)
     @ExecutorWith(useVirtualThread = true)
-    public RunResult push(HttpContext httpContext, @Body SLog sLog) {
+    public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") SLog sLog) {
         log.info("sLog - {}", sLog.toJsonString());
-
-        PgsqlDataHelper pgsqlDataHelper = this.gameService.pgsqlDataHelper(sLog.getGameId());
-
-        if (sLog.getUid() == 0)
-            sLog.setUid(gameService.newId(sLog.getGameId()));
-
-        sLog.checkDataKey();
-
-        pgsqlDataHelper.getDataBatch().insert(sLog);
-        // pgsqlDataHelper.getSqlDataBatch().insert(sLog);
+        boolean haveLogType = gameContext.getGame().getTableMapping().containsKey(sLog.getLogType());
+        if (!haveLogType) {
+            gameContext.recordError(sLog.toJsonString(), "表结构不存在 " + sLog.getLogType());
+        } else {
+            if (sLog.getUid() == 0)
+                sLog.setUid(gameContext.newId(sLog.getLogType()));
+            String logKey = sLog.getLogType() + sLog.getUid();
+            boolean haveLogKey = gameContext.getLogKeyCache().containsKey(logKey);
+            if (haveLogKey) {
+                gameContext.recordError(sLog.toJsonString(), "表结构 " + sLog.getLogType() + " 重复日志记录 " + sLog.getUid());
+            } else {
+                gameContext.getLogKeyCache().put(logKey, true);
+                sLog.checkDataKey();
+                gameContext.getDataHelper().getDataBatch().insert(sLog);
+            }
+        }
         return RunResult.ok();
     }
+
+    @HttpRequest(authority = 2)
+    public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<SLog> recordList) {
+        ExecutorUtil.getInstance().getVirtualExecutor().execute(new Event(5000, 10000) {
+            @Override public void onEvent() throws Exception {
+                for (SLog record : recordList) {
+                    push(gameContext, record);
+                }
+            }
+        });
+        return RunResult.ok();
+    }
+
 
     @HttpRequest(authority = 9)
     @ExecutorWith(useVirtualThread = true)
     public RunResult list(HttpContext httpSession,
-                          @Param(path = "gameId") Integer gameId,
+                          @Param(path = "gameId") int gameId,
                           @Param(path = "logType") String logType,
                           @Param(path = "pageIndex") int pageIndex,
                           @Param(path = "pageSize") int pageSize,
@@ -71,16 +92,16 @@ public class SLogApi {
                           @Param(path = "roleName", required = false) String roleName,
                           @Param(path = "dataJson", required = false) String dataJson) {
 
-        Game game = gameService.getGameId2GameRecordMap().get(gameId);
+        GameContext gameContext = gameService.gameContext(gameId);
 
-        if (game == null) {
+        if (gameContext == null) {
             return RunResult.error("gameId error");
         }
 
-        if (!game.getTableMapping().containsKey(logType)) {
+        if (!gameContext.getGame().getTableMapping().containsKey(logType)) {
             return RunResult.error("log type error");
         }
-        PgsqlDataHelper pgsqlDataHelper = this.gameService.pgsqlDataHelper(gameId);
+        PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
         SqlQueryBuilder sqlQueryBuilder = pgsqlDataHelper.queryBuilder();
 
         sqlQueryBuilder
@@ -99,18 +120,11 @@ public class SLogApi {
 
         sqlQueryBuilder.setOrderBy("createtime desc");
 
-        if (pageIndex > 0) {
-            sqlQueryBuilder.setSkip((pageIndex - 1) * pageSize);
-        }
+        sqlQueryBuilder.limit((pageIndex - 1) * pageSize, pageSize, 10, 1000);
 
-        if (pageSize <= 10) pageSize = 10;
-        if (pageSize > 1000) pageSize = 1000;
+        long rowCount = sqlQueryBuilder.findCount();
 
-        sqlQueryBuilder.setLimit(pageSize);
-
-        long rowCount = pgsqlDataHelper.tableCount(logType, sqlQueryBuilder.getWhere(), sqlQueryBuilder.getParameters());
-
-        List<SLog> slogs = pgsqlDataHelper.findListBySql(SLog.class, sqlQueryBuilder.buildSelectSql(), sqlQueryBuilder.getParameters());
+        List<SLog> slogs = sqlQueryBuilder.findList2Entity(SLog.class);
 
         List<JSONObject> list = slogs.stream()
                 .map(SLog::toJSONObject)

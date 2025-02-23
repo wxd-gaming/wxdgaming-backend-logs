@@ -3,10 +3,12 @@ package wxdgaming.backends.admin.filter;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.system.Game;
 import wxdgaming.boot2.core.io.Objects;
 import wxdgaming.boot2.core.lang.RunResult;
+import wxdgaming.boot2.core.threading.ThreadContext;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.server.http.HttpContext;
 import wxdgaming.boot2.starter.net.server.http.HttpFilter;
@@ -41,13 +43,14 @@ public class Authority_2_LogToken_Filter extends HttpFilter {
             if (token == null) {
                 return RunResult.error("参数token不能为空");
             }
-            Game game = gameService.gameRecord(gameId);
-            if (game == null) {
+            GameContext gameContext = gameService.gameContext(gameId);
+            if (gameContext == null) {
                 return RunResult.error("gameId is not exist");
             }
-            if (!Objects.equals(game.getLogToken(), token)) {
+            if (!Objects.equals(gameContext.getGame().getLogToken(), token)) {
                 return RunResult.error("game log token error");
             }
+            ThreadContext.putContent(gameContext);
         }
         return null;
     }

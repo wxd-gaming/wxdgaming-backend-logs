@@ -1,5 +1,6 @@
 package push;
 
+import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import wxdgaming.backends.entity.games.logs.ServerRecord;
@@ -33,36 +34,43 @@ public class ServerApiTest extends GameApiTest {
         pushServer(logToken, 100);
     }
 
-    public void pushServer(String loginToken, int count) throws Exception {
-        List<CompletableFuture> futures = new ArrayList<>();
+    public void pushServer(String logToken, int count) throws Exception {
+        List<CompletableFuture<Response<PostText>>> futures = new ArrayList<>();
         for (int i = 1; i <= count; i++) {
-            ServerRecord serverRecord = new ServerRecord();
-            serverRecord.setGameId(gameId);
-            serverRecord.setSid(i);
-            serverRecord.setMainSid(0);
-            serverRecord.setName("测试服");
-            serverRecord.setShowName(StringUtils.randomString(4));
-            serverRecord.setOpenTime("2025-01-24 14:02");
-            serverRecord.setMaintainTime("2025-01-24 14:02");
-            serverRecord.setWlan("wxd-gaming");
-            serverRecord.setLan("192.168.137.10");
-            serverRecord.setPort(19000);
-            serverRecord.setWebPort(19001);
-            serverRecord.setStatus("online");
-            serverRecord.setRegisterUserCount(RandomUtils.random(1, 1000));
-            serverRecord.setRegisterRoleCount(RandomUtils.random(1, 1000));
-            serverRecord.setOnlineRoleCount(RandomUtils.random(1, 1000));
-            serverRecord.setActiveRoleCount(RandomUtils.random(1, 1000));
-            serverRecord.setRechargeCount(RandomUtils.random(1, 1000));
-            serverRecord.setUpdateTime(System.currentTimeMillis());
-            serverRecord.getData().fluentPut("version", "v1.0.1");
-            serverRecord.setToken(loginToken);
-            CompletableFuture<Response<PostText>> post = post("server/push", serverRecord.toJsonString());
+            ServerRecord record = new ServerRecord();
+            record.setSid(i);
+            record.setMainSid(0);
+            record.setName("测试服");
+            record.setShowName(StringUtils.randomString(4));
+            record.setOpenTime("2025-01-24 14:02");
+            record.setMaintainTime("2025-01-24 14:02");
+            record.setWlan("wxd-gaming");
+            record.setLan("192.168.137.10");
+            record.setPort(19000);
+            record.setWebPort(19001);
+            record.setStatus("online");
+            record.setRegisterUserCount(RandomUtils.random(1, 1000));
+            record.setRegisterRoleCount(RandomUtils.random(1, 1000));
+            record.setOnlineRoleCount(RandomUtils.random(1, 1000));
+            record.setActiveRoleCount(RandomUtils.random(1, 1000));
+            record.setRechargeCount(RandomUtils.random(1, 1000));
+            record.setUpdateTime(System.currentTimeMillis());
+            record.getData().fluentPut("version", "v1.0.1");
+
+            JSONObject push = new JSONObject()
+                    .fluentPut("gameId", gameId)
+                    .fluentPut("token", logToken)
+                    .fluentPut("data", record);
+
+
+            CompletableFuture<Response<PostText>> post = post("server/push", push.toJSONString());
             futures.add(post);
         }
-        for (CompletableFuture future : futures) {
+
+        for (CompletableFuture<Response<PostText>> future : futures) {
             future.join();
         }
+
     }
 
 

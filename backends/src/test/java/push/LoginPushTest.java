@@ -1,9 +1,9 @@
 package push;
 
 import com.alibaba.fastjson.JSONObject;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
-import wxdgaming.backends.entity.games.logs.RechargeRecord;
 import wxdgaming.backends.entity.games.logs.SLog2Login;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.lang.DiffTime;
@@ -17,72 +17,74 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 /**
- * 充值日志测试
+ * 日志push
  *
  * @author: wxd-gaming(無心道, 15388152619)
- * @version: 2025-01-24 11:15
+ * @version: 2025-01-23 09:26
  **/
-public class RechargeApiTest extends AccountApiTest {
+@Slf4j
+public class LoginPushTest extends RoleApiTest {
 
 
     @Test
-    public void pushRechargeList() throws Exception {
+    public void pushLoginLogList() {
         String logToken = findLogToken();
-        HashMap<Integer, List<AccountRecord>> hashMap = readAccount();
-        for (List<AccountRecord> recordList : hashMap.values()) {
+        HashMap<Integer, List<AccountRecord>> accountRecordMap = readAccount();
+        for (List<AccountRecord> recordList : accountRecordMap.values()) {
             for (AccountRecord accountRecord : recordList) {
-                test(logToken, accountRecord);
+                pushLoginLog(logToken, accountRecord);
             }
         }
     }
 
-    public void test(String logToken, AccountRecord accountRecord) throws Exception {
+    public void pushLoginLog(String logToken, AccountRecord accountRecord) {
 
         long createTime = accountRecord.getCreateTime();
         LocalDateTime localDateTime = MyClock.localDateTime(createTime);
 
         DiffTime diffTime = new DiffTime();
-        List<RechargeRecord> sLogs = new ArrayList<>();
-        for (int i = 1; i <= days; i++) {
-
+        List<SLog2Login> sLogs = new ArrayList<>();
+        for (int i = 0; i < days; i++) {
             LocalDateTime plusDays = localDateTime.plusDays(i);
             long milli = MyClock.time2Milli(plusDays);
             if (milli > MyClock.millis()) continue;/*当前当前时间不在执行*/
-            boolean randomBoolean = RandomUtils.randomBoolean();
+            int random = 130 - i;
+            boolean randomBoolean = RandomUtils.randomBoolean(random, 500);
             if (!randomBoolean) continue;
-
-            RechargeRecord record = new RechargeRecord();
-            record.setUid(hexId.newId());
-            record.setAccount(accountRecord.getAccount());
-            record.setSid(RandomUtils.random(1, 100));
-            record.setCreateTime(milli);
-            record.setRoleId(accountRecord.getUid());
-            record.setRoleName(StringUtils.randomString(8));
-            record.setLv(RandomUtils.random(1, 100));
-            record.setChannel("huawei");
-            record.setAmount(RandomUtils.random(6, 1000) * 100);
-            record.setSpOrder(StringUtils.randomString(32));
-            record.setCpOrder(StringUtils.randomString(32));
-            record.getData().fluentPut("充值ID", "1");
-            record.getData().fluentPut("充值商品", "首充武器");
-            sLogs.add(record);
+            SLog2Login sLog = new SLog2Login();
+            sLog.setLogType("log_login");
+            sLog.setUid(hexId.newId());
+            sLog.setCreateTime(milli);
+            sLog.setAccount(accountRecord.getAccount());
+            sLog.setRoleId(accountRecord.getUid());
+            sLog.setRoleName(StringUtils.randomString(8));
+            sLog.setMainId(1);
+            sLog.setSId(1);
+            sLog.setLv(RandomUtils.random(1, 100));
+            sLog.getData()
+                    .fluentPut("a", "b")
+                    .fluentPut("login_type", RandomUtils.random(1, 100))
+                    .fluentPut("login_ip", "127.0.0.1")
+                    .fluentPut("login_time", System.currentTimeMillis())
+                    .fluentPut("login_platform", "android")
+                    .fluentPut("login_channel", "google")
+                    .fluentPut("login_version", "1.0.0")
+            ;
+            sLogs.add(sLog);
 
         }
         JSONObject push = new JSONObject()
                 .fluentPut("gameId", gameId)
                 .fluentPut("token", logToken)
                 .fluentPut("data", sLogs);
-        Response<PostText> join = post("recharge/pushList", push.toJSONString()).join();
+        Response<PostText> join = post("log/pushList4Login", push.toJSONString()).join();
         RunResult runResult = join.bodyRunResult();
         if (join.responseCode() != 200 || runResult.code() != 1) {
             System.out.println(join.bodyString());
         }
-
         System.out.println(sLogs.size() + ", 耗时：" + diffTime.diff() + " ms");
     }
-
 
 }

@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.junit.jupiter.api.RepeatedTest;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.SLog;
+import wxdgaming.backends.entity.games.logs.SLog2Login;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.collection.MapOf;
 import wxdgaming.boot2.core.format.HexId;
@@ -32,32 +33,35 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class LogPushTest extends RoleApiTest {
 
-    @Test
-    public void pushItemLog() {
-        String logToken = findLogToken();
-        pushItemLog(logToken, 1);
-    }
 
     @Test
     public void pushItemLogList() {
         String logToken = findLogToken();
-        for (int i = 0; i < 50000; i++) {
-            pushItemLog(logToken, 100);
+        HashMap<Integer, List<AccountRecord>> accountRecordMap = readAccount();
+        for (List<AccountRecord> recordList : accountRecordMap.values()) {
+            for (AccountRecord accountRecord : recordList) {
+                pushItemLog(logToken, accountRecord);
+            }
         }
     }
 
 
-    public void pushItemLog(String logToken, int count) {
+    public void pushItemLog(String logToken, AccountRecord accountRecord) {
         List<CompletableFuture<Response<PostText>>> futures = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
+        long createTime = accountRecord.getCreateTime();
+        LocalDateTime localDateTime = MyClock.localDateTime(createTime);
+
+        DiffTime diffTime = new DiffTime();
+        for (int i = 0; i < days; i++) {
+            LocalDateTime plusDays = localDateTime.plusDays(i);
+            long milli = MyClock.time2Milli(plusDays);
+            if (milli > MyClock.millis()) continue;/*当前当前时间不在执行*/
             SLog sLog = new SLog();
-            sLog.setGameId(gameId);
-            sLog.setToken(logToken);
             sLog.setLogType("log_item");
             sLog.setUid(hexId.newId());
-            sLog.setCreateTime(randomCreateTime());
-            sLog.setAccount(randomAccount());
-            sLog.setRoleId(String.valueOf(RandomUtils.random(1, 1000)));
+            sLog.setCreateTime(milli);
+            sLog.setAccount(accountRecord.getAccount());
+            sLog.setRoleId(accountRecord.getUid());
             sLog.setRoleName(StringUtils.randomString(8));
             sLog.setMainId(1);
             sLog.setSId(1);
@@ -68,8 +72,13 @@ public class LogPushTest extends RoleApiTest {
                     .fluentPut("item_name", "货币")
                     .fluentPut("bind", "true");
 
-            String json = sLog.toJsonString();
-            CompletableFuture<Response<PostText>> async = post("log/push", json);
+
+            JSONObject push = new JSONObject()
+                    .fluentPut("gameId", gameId)
+                    .fluentPut("token", logToken)
+                    .fluentPut("data", sLog);
+
+            CompletableFuture<Response<PostText>> async = post("log/push", push.toJSONString());
             futures.add(async);
         }
         for (CompletableFuture<Response<PostText>> future : futures) {
@@ -78,6 +87,7 @@ public class LogPushTest extends RoleApiTest {
                 log.error("{}", join.bodyString());
             }
         }
+        System.out.println(futures.size() + ", 耗时：" + diffTime.diff() + " ms");
     }
 
 
@@ -93,27 +103,25 @@ public class LogPushTest extends RoleApiTest {
     }
 
     public void pushLoginLog(String logToken, AccountRecord accountRecord) {
-        List<CompletableFuture<Response<PostText>>> futures = new ArrayList<>();
 
         long createTime = accountRecord.getCreateTime();
         LocalDateTime localDateTime = MyClock.localDateTime(createTime);
 
         DiffTime diffTime = new DiffTime();
+        List<SLog2Login> sLogs = new ArrayList<>();
         for (int i = 0; i < days; i++) {
             LocalDateTime plusDays = localDateTime.plusDays(i);
             long milli = MyClock.time2Milli(plusDays);
             if (milli > MyClock.millis()) continue;/*当前当前时间不在执行*/
             int random = 130 - i;
-            boolean randomBoolean = RandomUtils.randomBoolean(random, 131);
+            boolean randomBoolean = RandomUtils.randomBoolean(random, 500);
             if (!randomBoolean) continue;
-            SLog sLog = new SLog();
-            sLog.setGameId(gameId);
-            sLog.setToken(logToken);
+            SLog2Login sLog = new SLog2Login();
             sLog.setLogType("log_login");
             sLog.setUid(hexId.newId());
             sLog.setCreateTime(milli);
             sLog.setAccount(accountRecord.getAccount());
-            sLog.setRoleId(String.valueOf(RandomUtils.random(1, 1000)));
+            sLog.setRoleId(accountRecord.getUid());
             sLog.setRoleName(StringUtils.randomString(8));
             sLog.setMainId(1);
             sLog.setSId(1);
@@ -127,18 +135,19 @@ public class LogPushTest extends RoleApiTest {
                     .fluentPut("login_channel", "google")
                     .fluentPut("login_version", "1.0.0")
             ;
-            String json = sLog.toJsonString();
-            CompletableFuture<Response<PostText>> post = post("log/push", json);
-            futures.add(post);
+            sLogs.add(sLog);
+
         }
-        for (CompletableFuture<Response<PostText>> future : futures) {
-            Response<PostText> join = future.join();
-            RunResult runResult = join.bodyRunResult();
-            if (join.responseCode() != 200 || runResult.code() != 1) {
-                System.out.println(join.bodyString());
-            }
+        JSONObject push = new JSONObject()
+                .fluentPut("gameId", gameId)
+                .fluentPut("token", logToken)
+                .fluentPut("data", sLogs);
+        Response<PostText> join = post("log/pushList4Login", push.toJSONString()).join();
+        RunResult runResult = join.bodyRunResult();
+        if (join.responseCode() != 200 || runResult.code() != 1) {
+            System.out.println(join.bodyString());
         }
-        System.out.println(futures.size() + ", 耗时：" + diffTime.diff() + " ms");
+        System.out.println(sLogs.size() + ", 耗时：" + diffTime.diff() + " ms");
     }
 
     @Test

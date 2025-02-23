@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>角色列表</title>
+    <title>日志</title>
 
     <script charset="utf-8" type="text/javascript" src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
     <script charset="utf-8" type="text/javascript" src="/js/com.wxd.js"></script>
@@ -30,6 +30,7 @@
     </style>
 
     <script>
+
         let pathname = window.location.protocol + "//" + window.location.host + "" + window.location.pathname;
         let items = [];
         let dataCount = 0;
@@ -65,9 +66,8 @@
             urlQuery.put("account", $("#account").val());
             urlQuery.put("roleId", $("#roleId").val());
             urlQuery.put("roleName", $("#roleName").val());
-            urlQuery.put("curSid", $("#curSid").val());
-            urlQuery.put("createSid", $("#createSid").val())
-            let url = "/role/list";
+            urlQuery.put("dataJson", $("#dataJson").val());
+            let url = "/recharge/list";
             wxd.netty.post(url, urlQuery.toString(),
                 function (responseText) {
                     if (responseText.code !== 1) {
@@ -132,41 +132,26 @@
             await wxd.delayed((index) => {
                 $("tbody:first").append(createRow(skip + index + 1, items[index]));
             }, 10, limit)
-            // var index = 0;
-            // responseText.data.forEach((row) => {
-            //     index++;
-            //     $("tbody:first").append(createRow(index, row));
-            // });
             wxd.message.tips_init_bind(); //初始化
             wxd.loading_close();
         }
 
+
         function createRow(index, row) {
             let tr = `
     <tr>
-        <td style="width: 140px;">
-            <a href="#" onclick="ban('/gm/001/002/003/banLogin', '${row.uid}');return false;" title="封号和解封">封号</a>
-            <a href="#" onclick="ban('/gm/001/002/003/banChat', '${row.uid}');return false;" title="禁言和解禁">禁言</a>
-            <a href="#" onclick="ban('/gm/001/002/003/kickout', '${row.uid}');return false;" title="踢出下线并且清理内存">踢人</a>
+        <td style="width: 70px;">
+            <a href="#" onclick="ban('/gm/001/002/003/banLogin', '${row.uid}');return false;" title="删除">删除</a>
         </td>
-        <td tips="true" style="width: 40px;">${index}</td>
-        <td tips="true" style="width: 200px;">${row.account}</td>
-        <td tips="true" style="width: 80px;">${row.createSid}</td>
-        <td tips="true" style="width: 80px;">${row.curSid}</td>
-        <td tips="true" style="width: 140px;">${row.uid}</td>
-        <td tips="true" style="width: 120px;">${row.roleName}</td>
+        <td tips="true" style="width: 70px;">${index}</td>
         <td tips="true" style="width: 140px;">${row.createTime}</td>
-        <td tips="true" style="width: 140px;">${row.rechargeAmount}</td>
-        <td tips="true" style="width: 140px;">${row.rechargeCount}</td>
-        <td tips="true" style="width: 140px;">${row.rechargeFirstTime}</td>
-        <td tips="true" style="width: 140px;">${row.rechargeLastTime}</td>
-        <td tips="true" style="width: 140px;">${row.lastJoinTime}</td>
-        <td tips="true" style="width: 140px;">${row.lastJoinSid}</td>
-        <td tips="true" style="width: 140px;">${row.lastExitTime}</td>
-        <td tips="true" style="width: 60px;">${row.online}</td>
-        <td tips="true" style="width: 40px;">${row.sex}</td>
-        <td tips="true" style="width: 70px;">${row.job}</td>
-        <td tips="true" style="width: 40px;">${row.lv}</td>
+        <td tips="true" style="width: 200px;">${row.account}</td>
+        <td tips="true" style="width: 140px;">${row.roleId}</td>
+        <td tips="true" style="width: 120px;">${row.roleName}</td>
+        <td tips="true" style="width: 50px;">${row.sid}</td>
+        <td tips="true" style="width: 240px;" ondblclick="wxd.copy('${row.spOrder}');wxd.message.notice('复制成功')">${row.spOrder}</td>
+        <td tips="true" style="width: 240px;"ondblclick="wxd.copy('${row.spOrder}');wxd.message.notice('复制成功')">${row.cpOrder}</td>
+        <td tips="true" style="width: 120px;">${row.amount}</td>
         <td tips="true" style="width: 180px;">${row.data}</td>
     </tr>
 `;
@@ -183,41 +168,33 @@
         });
 
     </script>
+
 </head>
 
 <body>
-<div style="padding-left: 10px; padding-top: 8px; text-align: left;vertical-align: center;">
+<div style="text-align: left;padding-left: 10px;">
     <input type="button" value="搜索" onclick="search();">
     <br>
     <input id="account" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="账号"/>
-    <input id="roleId" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="角色id"/>
-    <input id="roleName" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="角色名字"/>
-    <input id="createSid" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="创建区服"/>
-    <input id="curSid" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="当前区服"/>
+    <input id="roleId" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="玩家ID"/>
+    <input id="roleName" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="玩家名字"/>
+    <br>
+    <input id="dataJson" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="a=b"/>
 </div>
-<div class="tableDom" style="position: absolute;left: 10px;top: 80px;right: 15px;bottom: 35px;">
+<div class="tableDom" style="position: absolute;left: 10px;top: 100px;right: 15px;bottom: 35px;">
     <table>
         <thead>
         <tr>
-            <th style="width: 140px;">操作</th>
-            <th style="width: 40px;">序号</th>
+            <th style="width: 70px;">操作</th>
+            <th style="width: 70px;">序号</th>
+            <th style="width: 140px;">日志时间</th>
             <th style="width: 200px;">账号</th>
-            <th style="width: 80px;">创建区服</th>
-            <th style="width: 80px;">当前区服</th>
             <th style="width: 140px;">角色ID</th>
             <th style="width: 120px;">角色名字</th>
-            <th style="width: 140px;">创建时间</th>
-            <th style="width: 140px;">充值金额</th>
-            <th style="width: 140px;">充值笔数</th>
-            <th style="width: 140px;">首次充值时间</th>
-            <th style="width: 140px;">最后充值时间</th>
-            <th style="width: 140px;">最后登录时间</th>
-            <th style="width: 140px;">最后登录区服</th>
-            <th style="width: 140px;">最后退出时间</th>
-            <th style="width: 60px;">在线</th>
-            <th style="width: 40px;">性别</th>
-            <th style="width: 70px;">职业</th>
-            <th style="width: 40px;">等级</th>
+            <th style="width: 50px;">区服</th>
+            <th style="width: 240px;" title="平台订单号">sp-order</th>
+            <th style="width: 240px;" title="研发订单号">cp-order</th>
+            <th style="width: 120px;">金额（单位分）</th>
             <th style="width: 180px;">记录</th>
         </tr>
         </thead>
@@ -254,4 +231,5 @@
     </div>
 </div>
 </body>
+
 </html>

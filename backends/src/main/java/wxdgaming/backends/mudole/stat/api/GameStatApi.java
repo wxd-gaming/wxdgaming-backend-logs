@@ -50,7 +50,7 @@ public class GameStatApi {
             return RunResult.error("日期参数只能有一个选项");
         }
 
-        PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
+        PgsqlDataHelper pgsqlDataHelper = gameService.gameContext(gameId).getDataHelper();
         SqlQueryBuilder queryBuilder = pgsqlDataHelper.queryBuilder();
         queryBuilder.sqlByEntity(GameStat.class);
         queryBuilder.setOrderBy("uid desc");
@@ -67,12 +67,8 @@ public class GameStatApi {
         }
         long rowCount = queryBuilder.findCount();
 
-        if (pageIndex > 0) {
-            queryBuilder.setSkip((pageIndex - 1) * pageSize);
-        }
 
-        queryBuilder.setSkip((pageIndex - 1) * pageSize);
-        queryBuilder.limit(pageSize, 10, 1000);
+        queryBuilder.limit((pageIndex - 1) * pageSize, pageSize, 10, 1000);
 
         List<JSONObject> list = queryBuilder.findList2Entity(GameStat.class)
                 .stream()

@@ -27,8 +27,8 @@ public class RechargeRecord extends RecordBase {
     @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String account;
     @JSONField(ordinal = 22)
-    @DbColumn(index = true, columnType = ColumnType.String, length = 64)
-    private String roleId;
+    @DbColumn(index = true)
+    private long roleId;
     @JSONField(ordinal = 23)
     @DbColumn(index = true, columnType = ColumnType.String, length = 64)
     private String roleName;

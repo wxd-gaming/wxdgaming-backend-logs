@@ -150,9 +150,16 @@
         <td tips="true" style="width: 140px;">${row.uid}</td>
         <td tips="true" style="width: 200px;">${row.account}</td>
         <td tips="true" style="width: 140px;">${row.createTime}</td>
+        <td tips="true" style="width: 70px;">${row.roleCount}99<a href="#" style="margin-left: 8px;">查看</a></td>
+        <td tips="true" style="width: 140px;">${row.rechargeAmount}</td>
+        <td tips="true" style="width: 140px;">${row.rechargeCount}</td>
+        <td tips="true" style="width: 140px;">${row.rechargeFirstTime}</td>
+        <td tips="true" style="width: 140px;">${row.rechargeLastTime}</td>
         <td tips="true" style="width: 140px;">${row.lastJoinTime}</td>
         <td tips="true" style="width: 140px;">${row.lastJoinSid}</td>
-        <td tips="true" style="">${row.data}</td>
+        <td tips="true" style="width: 140px;">${row.lastExitTime}</td>
+        <td tips="true" style="width: 60px;">${row.online}</td>
+        <td tips="true" style="width: 180px;">${row.data}</td>
     </tr>
 `;
             return tr;
@@ -187,9 +194,16 @@
             <th style="width: 140px;">账号ID</th>
             <th style="width: 200px;">账号</th>
             <th style="width: 140px;">创建时间</th>
-            <th style="width: 140px;">最后登陆时间</th>
-            <th style="width: 140px;">最后登陆区服</th>
-            <th style="">记录</th>
+            <th style="width: 70px;">角色列表</th>
+            <th style="width: 140px;">充值金额</th>
+            <th style="width: 140px;">充值笔数</th>
+            <th style="width: 140px;">首次充值时间</th>
+            <th style="width: 140px;">最后充值时间</th>
+            <th style="width: 140px;">最后登录时间</th>
+            <th style="width: 140px;">最后登录区服</th>
+            <th style="width: 140px;">最后退出时间</th>
+            <th style="width: 60px;">在线</th>
+            <th style="width: 180px;">记录</th>
         </tr>
         </thead>
         <tbody>

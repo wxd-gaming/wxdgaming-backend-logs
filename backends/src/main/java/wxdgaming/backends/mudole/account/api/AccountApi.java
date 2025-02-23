@@ -4,14 +4,21 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.mudole.slog.SLogService;
 import wxdgaming.boot2.core.ann.Body;
 import wxdgaming.boot2.core.ann.Param;
+import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
 import wxdgaming.boot2.core.lang.RunResult;
+import wxdgaming.boot2.core.threading.Event;
+import wxdgaming.boot2.core.threading.ExecutorLog;
+import wxdgaming.boot2.core.threading.ExecutorUtil;
+import wxdgaming.boot2.core.threading.ExecutorWith;
 import wxdgaming.boot2.core.timer.MyClock;
+import wxdgaming.boot2.starter.batis.sql.JdbcCache;
 import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
@@ -41,36 +48,39 @@ public class AccountApi {
     }
 
     @HttpRequest(authority = 2)
-    public RunResult push(HttpContext httpContext, @Body AccountRecord accountRecord) {
-        if (accountRecord.getUid() == 0) {
-            accountRecord.setUid(gameService.newId(accountRecord.getGameId()));
-        }
-        if (accountRecord.getCreateTime() == 0) {
-            accountRecord.setCreateTime(System.currentTimeMillis());
-        }
-        PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(accountRecord.getGameId());
-        AccountRecord entity = pgsqlDataHelper.findByWhere(AccountRecord.class, "account = ?", accountRecord.getAccount());
+    public RunResult push(@ThreadParam GameContext gameContext,
+                          @Param(path = "data") AccountRecord accountRecord) {
+        AccountRecord entity = gameContext.getAccountRecord(accountRecord.getAccount());
         if (entity == null) {
+            if (accountRecord.getUid() == 0) {
+                accountRecord.setUid(gameContext.getAccountHexId().newId());
+            }
             accountRecord.checkDataKey();
-            pgsqlDataHelper.dataBatch().insert(accountRecord);
-        } else {
-            accountRecord.setUid(entity.getUid());
-            accountRecord.setCreateTime(entity.getCreateTime());
-            accountRecord.setDayKey(entity.getDayKey());
-            pgsqlDataHelper.dataBatch().update(accountRecord);
+            gameContext.getAccountRecordJdbcCache().put(accountRecord.getAccount(), accountRecord);
         }
-        accountRecord.setToken("");
-        accountRecord.setGameId(0);
         return RunResult.ok();
     }
 
+    @HttpRequest(authority = 2)
+    public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<AccountRecord> recordList) {
+        ExecutorUtil.getInstance().getVirtualExecutor().execute(new Event(5000, 10000) {
+            @Override public void onEvent() throws Exception {
+                for (AccountRecord record : recordList) {
+                    push(gameContext, record);
+                }
+            }
+        });
+        return RunResult.ok();
+    }
+
+    /** 列表查询不要走缓存，否则会特别耗内存 */
     @HttpRequest(authority = 9)
     public RunResult list(HttpContext httpContext,
-                          @Param(path = "gameId") Integer gameId,
+                          @Param(path = "gameId") int gameId,
                           @Param(path = "pageIndex") int pageIndex,
                           @Param(path = "pageSize") int pageSize,
                           @Param(path = "account", required = false) String account) {
-        PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
+        PgsqlDataHelper pgsqlDataHelper = gameService.gameContext(gameId).getDataHelper();
 
         SqlQueryBuilder queryBuilder = pgsqlDataHelper.queryBuilder();
         queryBuilder
@@ -92,11 +102,16 @@ public class AccountApi {
         List<AccountRecord> records = queryBuilder.findList2Entity(AccountRecord.class);
 
         List<JSONObject> list = records.stream()
-                .map(FastJsonUtil::toJSONObject)
-                .peek(jsonObject -> {
-                    jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("createTime")));
+                .map(accountRecord -> {
+                    JSONObject jsonObject = accountRecord.toJSONObject();
+                    jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", accountRecord.getCreateTime()));
+                    jsonObject.put("roleCount", String.valueOf(accountRecord.getRoleList().size()));
+                    jsonObject.put("rechargeFirstTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("rechargeFirstTime")));
+                    jsonObject.put("rechargeLastTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("rechargeLastTime")));
                     jsonObject.put("lastJoinTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("lastJoinTime")));
+                    jsonObject.put("lastExitTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("lastExitTime")));
                     jsonObject.put("data", jsonObject.getString("data"));
+                    return jsonObject;
                 })
                 .toList();
         return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", rowCount);

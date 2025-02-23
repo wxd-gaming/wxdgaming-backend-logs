@@ -71,7 +71,10 @@ public class GameApiTest {
                 .fluentPut("gameId", gameId)
                 .fluentPut("token", findAppToken());
 
-        String push = HttpBuilder.postJson("game/listLogType", jsonObject.toJSONString()).request().bodyString();
+        String push = HttpBuilder.postJson("game/listLogType", jsonObject.toJSONString())
+                .readTimeout(130000)
+                .request()
+                .bodyString();
         RunResult runResult = RunResult.parse(push);
         if (runResult.code() != 1)
             throw new RuntimeException(runResult.msg());
@@ -86,6 +89,7 @@ public class GameApiTest {
                         "http://127.0.0.1:19000/game/find",
                         jsonObject.toJSONString()
                 )
+                .readTimeout(130000)
                 .request();
         int i = postTextResponse.responseCode();
         RunResult runResult = postTextResponse.bodyRunResult();
@@ -100,6 +104,7 @@ public class GameApiTest {
         login();
         JSONObject jsonObject = MapOf.newJSONObject().fluentPut("gameId", gameId);
         Response<PostText> postTextResponse = HttpBuilder.postJson("http://127.0.0.1:19000/game/find", jsonObject.toJSONString())
+                .readTimeout(130000)
                 .request();
         int i = postTextResponse.responseCode();
         RunResult runResult = RunResult.parse(postTextResponse.bodyString());

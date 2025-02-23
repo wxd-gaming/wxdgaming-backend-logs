@@ -43,7 +43,7 @@ public class AccountStatApi {
                           @Param(path = "day", required = false) String day,
                           @Param(path = "minDay", required = false) String minDay,
                           @Param(path = "maxDay", required = false) String maxDay) {
-        PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
+        PgsqlDataHelper pgsqlDataHelper = gameService.gameContext(gameId).getDataHelper();
 
         if ((StringUtils.isNotBlank(day) && StringUtils.isNotBlank(minDay))
             || (StringUtils.isNotBlank(day) && StringUtils.isNotBlank(maxDay))
@@ -68,8 +68,7 @@ public class AccountStatApi {
         }
         long rowCount = queryBuilder.findCount();
 
-        queryBuilder.setSkip((pageIndex - 1) * pageSize);
-        queryBuilder.limit(pageSize, 10, 1000);
+        queryBuilder.limit((pageIndex - 1) * pageSize, pageSize, 10, 1000);
 
         List<JSONObject> list = queryBuilder.findList2Entity(AccountStat.class)
                 .stream()

@@ -4,13 +4,18 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
+import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.ServerRecord;
 import wxdgaming.boot2.core.ann.Body;
 import wxdgaming.boot2.core.ann.Param;
+import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
 import wxdgaming.boot2.core.lang.RunResult;
+import wxdgaming.boot2.core.threading.Event;
+import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
@@ -39,21 +44,49 @@ public class ServerApi {
     }
 
     @HttpRequest(authority = 2)
-    public RunResult push(HttpContext httpContext,
-                          @Param(path = "gameId") int gameId,
-                          @Body ServerRecord serverRecord) {
-        PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
-        if (serverRecord.getSid() == null || serverRecord.getSid() == 0) {
-            return RunResult.error("uid is null");
-        }
-        ServerRecord queryEntity = pgsqlDataHelper.findByKey(ServerRecord.class, serverRecord.getSid());
-        serverRecord.setUpdateTime(System.currentTimeMillis());
-        if (queryEntity == null) {
-            pgsqlDataHelper.getDataBatch().insert(serverRecord);
+    public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") ServerRecord record) {
+        if (record.getSid() == 0) {
+            gameContext.recordError(record.toJsonString(), "sid为空");
         } else {
-            serverRecord.setSid(queryEntity.getSid());
-            pgsqlDataHelper.getDataBatch().update(serverRecord);
+            ServerRecord serverRecord = gameContext.getServerRecordMap().get(record.getSid());
+            if (serverRecord == null) {
+                gameContext.getServerRecordMap().put(record.getSid(), record);
+                gameContext.getDataHelper().getDataBatch().insert(record);
+            } else {
+                serverRecord.setMainSid(record.getMainSid());
+                serverRecord.setName(record.getName());
+                serverRecord.setShowName(record.getShowName());
+                serverRecord.setOpenTime(record.getOpenTime());
+                serverRecord.setMaintainTime(record.getMaintainTime());
+                serverRecord.setWlan(record.getWlan());
+                serverRecord.setLan(record.getLan());
+                serverRecord.setPort(record.getPort());
+                serverRecord.setWebPort(record.getWebPort());
+                serverRecord.setStatus(record.getStatus());
+                serverRecord.setOrdinal(record.getOrdinal());
+                serverRecord.setRegisterUserCount(record.getRegisterUserCount());
+                serverRecord.setRegisterRoleCount(record.getRegisterRoleCount());
+                serverRecord.setOnlineRoleCount(record.getOnlineRoleCount());
+                serverRecord.setActiveRoleCount(record.getActiveRoleCount());
+                serverRecord.setRechargeCount(record.getRechargeCount());
+                serverRecord.getData().clear();
+                serverRecord.getData().putAll(record.getData());
+                serverRecord.setUpdateTime(System.currentTimeMillis());
+                gameContext.getDataHelper().getDataBatch().update(record);
+            }
         }
+        return RunResult.ok();
+    }
+
+    @HttpRequest(authority = 2)
+    public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<ServerRecord> recordList) {
+        ExecutorUtil.getInstance().getVirtualExecutor().execute(new Event(5000, 10000) {
+            @Override public void onEvent() throws Exception {
+                for (ServerRecord record : recordList) {
+                    push(gameContext, record);
+                }
+            }
+        });
         return RunResult.ok();
     }
 
@@ -69,7 +102,7 @@ public class ServerApi {
                           @Param(path = "wlan", required = false) String wlan,
                           @Param(path = "lan", required = false) String lan) {
 
-        PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
+        PgsqlDataHelper pgsqlDataHelper = gameService.gameContext(gameId).getDataHelper();
 
         SqlQueryBuilder sqlQueryBuilder = pgsqlDataHelper.queryBuilder();
         sqlQueryBuilder.sqlByEntity(ServerRecord.class);

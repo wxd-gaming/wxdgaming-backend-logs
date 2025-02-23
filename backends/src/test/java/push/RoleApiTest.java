@@ -1,7 +1,9 @@
 package push;
 
+import com.alibaba.fastjson.JSONObject;
 import org.junit.Test;
 import org.junit.jupiter.api.RepeatedTest;
+import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.lang.RunResult;
@@ -10,6 +12,7 @@ import wxdgaming.boot2.starter.net.httpclient.PostText;
 import wxdgaming.boot2.starter.net.httpclient.Response;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -27,33 +30,33 @@ public class RoleApiTest extends AccountApiTest {
     @Test
     public void test() throws Exception {
         String logToken = findLogToken();
-        test(logToken, 1);
+        HashMap<Integer, List<AccountRecord>> accountRecordMap = readAccount();
+        for (List<AccountRecord> recordList : accountRecordMap.values()) {
+            test(logToken, recordList);
+        }
     }
 
-    @Test
-    @RepeatedTest(99)
-    public void testList() throws Exception {
-        String logToken = findLogToken();
-        test(logToken, 1000);
-    }
-
-    public void test(String logToken, int count) throws Exception {
+    public void test(String logToken, List<AccountRecord> recordList) throws Exception {
         List<CompletableFuture<Response<PostText>>> futures = new ArrayList<>();
-        for (int i = 1; i <= count; i++) {
+        for (AccountRecord accountRecord : recordList) {
             RoleRecord record = new RoleRecord();
-            record.setGameId(gameId);
-            record.setToken(logToken);
-            record.setAccount(randomAccount());
-            record.setCreateTime(randomCreateTime());
+            record.setUid(accountRecord.getUid());
+            record.setAccount(accountRecord.getAccount());
+            record.setCreateTime(accountRecord.getCreateTime());
             record.setCreateSid(RandomUtils.random(1, 100));
             record.setCurSid(RandomUtils.random(1, 100));
-            record.setRoleId(String.valueOf(i));
             record.setRoleName(StringUtils.randomString(8));
             record.setJob("魔剑士");
             record.setSex("男");
             record.setLv(RandomUtils.random(1, 100));
             record.getData().fluentPut("channel", "huawei");
-            CompletableFuture<Response<PostText>> completableFuture = post("role/push", record.toJsonString());
+
+            JSONObject push = new JSONObject()
+                    .fluentPut("gameId", gameId)
+                    .fluentPut("token", logToken)
+                    .fluentPut("data", record);
+
+            CompletableFuture<Response<PostText>> completableFuture = post("role/push", push.toJSONString());
             futures.add(completableFuture);
         }
         for (CompletableFuture<Response<PostText>> future : futures) {

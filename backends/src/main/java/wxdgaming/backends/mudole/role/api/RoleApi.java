@@ -4,16 +4,20 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
+import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
 import wxdgaming.backends.entity.system.User;
 import wxdgaming.backends.mudole.role.RoleService;
 import wxdgaming.backends.mudole.slog.SLogService;
-import wxdgaming.boot2.core.ann.Body;
 import wxdgaming.boot2.core.ann.Param;
+import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
 import wxdgaming.boot2.core.lang.RunResult;
+import wxdgaming.boot2.core.threading.Event;
+import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.threading.ExecutorWith;
 import wxdgaming.boot2.core.threading.ThreadContext;
 import wxdgaming.boot2.core.timer.MyClock;
@@ -50,53 +54,61 @@ public class RoleApi {
 
     @HttpRequest(authority = 2)
     @ExecutorWith(useVirtualThread = true)
-    public RunResult push(HttpContext httpContext, @Body RoleRecord record) {
+    public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") RoleRecord record) {
 
         log.info("role - {}", record.toJsonString());
-
-        if (record.getGameId() == 0) return RunResult.error("gameId is null");
-        if (StringUtils.isBlank(record.getToken())) return RunResult.error("token is null");
-
-        PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(record.getGameId());
-
-        RoleRecord entity = roleService.roleRecord(record.getGameId(), record.getAccount(), record.getRoleId());
-
-        if (entity == null) {
-            if (record.getUid() == 0) {
-                long newId = gameService.newId(record.getGameId());
-                record.setUid(newId);
-            }
-            if (record.getCreateTime() == 0) {
-                record.setCreateTime(System.currentTimeMillis());
-            }
-            record.checkDataKey();
-            pgsqlDataHelper.getDataBatch().insert(record);
-            return RunResult.ok().msg("新增");
+        AccountRecord accountRecord = gameContext.getAccountRecord(record.getAccount());
+        if (accountRecord == null) {
+            gameContext.recordError(record.toJsonString(), "角色记录 找不到账号 " + record.getAccount());
         } else {
-            record.setUid(entity.getUid());
-            record.setAccount(entity.getAccount());
-            record.setCreateTime(entity.getCreateTime());
-            record.setDayKey(entity.getDayKey());
-            record.setCreateSid(entity.getCreateSid());
-            pgsqlDataHelper.getDataBatch().update(record);
-            return RunResult.ok().msg("修改");
+            RoleRecord entity = gameContext.getRoleRecord(record.getUid());
+            if (entity == null) {
+                if (record.getUid() == 0) {
+                    record.setUid(gameContext.getGameId());
+                }
+                if (record.getCreateTime() == 0) {
+                    record.setCreateTime(System.currentTimeMillis());
+                }
+                record.checkDataKey();
+                gameContext.getRoleRecordJdbcCache().put(record.getUid(), record);
+            } else {
+                entity.setCurSid(record.getCurSid());
+                entity.setRoleName(record.getRoleName());
+                entity.setJob(record.getJob());
+                entity.setSex(record.getSex());
+                entity.setLv(record.getLv());
+                entity.getData().clear();
+                entity.getData().putAll(record.getData());
+            }
+            if (!accountRecord.getRoleList().contains(record.getUid())) {
+                accountRecord.getRoleList().add(record.getUid());
+            }
         }
+        return RunResult.ok();
+    }
+
+    @HttpRequest(authority = 2)
+    public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<RoleRecord> recordList) {
+        ExecutorUtil.getInstance().getVirtualExecutor().execute(new Event(5000, 10000) {
+            @Override public void onEvent() throws Exception {
+                for (RoleRecord record : recordList) {
+                    push(gameContext, record);
+                }
+            }
+        });
+        return RunResult.ok();
     }
 
     @HttpRequest(authority = 2)
     public RunResult delete(HttpContext httpContext,
-                            @Param(path = "gameId") Integer gameId,
-                            @Param(path = "account") String account,
-                            @Param(path = "roleId") String roleId) {
+                            @ThreadParam GameContext gameContext,
+                            @Param(path = "roleId") long roleId) {
 
         User user = ThreadContext.context("user");
         log.info("{}", user);
-
-        PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
-        RoleRecord entity = roleService.roleRecord(gameId, account, roleId);
+        RoleRecord entity = gameContext.getRoleRecord(roleId);
         if (entity != null) {
             entity.setDel(1);
-            pgsqlDataHelper.getDataBatch().update(entity);
             return RunResult.ok();
         }
         return RunResult.error("角色不存在");
@@ -116,7 +128,7 @@ public class RoleApi {
         User user = ThreadContext.context("user");
         log.info("{}", user);
 
-        PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
+        PgsqlDataHelper pgsqlDataHelper = gameService.gameContext(gameId).getDataHelper();
         SqlQueryBuilder queryBuilder = pgsqlDataHelper.queryBuilder();
         queryBuilder.sqlByEntity(RoleRecord.class);
         queryBuilder.pushWhereByValueNotNull("account=?", account);
@@ -145,6 +157,10 @@ public class RoleApi {
                 .map(FastJsonUtil::toJSONObject)
                 .peek(jsonObject -> {
                     jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("createTime")));
+                    jsonObject.put("rechargeFirstTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("rechargeFirstTime")));
+                    jsonObject.put("rechargeLastTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("rechargeLastTime")));
+                    jsonObject.put("lastJoinTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("lastJoinTime")));
+                    jsonObject.put("lastExitTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("lastExitTime")));
                     jsonObject.put("data", jsonObject.getString("data"));
                 })
                 .toList();

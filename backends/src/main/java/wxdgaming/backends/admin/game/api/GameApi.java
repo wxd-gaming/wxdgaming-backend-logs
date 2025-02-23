@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.system.Game;
 import wxdgaming.boot2.core.ann.Body;
@@ -12,7 +13,6 @@ import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.timer.MyClock;
-import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.ann.RequestMapping;
@@ -42,8 +42,8 @@ public class GameApi {
 
     @HttpRequest(authority = 9)
     public RunResult push(HttpContext session, @Body Game game) {
-        Game queryEntity = gameService.gameRecord(game.getUid());
-        if (queryEntity == null) {
+        GameContext gameContext = gameService.gameContext(game.getUid());
+        if (gameContext == null) {
             game.setCreateTime(System.currentTimeMillis());
             game.setAppToken(StringUtils.randomString(12));
             game.setRechargeToken(StringUtils.randomString(18));
@@ -51,13 +51,11 @@ public class GameApi {
             pgsqlService.insert(game);
             gameService.addGameCache(game);
         } else {
-            game.setUid(queryEntity.getUid());
-            game.setCreateTime(queryEntity.getCreateTime());
-            game.setTableMapping(queryEntity.getTableMapping());
-            game.setAppToken(queryEntity.getAppToken());
-            game.setRechargeToken(queryEntity.getRechargeToken());
-            game.setLogToken(queryEntity.getLogToken());
-            pgsqlService.update(game);
+            Game queryEntity = gameContext.getGame();
+            queryEntity.getTableMapping().putAll(game.getTableMapping());
+            queryEntity.setAppToken(game.getAppToken());
+            queryEntity.setRechargeToken(game.getRechargeToken());
+            queryEntity.setLogToken(game.getLogToken());
             gameService.addGameCache(game);
         }
         return RunResult.ok();
@@ -65,28 +63,17 @@ public class GameApi {
 
     @HttpRequest(authority = 9)
     public RunResult find(HttpContext session, @Param(path = "gameId") int gameId) {
-        Game entity = gameService.gameRecord(gameId);
-        if (entity == null) {
+        GameContext gameContext = gameService.gameContext(gameId);
+        if (gameContext == null) {
             return RunResult.error("gameId is not exist");
         }
-        return RunResult.ok().data(entity);
-    }
-
-    @HttpRequest(authority = 9)
-    public RunResult menu(HttpContext session) {
-        List<JSONObject> list = gameService.getGameId2GameRecordMap().values().stream()
-                .map(FastJsonUtil::toJSONObject)
-                .peek(jsonObject -> {
-                    jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm", jsonObject.getLong("createTime")));
-                    jsonObject.entrySet().removeIf(v -> v.getKey().toLowerCase().endsWith("token"));
-                })
-                .toList();
-        return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", list.size());
+        return RunResult.ok().data(gameContext.getGame());
     }
 
     @HttpRequest(authority = 9)
     public RunResult list(HttpContext session) {
-        List<JSONObject> list = gameService.getGameId2GameRecordMap().values().stream()
+        List<JSONObject> list = gameService.getGameContextHashMap().values().stream()
+                .map(GameContext::getGame)
                 .map(FastJsonUtil::toJSONObject)
                 .peek(jsonObject -> {
                     jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm", jsonObject.getLong("createTime")));
@@ -102,14 +89,12 @@ public class GameApi {
         RunResult runResult = gameService.checkAppToken(gameId, token);
         if (runResult != null) return runResult;
 
-        Game game = gameService.getGameId2GameRecordMap().get(gameId);
+        GameContext gameContext = gameService.gameContext(gameId);
 
-        PgsqlDataHelper pgsqlDataHelper = gameService.pgsqlDataHelper(gameId);
-        if (pgsqlDataHelper == null) {
-            return RunResult.error("gameId is not exist");
-        }
+        Game game = gameContext.getGame();
+
         if (!game.getTableMapping().containsKey(data.getString("logType"))) {
-            gameService.checkSLogTable(pgsqlDataHelper, data.getString("logType"), data.getString("logComment"));
+            gameService.checkSLogTable(gameContext.getDataHelper(), data.getString("logType"), data.getString("logComment"));
             game.getTableMapping().put(data.getString("logType"), data.getString("logComment"));
             this.pgsqlService.update(game);
         }
@@ -123,7 +108,7 @@ public class GameApi {
         RunResult runResult = gameService.checkAppToken(gameId, token);
         if (runResult != null) return runResult;
 
-        Game game = gameService.getGameId2GameRecordMap().get(gameId);
+        Game game = gameService.gameContext(gameId).getGame();
 
         return RunResult.ok().data(game.getTableMapping());
     }
