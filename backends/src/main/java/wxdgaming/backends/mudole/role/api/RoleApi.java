@@ -128,7 +128,8 @@ public class RoleApi {
         User user = ThreadContext.context("user");
         log.info("{}", user);
 
-        PgsqlDataHelper pgsqlDataHelper = gameService.gameContext(gameId).getDataHelper();
+        GameContext gameContext = gameService.gameContext(gameId);
+        PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
         SqlQueryBuilder queryBuilder = pgsqlDataHelper.queryBuilder();
         queryBuilder.sqlByEntity(RoleRecord.class);
         queryBuilder.pushWhereByValueNotNull("account=?", account);
@@ -142,26 +143,26 @@ public class RoleApi {
         }
 
         queryBuilder.setOrderBy("createtime desc");
-        if (pageIndex > 0) {
-            queryBuilder.setSkip((pageIndex - 1) * pageSize);
-        }
 
-        if (pageSize <= 10) pageSize = 10;
-        if (pageSize > 1000) pageSize = 1000;
-        queryBuilder.setLimit(pageSize);
+        queryBuilder.limit((pageIndex - 1) * pageSize, pageSize, 10, 1000);
 
         long rowCount = queryBuilder.findCount();
         List<RoleRecord> accountRecords = queryBuilder.findList2Entity(RoleRecord.class);
 
         List<JSONObject> list = accountRecords.stream()
-                .map(FastJsonUtil::toJSONObject)
-                .peek(jsonObject -> {
+                .map(roleRecord -> {
+                    JSONObject jsonObject = roleRecord.toJSONObject();
                     jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("createTime")));
                     jsonObject.put("rechargeFirstTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("rechargeFirstTime")));
                     jsonObject.put("rechargeLastTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("rechargeLastTime")));
                     jsonObject.put("lastJoinTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("lastJoinTime")));
                     jsonObject.put("lastExitTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("lastExitTime")));
+                    RoleRecord roleRecordCache = gameContext.getRoleRecordJdbcCache().find(roleRecord.getUid());
+                    if (roleRecordCache != null) {
+                        jsonObject.put("online", roleRecordCache.isOnline());
+                    }
                     jsonObject.put("data", jsonObject.getString("data"));
+                    return jsonObject;
                 })
                 .toList();
         return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", rowCount);

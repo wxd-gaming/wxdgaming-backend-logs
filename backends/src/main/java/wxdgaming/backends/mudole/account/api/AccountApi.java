@@ -80,7 +80,8 @@ public class AccountApi {
                           @Param(path = "pageIndex") int pageIndex,
                           @Param(path = "pageSize") int pageSize,
                           @Param(path = "account", required = false) String account) {
-        PgsqlDataHelper pgsqlDataHelper = gameService.gameContext(gameId).getDataHelper();
+        GameContext gameContext = gameService.gameContext(gameId);
+        PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
 
         SqlQueryBuilder queryBuilder = pgsqlDataHelper.queryBuilder();
         queryBuilder
@@ -110,6 +111,10 @@ public class AccountApi {
                     jsonObject.put("rechargeLastTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("rechargeLastTime")));
                     jsonObject.put("lastJoinTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("lastJoinTime")));
                     jsonObject.put("lastExitTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("lastExitTime")));
+                    AccountRecord accountRecordCache = gameContext.getAccountRecordJdbcCache().find(accountRecord.getAccount());
+                    if (accountRecordCache != null) {
+                        jsonObject.put("online", accountRecordCache.isOnline());
+                    }
                     jsonObject.put("data", jsonObject.getString("data"));
                     return jsonObject;
                 })
