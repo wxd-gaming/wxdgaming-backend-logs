@@ -6,6 +6,7 @@ import org.junit.Test;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.SLog2Login;
 import wxdgaming.boot2.core.chatset.StringUtils;
+import wxdgaming.boot2.core.collection.MapOf;
 import wxdgaming.boot2.core.lang.DiffTime;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.timer.MyClock;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 日志push
@@ -75,16 +77,84 @@ public class LoginPushTest extends RoleApiTest {
             sLogs.add(sLog);
 
         }
-        JSONObject push = new JSONObject()
-                .fluentPut("gameId", gameId)
-                .fluentPut("token", logToken)
-                .fluentPut("data", sLogs);
-        Response<PostText> join = post("log/pushList4Login", push.toJSONString()).join();
+        if (!sLogs.isEmpty()) {
+            JSONObject push = new JSONObject()
+                    .fluentPut("gameId", gameId)
+                    .fluentPut("token", logToken)
+                    .fluentPut("data", sLogs);
+            Response<PostText> join = post("log/pushList4Login", push.toJSONString()).join();
+            RunResult runResult = join.bodyRunResult();
+            if (join.responseCode() != 200 || runResult.code() != 1) {
+                System.out.println(join.bodyString());
+            }
+        }
+        System.out.println(sLogs.size() + ", 耗时：" + diffTime.diff() + " ms");
+    }
+
+    @Test
+    public void randomPushLogout() {
+        String logToken = findLogToken();
+        HashMap<Integer, List<AccountRecord>> accountRecordMap = readAccount();
+        List<AccountRecord> list = accountRecordMap.values().stream().flatMap(v -> v.stream()).toList();
+        AccountRecord accountRecord = RandomUtils.randomItem(list);
+        /*模拟数据 账号的uid就是角色的uid*/
+        pushLogout(accountRecord.getUid(), accountRecord.getAccount());
+
+    }
+
+    @Test
+    public void pushLogout() {
+        pushLogout(1146861275593744L, "120-140-dcbdbcdb");
+    }
+
+    public void pushLogout(long roleId, String account) {
+        String logToken = findLogToken();
+        JSONObject jsonObject = MapOf.newJSONObject();
+        jsonObject.put("gameId", gameId);
+        jsonObject.put("token", logToken);
+        jsonObject.put(
+                "data",
+                MapOf.newJSONObject()
+                        .fluentPut("account", account)
+                        .fluentPut("roleId", roleId)
+        );
+        CompletableFuture<Response<PostText>> post = post("/log/push4Logout", jsonObject.toJSONString());
+        Response<PostText> join = post.join();
         RunResult runResult = join.bodyRunResult();
         if (join.responseCode() != 200 || runResult.code() != 1) {
             System.out.println(join.bodyString());
         }
-        System.out.println(sLogs.size() + ", 耗时：" + diffTime.diff() + " ms");
+    }
+
+    @Test
+    public void pushLogin() {
+        pushLogout(1146861275593744L, "120-140-dcbdbcdb");
+    }
+
+    public void pushLogin(long roleId, String account) {
+        String logToken = findLogToken();
+        JSONObject jsonObject = MapOf.newJSONObject();
+        jsonObject.put("gameId", gameId);
+        jsonObject.put("token", logToken);
+        jsonObject.put(
+                "data",
+                MapOf.newJSONObject()
+                        .fluentPut("uid", hexId.newId())/*指定一个唯一id，这样可以避免因为网络重复提交导致出现重复数据*/
+                        .fluentPut("mainId", 1)
+                        .fluentPut("sId", 10)
+                        .fluentPut("account", account)
+                        .fluentPut("roleId", roleId)
+                        .fluentPut("roleName", account)
+                        .fluentPut("createTime", System.currentTimeMillis())
+                        .fluentPut("lv", RandomUtils.random(1, 300))
+                        .fluentPut("data", MapOf.newJSONObject().fluentPut("os", "ios"))
+        );
+        CompletableFuture<Response<PostText>> post = post("/log/push4Login", jsonObject.toJSONString());
+        Response<PostText> join = post.join();
+        RunResult runResult = join.bodyRunResult();
+        if (join.responseCode() != 200 || runResult.code() != 1) {
+            System.out.println(join.bodyString());
+        }
     }
 
 }

@@ -15,6 +15,7 @@ import wxdgaming.boot2.core.io.FileReadUtil;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.ExecutorConfig;
 import wxdgaming.boot2.core.threading.ExecutorUtil;
+import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.core.util.RandomUtils;
 import wxdgaming.boot2.starter.batis.Entity;
 import wxdgaming.boot2.starter.net.httpclient.HttpBuilder;
@@ -22,6 +23,7 @@ import wxdgaming.boot2.starter.net.httpclient.PostText;
 import wxdgaming.boot2.starter.net.httpclient.Response;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -37,6 +39,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  **/
 @Slf4j
 public class GameApiTest {
+
+    protected String postHost = "http://211.149.228.9:19000";
+    // protected String postHost = "http://127.0.0.1:19000";
 
     protected int days = 120;
     protected int gameId = 2;
@@ -58,7 +63,7 @@ public class GameApiTest {
     public CompletableFuture<Response<PostText>> post(String path, String json) {
         login();
         if (path.startsWith("/")) path = path.substring(1);
-        return HttpBuilder.postJson("http://127.0.0.1:19000/" + path, json)
+        return HttpBuilder.postJson(postHost + "/" + path, json)
                 .readTimeout(130000)
                 // .header(HttpHeaderNames.AUTHORIZATION.toString(), token)
                 .async();
@@ -84,16 +89,10 @@ public class GameApiTest {
     public String findAppToken() {
         login();
         JSONObject jsonObject = MapOf.newJSONObject().fluentPut("gameId", gameId);
-        Response<PostText> postTextResponse = HttpBuilder
-                .postJson(
-                        "http://127.0.0.1:19000/game/find",
-                        jsonObject.toJSONString()
-                )
-                .readTimeout(130000)
-                .request();
+        Response<PostText> postTextResponse = post("/game/find", jsonObject.toJSONString()).join();
         int i = postTextResponse.responseCode();
         RunResult runResult = postTextResponse.bodyRunResult();
-        if (runResult.code() != 1)
+        if (i != 200 || runResult.code() != 1)
             throw new RuntimeException(runResult.msg());
         String appToken = runResult.getNestedValue("data.appToken", String.class);
         System.out.println("token: " + appToken);
@@ -103,12 +102,10 @@ public class GameApiTest {
     public String findLogToken() {
         login();
         JSONObject jsonObject = MapOf.newJSONObject().fluentPut("gameId", gameId);
-        Response<PostText> postTextResponse = HttpBuilder.postJson("http://127.0.0.1:19000/game/find", jsonObject.toJSONString())
-                .readTimeout(130000)
-                .request();
+        Response<PostText> postTextResponse = post("/game/find", jsonObject.toJSONString()).join();
         int i = postTextResponse.responseCode();
         RunResult runResult = RunResult.parse(postTextResponse.bodyString());
-        if (runResult.code() != 1)
+        if (i != 200 || runResult.code() != 1)
             throw new RuntimeException(runResult.msg());
         String logToken = runResult.getNestedValue("data.logToken", String.class);
         System.out.println("token: " + logToken);
@@ -128,12 +125,12 @@ public class GameApiTest {
         jsonObject
                 .fluentPut("account", "wxdgaming")
                 .fluentPut("pwd", "123456");
-        Response<PostText> postTextResponse = HttpBuilder.postJson("http://127.0.0.1:19000/login", jsonObject.toJSONString())
+        Response<PostText> postTextResponse = HttpBuilder.postJson(postHost + "/login", jsonObject.toJSONString())
                 .request();
         int i = postTextResponse.responseCode();
         String token = postTextResponse.cookie(HttpHeaderNames.AUTHORIZATION.toString());
         RunResult runResult = RunResult.parse(postTextResponse.bodyString());
-        if (runResult.code() != 1)
+        if (i != 200 || runResult.code() != 1)
             throw new RuntimeException(runResult.msg());
         System.out.println("token: " + token);
         logined.set(true);
@@ -152,6 +149,13 @@ public class GameApiTest {
     }
 
     @Test
+    public void outTime() {
+        LocalDateTime localDateTime = LocalDateTime.now().plusDays(-125);
+        System.out.println(localDateTime);
+        System.out.println(MyClock.time2Milli(localDateTime));
+    }
+
+    @Test
     public void pushGame() throws Exception {
         Game game = new Game();
         game.setUid(gameId);
@@ -159,12 +163,10 @@ public class GameApiTest {
         game.setIcon("icon");
         game.setDesc("desc");
         game.setUrl("url");
-        game.setCreateTime(randomCreateTime());
+        game.setCreateTime(MyClock.time2Milli(LocalDateTime.now().plusDays(-125)));
 
         LinkedHashMap<String, String> tableMapping = game.getTableMapping();
-        tableMapping.put("log_login", "登录日志");
         tableMapping.put("log_item", "道具日志");
-        tableMapping.put("log_pay", "支付日志");
 
         post("game/push", game);
     }

@@ -58,6 +58,10 @@ public class StatService {
                     for (int i = 0; i < days; i++) {
                         final int day = i;
                         LocalDateTime statLocalDateTime = MyClock.localDateTime(statTime.get()).plusDays(day);
+                        if (MyClock.time2Milli(statLocalDateTime) > MyClock.millis()) {
+                            /*TODO 已经大于当前时间，说明是明天了，不在处理*/
+                            break;
+                        }
                         int dayKey = (statLocalDateTime.getYear() * 10000 + statLocalDateTime.getMonthValue() * 100 + statLocalDateTime.getDayOfMonth());
                         GameStat gameStat = pgsqlDataHelper.findByKey(GameStat.class, dayKey);
                         if (gameStat == null) {
@@ -176,6 +180,10 @@ public class StatService {
                     for (int i = 0; i < days; i++) {
                         final int day = i;
                         LocalDateTime statLocalDateTime = MyClock.localDateTime(statTime.get()).plusDays(day);
+                        if (MyClock.time2Milli(statLocalDateTime) > MyClock.millis()) {
+                            /*TODO 已经大于当前时间，说明是明天了，不在处理*/
+                            break;
+                        }
                         int registerDayKey = (statLocalDateTime.getYear() * 10000 + statLocalDateTime.getMonthValue() * 100 + statLocalDateTime.getDayOfMonth());
                         log.info("{} 账号留存 {} 统计开始", game.getName(), registerDayKey);
                         AccountStat accountStat = pgsqlDataHelper.findByKey(AccountStat.class, registerDayKey);

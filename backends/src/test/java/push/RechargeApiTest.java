@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import org.junit.Test;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.RechargeRecord;
-import wxdgaming.backends.entity.games.logs.SLog2Login;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.lang.DiffTime;
 import wxdgaming.boot2.core.lang.RunResult;
@@ -17,7 +16,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * 充值日志测试
@@ -51,7 +49,7 @@ public class RechargeApiTest extends AccountApiTest {
             LocalDateTime plusDays = localDateTime.plusDays(i);
             long milli = MyClock.time2Milli(plusDays);
             if (milli > MyClock.millis()) continue;/*当前当前时间不在执行*/
-            boolean randomBoolean = RandomUtils.randomBoolean();
+            boolean randomBoolean = RandomUtils.randomBoolean(30);
             if (!randomBoolean) continue;
 
             RechargeRecord record = new RechargeRecord();
@@ -63,7 +61,7 @@ public class RechargeApiTest extends AccountApiTest {
             record.setRoleName(StringUtils.randomString(8));
             record.setLv(RandomUtils.random(1, 100));
             record.setChannel("huawei");
-            record.setAmount(RandomUtils.random(6, 1000) * 100);
+            record.setAmount(RandomUtils.random(6, 128) * 100);
             record.setSpOrder(StringUtils.randomString(32));
             record.setCpOrder(StringUtils.randomString(32));
             record.getData().fluentPut("充值ID", "1");
@@ -71,14 +69,16 @@ public class RechargeApiTest extends AccountApiTest {
             sLogs.add(record);
 
         }
-        JSONObject push = new JSONObject()
-                .fluentPut("gameId", gameId)
-                .fluentPut("token", logToken)
-                .fluentPut("data", sLogs);
-        Response<PostText> join = post("recharge/pushList", push.toJSONString()).join();
-        RunResult runResult = join.bodyRunResult();
-        if (join.responseCode() != 200 || runResult.code() != 1) {
-            System.out.println(join.bodyString());
+        if (!sLogs.isEmpty()) {
+            JSONObject push = new JSONObject()
+                    .fluentPut("gameId", gameId)
+                    .fluentPut("token", logToken)
+                    .fluentPut("data", sLogs);
+            Response<PostText> join = post("recharge/pushList", push.toJSONString()).join();
+            RunResult runResult = join.bodyRunResult();
+            if (join.responseCode() != 200 || runResult.code() != 1) {
+                System.out.println(join.bodyString());
+            }
         }
 
         System.out.println(sLogs.size() + ", 耗时：" + diffTime.diff() + " ms");

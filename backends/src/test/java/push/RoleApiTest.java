@@ -35,7 +35,8 @@ public class RoleApiTest extends AccountApiTest {
     }
 
     public void pushRoleList(String logToken, List<AccountRecord> recordList) throws Exception {
-        List<CompletableFuture<Response<PostText>>> futures = new ArrayList<>();
+
+        List<RoleRecord> roleRecordList = new ArrayList<>();
         for (AccountRecord accountRecord : recordList) {
             RoleRecord record = new RoleRecord();
             record.setUid(accountRecord.getUid());
@@ -49,20 +50,20 @@ public class RoleApiTest extends AccountApiTest {
             record.setLv(RandomUtils.random(1, 100));
             record.getData().fluentPut("channel", "huawei");
 
-            JSONObject push = new JSONObject()
-                    .fluentPut("gameId", gameId)
-                    .fluentPut("token", logToken)
-                    .fluentPut("data", record);
+            roleRecordList.add(record);
 
-            CompletableFuture<Response<PostText>> completableFuture = post("role/push", push.toJSONString());
-            futures.add(completableFuture);
+
         }
-        for (CompletableFuture<Response<PostText>> future : futures) {
-            Response<PostText> join = future.join();
-            RunResult runResult = join.bodyRunResult();
-            if (join.responseCode() != 200 || runResult.code() != 1) {
-                System.out.println(join.bodyString());
-            }
+        JSONObject push = new JSONObject()
+                .fluentPut("gameId", gameId)
+                .fluentPut("token", logToken)
+                .fluentPut("data", roleRecordList);
+
+        CompletableFuture<Response<PostText>> future = post("role/pushList", push.toJSONString());
+        Response<PostText> join = future.join();
+        RunResult runResult = join.bodyRunResult();
+        if (join.responseCode() != 200 || runResult.code() != 1) {
+            System.out.println(join.bodyString());
         }
     }
 
