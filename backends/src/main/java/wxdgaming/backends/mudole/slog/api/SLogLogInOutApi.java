@@ -1,32 +1,24 @@
 package wxdgaming.backends.mudole.slog.api;
 
-import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
+import wxdgaming.backends.entity.games.logs.OnlineTimeRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
-import wxdgaming.backends.entity.games.logs.SLog;
 import wxdgaming.backends.entity.games.logs.SLog2Login;
 import wxdgaming.backends.mudole.slog.SLogService;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
-import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.Event;
 import wxdgaming.boot2.core.threading.ExecutorUtil;
-import wxdgaming.boot2.core.threading.ExecutorWith;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.batis.TableMapping;
-import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
-import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.ann.RequestMapping;
-import wxdgaming.boot2.starter.net.server.http.HttpContext;
 
 import java.util.List;
 
@@ -75,65 +67,59 @@ public class SLogLogInOutApi {
 
             record.checkDataKey();
 
-            gameContext.getLogKeyCache().put(logKey, true);
-            gameContext.getDataHelper().getDataBatch().insert(record);
-
+            SLog2Login.LogEnum logEnum = record.getLogEnum();
+            if (logEnum == null) {
+                gameContext.recordError("登录记录 logEnum 参数异常", record.toJsonString());
+                return RunResult.ok();
+            }
             AccountRecord accountRecord = gameContext.getAccountRecord(record.getAccount());
             if (accountRecord == null) {
                 gameContext.recordError("登录记录 找不到账号 " + record.getAccount(), record.toJsonString());
-            } else {
-                accountRecord.setLastJoinTime(record.getCreateTime());
-                accountRecord.setLastJoinSid(record.getSId());
-                accountRecord.setOnline(true);
+                return RunResult.ok();
             }
+
             RoleRecord roleRecord = gameContext.getRoleRecord(record.getRoleId());
             if (roleRecord == null) {
                 gameContext.recordError("登录记录 找不到角色 " + record.getRoleId(), record.toJsonString());
-            } else {
+                return RunResult.ok();
+            }
+
+            gameContext.getLogKeyCache().put(logKey, true);
+            gameContext.getDataHelper().getDataBatch().insert(record);
+
+            if (logEnum == SLog2Login.LogEnum.LOGIN && !roleRecord.isOnline()) {
                 roleRecord.setLastJoinTime(record.getCreateTime());
                 roleRecord.setLastJoinSid(record.getSId());
                 roleRecord.setOnline(true);
-            }
-        }
-        return RunResult.ok();
-    }
-
-    @HttpRequest(authority = 2)
-    public RunResult pushList4Logout(@ThreadParam GameContext gameContext, @Param(path = "data") List<SLogLogoutParams> recordList) {
-        ExecutorUtil.getInstance().getLogicExecutor().execute(new Event(5000, 10000) {
-            @Override public void onEvent() throws Exception {
-                for (SLogLogoutParams record : recordList) {
-                    push4Logout(gameContext, record);
-                }
-            }
-        });
-        return RunResult.ok();
-    }
-
-    /** 登录日志的批量提交 */
-    @HttpRequest(authority = 2)
-    public RunResult push4Logout(@ThreadParam GameContext gameContext,
-                                 @Param(path = "data") SLogLogoutParams sqlParams) {
-        AccountRecord accountRecord = gameContext.getAccountRecord(sqlParams.getAccount());
-        if (accountRecord != null) {
-            accountRecord.setLastExitTime(System.currentTimeMillis());
-            accountRecord.setOnline(false);
-        }
-        if (sqlParams.getRoleId() != null) {
-            RoleRecord roleRecord = gameContext.getRoleRecord(sqlParams.getRoleId());
-            if (roleRecord != null) {
-                roleRecord.setLastExitTime(System.currentTimeMillis());
+            } else if (logEnum == SLog2Login.LogEnum.LOGOUT && roleRecord.isOnline()) {
+                roleRecord.setLastExitTime(record.getCreateTime());
                 roleRecord.setOnline(false);
+                OnlineTimeRecord onlineTimeRecord = new OnlineTimeRecord();
+                onlineTimeRecord.setCreateTime(MyClock.millis());/* 产生记录的时间 */
+                onlineTimeRecord.setUid(gameContext.newId("OnlineTimeRecord"));
+                onlineTimeRecord.setAccount(record.getAccount());
+                onlineTimeRecord.setRoleId(record.getRoleId());
+                onlineTimeRecord.setRoleName(record.getRoleName());
+                onlineTimeRecord.setLv(record.getLv());
+                onlineTimeRecord.setSid(record.getSId());
+                onlineTimeRecord.setJoinTime(roleRecord.getLastJoinTime());/*记录的上次进入游戏的时间*/
+                onlineTimeRecord.setExitTime(record.getCreateTime());/*退出日志创建时间*/
+                long onlineTime = roleRecord.getLastExitTime() - roleRecord.getLastJoinTime();
+                onlineTimeRecord.setOnlineTime(onlineTime);
+                onlineTimeRecord.setTotalOnlineTime(roleRecord.getTotalOnlineTime() + onlineTime);
+
+                /*角色单独记录在线时长*/
+                roleRecord.setLastOnlineTime(onlineTime);
+                roleRecord.setTotalOnlineTime(roleRecord.getTotalOnlineTime() + onlineTime);
+
+                accountRecord.setTotalOnlineTime(accountRecord.getTotalOnlineTime() + onlineTime);
+
+                onlineTimeRecord.checkDataKey();
+                gameContext.getDataHelper().getDataBatch().insert(onlineTimeRecord);
             }
         }
         return RunResult.ok();
     }
 
-    @Getter
-    @Setter
-    public static class SLogLogoutParams {
-        private String account;
-        private Long roleId;
-    }
 
 }

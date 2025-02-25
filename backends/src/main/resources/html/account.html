@@ -144,24 +144,16 @@
         function createRow(index, row) {
             let tr = `
     <tr>
-        <td style="width: 140px;">
-            <a href="#" onclick="ban('/gm/001/002/003/banLogin', '${row.uid}');return false;" title="封号和解封">封号</a>
-            <a href="#" onclick="ban('/gm/001/002/003/banChat', '${row.uid}');return false;" title="禁言和解禁">禁言</a>
-            <a href="#" onclick="ban('/gm/001/002/003/kickout', '${row.uid}');return false;" title="踢出下线并且清理内存">踢人</a>
-        </td>
         <td tips="true" style="width: 40px;">${index}</td>
-        <td tips="true" style="width: 60px;">${row.online}</td>
         <td tips="true" style="width: 140px;">${row.uid}</td>
         <td tips="true" style="width: 200px;">${row.account}</td>
         <td tips="true" style="width: 140px;">${row.createTime}</td>
-        <td tips="true" style="width: 70px;">${row.roleCount}99<a href="#" style="margin-left: 8px;">查看</a></td>
+        <td tips="true" style="width: 70px;">${row.roleCount}<a href="#" style="margin-left: 8px;">查看</a></td>
         <td tips="true" style="width: 100px;">${row.rechargeAmount}</td>
         <td tips="true" style="width: 80px;">${row.rechargeCount}</td>
         <td tips="true" style="width: 140px;">${row.rechargeFirstTime}</td>
         <td tips="true" style="width: 140px;">${row.rechargeLastTime}</td>
-        <td tips="true" style="width: 140px;">${row.lastJoinTime}</td>
-        <td tips="true" style="width: 140px;">${row.lastJoinSid}</td>
-        <td tips="true" style="width: 140px;">${row.lastExitTime}</td>
+        <td tips="true" style="width: 140px;">${row.totalOnlineTime}</td>
         <td tips="true" style="width: 280px;">${row.data}</td>
     </tr>
 `;
@@ -195,9 +187,7 @@
     <table>
         <thead>
         <tr>
-            <th style="width: 140px;">操作</th>
             <th style="width: 40px;">序号</th>
-            <th style="width: 60px;">在线</th>
             <th style="width: 140px;">账号ID</th>
             <th style="width: 200px;">账号</th>
             <th style="width: 140px;">创建时间</th>
@@ -206,9 +196,7 @@
             <th style="width: 80px;">充值笔数</th>
             <th style="width: 140px;">首次充值时间</th>
             <th style="width: 140px;">最后充值时间</th>
-            <th style="width: 140px;">最后登录时间</th>
-            <th style="width: 140px;">最后登录区服</th>
-            <th style="width: 140px;">最后退出时间</th>
+            <th style="width: 140px;">累计在线时长</th>
             <th style="width: 280px;">记录</th>
         </tr>
         </thead>

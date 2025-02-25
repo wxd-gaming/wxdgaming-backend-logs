@@ -86,6 +86,14 @@ public class RoleRecord extends RecordBase {
     @JSONField(ordinal = 43)
     @DbColumn(index = true)
     private boolean online;
+    /** 累计在线时长 */
+    @JSONField(ordinal = 44)
+    @DbColumn(index = true)
+    private long totalOnlineTime;
+    /** 最后一次在线时长 */
+    @JSONField(ordinal = 44)
+    @DbColumn(index = true)
+    private long lastOnlineTime;
 
     @JSONField(ordinal = 99)
     @DbColumn(columnType = ColumnType.Json)

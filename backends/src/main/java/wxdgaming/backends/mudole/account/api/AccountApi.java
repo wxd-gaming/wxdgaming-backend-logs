@@ -8,19 +8,15 @@ import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.mudole.slog.SLogService;
-import wxdgaming.boot2.core.ann.Body;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
-import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
+import wxdgaming.boot2.core.format.TimeFormat;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.Event;
-import wxdgaming.boot2.core.threading.ExecutorLog;
 import wxdgaming.boot2.core.threading.ExecutorUtil;
-import wxdgaming.boot2.core.threading.ExecutorWith;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.core.util.NumberUtil;
-import wxdgaming.boot2.starter.batis.sql.JdbcCache;
 import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
@@ -122,17 +118,16 @@ public class AccountApi {
 
         List<JSONObject> list = records.stream()
                 .map(accountRecord -> {
+                    AccountRecord accountRecordFind = gameContext.getAccountRecordJdbcCache().find(accountRecord.getAccount());
+                    if (accountRecordFind != null) {
+                        accountRecord = accountRecordFind;
+                    }
                     JSONObject jsonObject = accountRecord.toJSONObject();
                     jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", accountRecord.getCreateTime()));
                     jsonObject.put("roleCount", String.valueOf(accountRecord.getRoleList().size()));
-                    jsonObject.put("rechargeFirstTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("rechargeFirstTime")));
-                    jsonObject.put("rechargeLastTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("rechargeLastTime")));
-                    jsonObject.put("lastJoinTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("lastJoinTime")));
-                    jsonObject.put("lastExitTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("lastExitTime")));
-                    AccountRecord accountRecordCache = gameContext.getAccountRecordJdbcCache().find(accountRecord.getAccount());
-                    if (accountRecordCache != null) {
-                        jsonObject.put("online", accountRecordCache.isOnline());
-                    }
+                    jsonObject.put("rechargeFirstTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", accountRecord.getRechargeFirstTime()));
+                    jsonObject.put("rechargeLastTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", accountRecord.getRechargeLastTime()));
+                    jsonObject.put("totalOnlineTime", new TimeFormat().addTime(jsonObject.getLong("totalOnlineTime") * 100).toString(TimeFormat.FormatInfo.All));
                     jsonObject.put("data", jsonObject.getString("data"));
                     return jsonObject;
                 })

@@ -155,21 +155,23 @@
         <td tips="true" style="width: 40px;">${index}</td>
         <td tips="true" style="width: 60px;">${row.online}</td>
         <td tips="true" style="width: 200px;">${row.account}</td>
-        <td tips="true" style="width: 80px;">${row.createSid}</td>
-        <td tips="true" style="width: 80px;">${row.curSid}</td>
         <td tips="true" style="width: 140px;">${row.uid}</td>
         <td tips="true" style="width: 120px;">${row.roleName}</td>
         <td tips="true" style="width: 140px;">${row.createTime}</td>
+        <td tips="true" style="width: 80px;">${row.createSid}</td>
+        <td tips="true" style="width: 80px;">${row.curSid}</td>
         <td tips="true" style="width: 100px;">${row.rechargeAmount}</td>
         <td tips="true" style="width: 80px;">${row.rechargeCount}</td>
         <td tips="true" style="width: 140px;">${row.rechargeFirstTime}</td>
         <td tips="true" style="width: 140px;">${row.rechargeLastTime}</td>
-        <td tips="true" style="width: 140px;">${row.lastJoinTime}</td>
-        <td tips="true" style="width: 140px;">${row.lastJoinSid}</td>
-        <td tips="true" style="width: 140px;">${row.lastExitTime}</td>
         <td tips="true" style="width: 40px;">${row.sex}</td>
         <td tips="true" style="width: 70px;">${row.job}</td>
         <td tips="true" style="width: 40px;">${row.lv}</td>
+        <td tips="true" style="width: 140px;">${row.lastJoinSid}</td>
+        <td tips="true" style="width: 140px;">${row.lastJoinTime}</td>
+        <td tips="true" style="width: 140px;">${row.lastExitTime}</td>
+        <td tips="true" style="width: 140px;">${row.totalOnlineTime}</td>
+        <td tips="true" style="width: 140px;">${row.lastOnlineTime}</td>
         <td tips="true" style="width: 180px;">${row.data}</td>
     </tr>
 `;
@@ -196,12 +198,13 @@
     <input id="account" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="账号"/>
     <input id="roleId" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="角色id"/>
     <input id="roleName" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="角色名字"/>
+    <br>
     <input id="createSid" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="创建区服"/>
     <input id="curSid" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="当前区服"/>
     <input id="rechargeAmount" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="充值金额大于等于"/>
     <input id="rechargeCount" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="订单笔数大于等于"/>
 </div>
-<div class="tableDom" style="position: absolute;left: 10px;top: 80px;right: 15px;bottom: 35px;">
+<div class="tableDom" style="position: absolute;left: 10px;top: 110px;right: 15px;bottom: 35px;">
     <table>
         <thead>
         <tr>
@@ -209,21 +212,23 @@
             <th style="width: 40px;">序号</th>
             <th style="width: 60px;">在线</th>
             <th style="width: 200px;">账号</th>
-            <th style="width: 80px;">创建区服</th>
-            <th style="width: 80px;">当前区服</th>
             <th style="width: 140px;">角色ID</th>
             <th style="width: 120px;">角色名字</th>
             <th style="width: 140px;">创建时间</th>
+            <th style="width: 80px;">创建区服</th>
+            <th style="width: 80px;">当前区服</th>
             <th style="width: 100px;">充值金额</th>
             <th style="width: 80px;">充值笔数</th>
             <th style="width: 140px;">首次充值时间</th>
             <th style="width: 140px;">最后充值时间</th>
-            <th style="width: 140px;">最后登录时间</th>
-            <th style="width: 140px;">最后登录区服</th>
-            <th style="width: 140px;">最后退出时间</th>
             <th style="width: 40px;">性别</th>
             <th style="width: 70px;">职业</th>
             <th style="width: 40px;">等级</th>
+            <th style="width: 140px;">最后登录区服</th>
+            <th style="width: 140px;">最后登录时间</th>
+            <th style="width: 140px;">最后登出时间</th>
+            <th style="width: 140px;">累计在线时长</th>
+            <th style="width: 140px;">最后在线时长</th>
             <th style="width: 180px;">记录</th>
         </tr>
         </thead>

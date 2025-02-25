@@ -1,0 +1,80 @@
+package wxdgaming.backends.mudole.slog.api;
+
+import com.alibaba.fastjson.JSONObject;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import lombok.extern.slf4j.Slf4j;
+import wxdgaming.backends.admin.game.GameContext;
+import wxdgaming.backends.admin.game.GameService;
+import wxdgaming.backends.entity.games.logs.OnlineTimeRecord;
+import wxdgaming.boot2.core.ann.Param;
+import wxdgaming.boot2.core.chatset.StringUtils;
+import wxdgaming.boot2.core.format.TimeFormat;
+import wxdgaming.boot2.core.lang.RunResult;
+import wxdgaming.boot2.core.timer.MyClock;
+import wxdgaming.boot2.core.util.NumberUtil;
+import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
+import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
+import wxdgaming.boot2.starter.net.ann.HttpRequest;
+import wxdgaming.boot2.starter.net.ann.RequestMapping;
+import wxdgaming.boot2.starter.net.server.http.HttpContext;
+
+import java.util.List;
+
+/**
+ * 在线时长接口
+ *
+ * @author: wxd-gaming(無心道, 15388152619)
+ * @version: 2025-02-24 20:48
+ **/
+@Slf4j
+@Singleton
+@RequestMapping(path = "online")
+public class OnlineTimeApi {
+
+    private final GameService gameService;
+
+    @Inject
+    public OnlineTimeApi(GameService gameService) {
+        this.gameService = gameService;
+    }
+
+    @HttpRequest()
+    public RunResult list(HttpContext httpSession,
+                          @Param(path = "gameId") int gameId,
+                          @Param(path = "pageIndex") int pageIndex,
+                          @Param(path = "pageSize") int pageSize,
+                          @Param(path = "account", required = false) String account,
+                          @Param(path = "roleId", required = false) String roleId,
+                          @Param(path = "roleName", required = false) String roleName) {
+        GameContext gameContext = gameService.gameContext(gameId);
+        PgsqlDataHelper dataHelper = gameContext.getDataHelper();
+        SqlQueryBuilder sqlQueryBuilder = dataHelper.queryBuilder();
+
+        sqlQueryBuilder.sqlByEntity(OnlineTimeRecord.class);
+
+        sqlQueryBuilder.pushWhereByValueNotNull("account", account);
+        if (StringUtils.isNotBlank(roleId)) {
+            sqlQueryBuilder.pushWhereByValueNotNull("roleId", NumberUtil.parseLong(roleId, 0L));
+        }
+        sqlQueryBuilder.pushWhereByValueNotNull("roleName", roleName);
+
+        sqlQueryBuilder.setOrderBy("createtime desc");
+
+        long count = sqlQueryBuilder.findCount();
+        List<OnlineTimeRecord> list2Entity = sqlQueryBuilder.findList2Entity(OnlineTimeRecord.class);
+        List<JSONObject> list = list2Entity.stream()
+                .map(onlineTimeRecord -> {
+                    JSONObject jsonObject = onlineTimeRecord.toJSONObject();
+                    jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", onlineTimeRecord.getCreateTime()));
+                    jsonObject.put("joinTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", onlineTimeRecord.getJoinTime()));
+                    jsonObject.put("exitTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", onlineTimeRecord.getExitTime()));
+                    jsonObject.put("onlineTime", new TimeFormat().addTime(onlineTimeRecord.getOnlineTime() * 100).toString(TimeFormat.FormatInfo.All));
+                    jsonObject.put("totalOnlineTime", new TimeFormat().addTime(onlineTimeRecord.getTotalOnlineTime() * 100).toString(TimeFormat.FormatInfo.All));
+                    return jsonObject;
+                })
+                .toList();
+        return RunResult.ok().data(list).fluentPut("rowCount", count);
+    }
+
+}

@@ -14,7 +14,7 @@ import wxdgaming.backends.mudole.slog.SLogService;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
-import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
+import wxdgaming.boot2.core.format.TimeFormat;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.Event;
 import wxdgaming.boot2.core.threading.ExecutorUtil;
@@ -161,16 +161,18 @@ public class RoleApi {
 
         List<JSONObject> list = accountRecords.stream()
                 .map(roleRecord -> {
-                    JSONObject jsonObject = roleRecord.toJSONObject();
-                    jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("createTime")));
-                    jsonObject.put("rechargeFirstTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("rechargeFirstTime")));
-                    jsonObject.put("rechargeLastTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("rechargeLastTime")));
-                    jsonObject.put("lastJoinTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("lastJoinTime")));
-                    jsonObject.put("lastExitTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("lastExitTime")));
                     RoleRecord roleRecordCache = gameContext.getRoleRecordJdbcCache().find(roleRecord.getUid());
                     if (roleRecordCache != null) {
-                        jsonObject.put("online", roleRecordCache.isOnline());
+                        roleRecord = roleRecordCache;
                     }
+                    JSONObject jsonObject = roleRecord.toJSONObject();
+                    jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", roleRecord.getCreateTime()));
+                    jsonObject.put("rechargeFirstTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", roleRecord.getRechargeFirstTime()));
+                    jsonObject.put("rechargeLastTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", roleRecord.getRechargeLastTime()));
+                    jsonObject.put("lastJoinTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", roleRecord.getLastJoinTime()));
+                    jsonObject.put("lastExitTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", roleRecord.getLastExitTime()));
+                    jsonObject.put("totalOnlineTime", new TimeFormat().addTime(jsonObject.getLong("totalOnlineTime") * 100).toString(TimeFormat.FormatInfo.All));
+                    jsonObject.put("lastOnlineTime", new TimeFormat().addTime(jsonObject.getLong("lastOnlineTime") * 100).toString(TimeFormat.FormatInfo.All));
                     jsonObject.put("data", jsonObject.getString("data"));
                     return jsonObject;
                 })

@@ -49,20 +49,10 @@ public class AccountRecord extends RecordBase {
     @DbColumn(index = true)
     private long rechargeLastTime = 0;
 
-    @JSONField(ordinal = 40)
+    /** 累计在线时长 */
+    @JSONField(ordinal = 44)
     @DbColumn(index = true)
-    private int lastJoinSid;
-    /** 最后登录时间 */
-    @JSONField(ordinal = 41)
-    @DbColumn(index = true)
-    private long lastJoinTime;
-    /** 最后退出时间 */
-    @JSONField(ordinal = 42)
-    @DbColumn(index = true)
-    private long lastExitTime;
-    @JSONField(ordinal = 43)
-    @DbColumn(index = true)
-    private boolean online;
+    private long totalOnlineTime;
 
     @JSONField(ordinal = 99)
     @DbColumn(columnType = ColumnType.Json)

@@ -107,6 +107,13 @@ public class GameContext {
 
     }
 
+    public void shutdown() {
+        this.logKeyCache.shutdown();
+        this.accountRecordJdbcCache.shutdown();
+        this.roleRecordJdbcCache.shutdown();
+        this.dataHelper.shutdown();
+    }
+
     public long newId(String logType) {
         return logTypeHexIdMap.computeIfAbsent(logType, k -> new HexId(gameId)).newId();
     }

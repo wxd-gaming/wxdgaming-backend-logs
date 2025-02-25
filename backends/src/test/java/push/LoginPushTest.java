@@ -4,8 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
-import wxdgaming.backends.entity.games.logs.SLog2Login;
-import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.collection.MapOf;
 import wxdgaming.boot2.core.lang.DiffTime;
 import wxdgaming.boot2.core.lang.RunResult;
@@ -47,7 +45,7 @@ public class LoginPushTest extends RoleApiTest {
         LocalDateTime localDateTime = MyClock.localDateTime(createTime);
 
         DiffTime diffTime = new DiffTime();
-        List<SLog2Login> sLogs = new ArrayList<>();
+        List<JSONObject> sLogs = new ArrayList<>();
         for (int i = 0; i < days; i++) {
             LocalDateTime plusDays = localDateTime.plusDays(i);
             long milli = MyClock.time2Milli(plusDays);
@@ -55,27 +53,9 @@ public class LoginPushTest extends RoleApiTest {
             int random = 130 - i;
             boolean randomBoolean = RandomUtils.randomBoolean(random, 500);
             if (!randomBoolean) continue;
-            SLog2Login sLog = new SLog2Login();
-            sLog.setLogType("log_login");
-            sLog.setUid(hexId.newId());
-            sLog.setCreateTime(milli);
-            sLog.setAccount(accountRecord.getAccount());
-            sLog.setRoleId(accountRecord.getUid());
-            sLog.setRoleName(StringUtils.randomString(8));
-            sLog.setMainId(1);
-            sLog.setSId(1);
-            sLog.setLv(RandomUtils.random(1, 100));
-            sLog.getData()
-                    .fluentPut("a", "b")
-                    .fluentPut("login_type", RandomUtils.random(1, 100))
-                    .fluentPut("login_ip", "127.0.0.1")
-                    .fluentPut("login_time", System.currentTimeMillis())
-                    .fluentPut("login_platform", "android")
-                    .fluentPut("login_channel", "google")
-                    .fluentPut("login_version", "1.0.0")
-            ;
-            sLogs.add(sLog);
 
+            JSONObject jsonObject = buildLoginLog(logToken, 1146861275593744L, "120-140-dcbdbcdb", "LOGIN");
+            sLogs.add(jsonObject);
         }
         if (!sLogs.isEmpty()) {
             JSONObject push = new JSONObject()
@@ -92,33 +72,30 @@ public class LoginPushTest extends RoleApiTest {
     }
 
     @Test
-    public void randomPushLogout() {
+    public void randomPushLogin() {
         String logToken = findLogToken();
         HashMap<Integer, List<AccountRecord>> accountRecordMap = readAccount();
         List<AccountRecord> list = accountRecordMap.values().stream().flatMap(v -> v.stream()).toList();
         AccountRecord accountRecord = RandomUtils.randomItem(list);
         /*模拟数据 账号的uid就是角色的uid*/
-        pushLogout(accountRecord.getUid(), accountRecord.getAccount());
+        pushLogout(logToken, accountRecord.getUid(), accountRecord.getAccount(), "LOGIN");
+    }
 
+    @Test
+    public void pushLogin() {
+        String logToken = findLogToken();
+        pushLogout(logToken, 1147007208006253L, "120-52-bbdabacc", "LOGIN");
     }
 
     @Test
     public void pushLogout() {
-        pushLogout(1146861275593744L, "120-140-dcbdbcdb");
+        String logToken = findLogToken();
+        pushLogout(logToken, 1147007208006253L, "120-52-bbdabacc", "LOGOUT");
     }
 
-    public void pushLogout(long roleId, String account) {
-        String logToken = findLogToken();
-        JSONObject jsonObject = MapOf.newJSONObject();
-        jsonObject.put("gameId", gameId);
-        jsonObject.put("token", logToken);
-        jsonObject.put(
-                "data",
-                MapOf.newJSONObject()
-                        .fluentPut("account", account)
-                        .fluentPut("roleId", roleId)
-        );
-        CompletableFuture<Response<PostText>> post = post("/log/push4Logout", jsonObject.toJSONString());
+    public void pushLogout(String logToken, long roleId, String account, String logType) {
+        JSONObject jsonObject = buildLoginLog(logToken, roleId, account, logType);
+        CompletableFuture<Response<PostText>> post = post("/log/push4Login", jsonObject.toJSONString());
         Response<PostText> join = post.join();
         RunResult runResult = join.bodyRunResult();
         if (join.responseCode() != 200 || runResult.code() != 1) {
@@ -126,19 +103,15 @@ public class LoginPushTest extends RoleApiTest {
         }
     }
 
-    @Test
-    public void pushLogin() {
-        pushLogout(1146861275593744L, "120-140-dcbdbcdb");
-    }
+    public JSONObject buildLoginLog(String logToken, long roleId, String account, String logEnum) {
 
-    public void pushLogin(long roleId, String account) {
-        String logToken = findLogToken();
         JSONObject jsonObject = MapOf.newJSONObject();
         jsonObject.put("gameId", gameId);
         jsonObject.put("token", logToken);
         jsonObject.put(
                 "data",
                 MapOf.newJSONObject()
+                        .fluentPut("logEnum", logEnum)
                         .fluentPut("uid", hexId.newId())/*指定一个唯一id，这样可以避免因为网络重复提交导致出现重复数据*/
                         .fluentPut("mainId", 1)
                         .fluentPut("sId", 10)
@@ -149,12 +122,7 @@ public class LoginPushTest extends RoleApiTest {
                         .fluentPut("lv", RandomUtils.random(1, 300))
                         .fluentPut("data", MapOf.newJSONObject().fluentPut("os", "ios"))
         );
-        CompletableFuture<Response<PostText>> post = post("/log/push4Login", jsonObject.toJSONString());
-        Response<PostText> join = post.join();
-        RunResult runResult = join.bodyRunResult();
-        if (join.responseCode() != 200 || runResult.code() != 1) {
-            System.out.println(join.bodyString());
-        }
+        return jsonObject;
     }
 
 }

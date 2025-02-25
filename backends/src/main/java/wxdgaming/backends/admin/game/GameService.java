@@ -12,6 +12,7 @@ import wxdgaming.backends.entity.system.Game;
 import wxdgaming.boot2.core.ann.Start;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.reflect.ReflectContext;
+import wxdgaming.boot2.core.shutdown;
 import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.batis.TableMapping;
@@ -54,6 +55,11 @@ public class GameService {
     @Start
     public void start() throws Exception {
         scheduled();
+    }
+
+    @shutdown
+    public void shutdown() {
+        gameContextHashMap.forEach((k, v) -> v.shutdown());
     }
 
     /** 每日凌晨检查数据库，检查表分区信息 */
