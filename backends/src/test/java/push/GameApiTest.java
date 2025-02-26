@@ -14,6 +14,7 @@ import wxdgaming.boot2.core.format.HexId;
 import wxdgaming.boot2.core.io.FileReadUtil;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.ExecutorConfig;
+import wxdgaming.boot2.core.threading.ExecutorServices;
 import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.core.util.RandomUtils;
@@ -40,16 +41,20 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class GameApiTest {
 
-    // protected String postHost = "http://211.149.228.9:19000";
-    protected String postHost = "http://127.0.0.1:19000";
+    protected String postHost = "http://211.149.228.9:19000";
+    // protected String postHost = "http://127.0.0.1:19000";
 
     protected int days = 120;
     protected int gameId = 2;
     protected HexId hexId = new HexId(gameId);
 
     protected AtomicBoolean logined = new AtomicBoolean();
+    protected static ExecutorServices executorServices;
+
 
     static {
+        executorServices = ExecutorUtil.getInstance().newExecutorServices("push", 4, 4);
+        executorServices.setQueueCheckSize(15000);
         ExecutorUtil.getInstance().init(ExecutorConfig.INSTANCE);
     }
 

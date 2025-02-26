@@ -6,9 +6,7 @@ import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
-import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.ServerRecord;
-import wxdgaming.boot2.core.ann.Body;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
@@ -69,8 +67,8 @@ public class ServerApi {
                 serverRecord.setOnlineRoleCount(record.getOnlineRoleCount());
                 serverRecord.setActiveRoleCount(record.getActiveRoleCount());
                 serverRecord.setRechargeCount(record.getRechargeCount());
-                serverRecord.getData().clear();
-                serverRecord.getData().putAll(record.getData());
+                serverRecord.getOther().clear();
+                serverRecord.getOther().putAll(record.getOther());
                 serverRecord.setUpdateTime(System.currentTimeMillis());
                 gameContext.getDataHelper().getDataBatch().update(record);
             }

@@ -60,7 +60,8 @@ public class AccountApi {
     }
 
     @HttpRequest(authority = 2)
-    public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<AccountRecord> recordList) {
+    public RunResult pushList(@ThreadParam GameContext gameContext,
+                              @Param(path = "data") List<AccountRecord> recordList) {
         ExecutorUtil.getInstance().getLogicExecutor().execute(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
                 for (AccountRecord record : recordList) {
@@ -128,7 +129,7 @@ public class AccountApi {
                     jsonObject.put("rechargeFirstTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", accountRecord.getRechargeFirstTime()));
                     jsonObject.put("rechargeLastTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", accountRecord.getRechargeLastTime()));
                     jsonObject.put("totalOnlineTime", new TimeFormat().addTime(jsonObject.getLong("totalOnlineTime") * 100).toString(TimeFormat.FormatInfo.All));
-                    jsonObject.put("data", jsonObject.getString("data"));
+                    jsonObject.put("other", jsonObject.getString("other"));
                     return jsonObject;
                 })
                 .toList();

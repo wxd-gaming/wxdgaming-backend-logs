@@ -54,7 +54,8 @@ public class SLogApi {
         } else {
             if (sLog.getUid() == 0)
                 sLog.setUid(gameContext.newId(sLog.getLogType()));
-            String logKey = sLog.getLogType() + sLog.getUid();
+
+            String logKey = sLog.tableName() + sLog.getUid();
             boolean haveLogKey = gameContext.getLogKeyCache().containsKey(logKey);
             if (haveLogKey) {
                 gameContext.recordError("表结构 " + sLog.getLogType() + " 重复日志记录 " + sLog.getUid(), sLog.toJsonString());
@@ -130,7 +131,7 @@ public class SLogApi {
                 .map(SLog::toJSONObject)
                 .peek(jsonObject -> {
                     jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("createTime")));
-                    jsonObject.put("data", jsonObject.getString("data"));
+                    jsonObject.put("other", jsonObject.getString("other"));
                 })
                 .toList();
         return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", rowCount);

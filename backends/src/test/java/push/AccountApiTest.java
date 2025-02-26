@@ -46,7 +46,7 @@ public class AccountApiTest extends GameApiTest {
                 record.setCreateTime(time2Milli);
                 record.setAccount(i + "-" + j + "-" + randomAccount());
                 record.checkDataKey();
-                record.getData().fluentPut("channel", "huawei").fluentPut("os", "huawei");
+                record.getOther().fluentPut("channel", "huawei").fluentPut("os", "huawei");
                 list.add(record);
             }
         }

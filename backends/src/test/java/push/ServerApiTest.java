@@ -55,7 +55,7 @@ public class ServerApiTest extends GameApiTest {
             record.setActiveRoleCount(RandomUtils.random(1, 1000));
             record.setRechargeCount(RandomUtils.random(1, 1000));
             record.setUpdateTime(System.currentTimeMillis());
-            record.getData().fluentPut("version", "v1.0.1");
+            record.getOther().fluentPut("version", "v1.0.1");
 
             JSONObject push = new JSONObject()
                     .fluentPut("gameId", gameId)

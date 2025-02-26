@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * 充值日志测试
@@ -29,15 +30,20 @@ public class RechargeApiTest extends AccountApiTest {
     @Test
     public void pushRechargeList() throws Exception {
         String logToken = findLogToken();
-        HashMap<Integer, List<AccountRecord>> hashMap = readAccount();
-        for (List<AccountRecord> recordList : hashMap.values()) {
-            for (AccountRecord accountRecord : recordList) {
-                test(logToken, accountRecord);
-            }
+        HashMap<Integer, List<AccountRecord>> accountRecordMap = readAccount();
+        CountDownLatch countDownLatch = new CountDownLatch(accountRecordMap.size());
+        for (List<AccountRecord> recordList : accountRecordMap.values()) {
+            executorServices.execute(() -> {
+                for (AccountRecord accountRecord : recordList) {
+                    test(logToken, accountRecord);
+                }
+                countDownLatch.countDown();
+            });
         }
+        countDownLatch.await();
     }
 
-    public void test(String logToken, AccountRecord accountRecord) throws Exception {
+    public void test(String logToken, AccountRecord accountRecord) {
 
         long createTime = accountRecord.getCreateTime();
         LocalDateTime localDateTime = MyClock.localDateTime(createTime);
@@ -64,8 +70,8 @@ public class RechargeApiTest extends AccountApiTest {
             record.setAmount(RandomUtils.random(6, 128) * 100);
             record.setSpOrder(StringUtils.randomString(32));
             record.setCpOrder(StringUtils.randomString(32));
-            record.getData().fluentPut("充值ID", "1");
-            record.getData().fluentPut("充值商品", "首充武器");
+            record.getOther().fluentPut("充值ID", "1");
+            record.getOther().fluentPut("充值商品", "首充武器");
             sLogs.add(record);
 
         }
@@ -79,9 +85,9 @@ public class RechargeApiTest extends AccountApiTest {
             if (join.responseCode() != 200 || runResult.code() != 1) {
                 System.out.println(join.bodyString());
             }
-        }
 
-        System.out.println(sLogs.size() + ", 耗时：" + diffTime.diff() + " ms");
+            System.out.println(sLogs.size() + ", 耗时：" + diffTime.diff() + " ms");
+        }
     }
 
 

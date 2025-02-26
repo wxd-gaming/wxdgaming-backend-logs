@@ -24,10 +24,7 @@ public class SLog extends RecordBase implements EntityName {
     private String logType;
     @JSONField(ordinal = 20)
     @DbColumn(index = true)
-    private int sId;
-    @JSONField(ordinal = 21)
-    @DbColumn(index = true)
-    private int mainId;
+    private int sid;
     @JSONField(ordinal = 22)
     @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String account;
@@ -42,7 +39,7 @@ public class SLog extends RecordBase implements EntityName {
     private int lv;
     @JSONField(ordinal = 99)
     @DbColumn(columnType = ColumnType.Json)
-    private final JSONObject data = MapOf.newJSONObject();
+    private final JSONObject other = MapOf.newJSONObject();
 
 
     @JSONField(serialize = false)

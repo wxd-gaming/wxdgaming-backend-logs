@@ -2,6 +2,8 @@ package wxdgaming.backends.entity.games.logs;
 
 import lombok.Getter;
 import lombok.Setter;
+import wxdgaming.boot2.starter.batis.ColumnType;
+import wxdgaming.boot2.starter.batis.ann.DbColumn;
 import wxdgaming.boot2.starter.batis.ann.DbTable;
 
 /**
@@ -23,6 +25,7 @@ public class SLog2Login extends SLog {
     }
 
     /** 登录或者登出 */
+    @DbColumn(index = true, columnType = ColumnType.String, length = 64)
     private LogEnum logEnum;
 
     @Override public String tableName() {

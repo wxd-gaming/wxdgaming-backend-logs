@@ -10,11 +10,10 @@ import wxdgaming.backends.entity.games.ErrorRecord;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.timer.MyClock;
-import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
-import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.ann.RequestMapping;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -42,21 +41,32 @@ public class ErrorApi {
             @Param(path = "pageSize") int pageSize
     ) {
         GameContext gameContext = gameService.gameContext(gameId);
-        PgsqlDataHelper dataHelper = gameContext.getDataHelper();
-        SqlQueryBuilder sqlQueryBuilder = dataHelper.queryBuilder();
-        sqlQueryBuilder.sqlByEntity(ErrorRecord.class).setOrderBy("createtime desc");
-        sqlQueryBuilder.limit((pageIndex - 1) * pageSize, pageSize, 10, 1000);
 
-        long count = sqlQueryBuilder.findCount();
-        List<ErrorRecord> list2Entity = sqlQueryBuilder.findList2Entity(ErrorRecord.class);
-        List<JSONObject> list = list2Entity.stream()
-                .map(errorRecord -> {
-                    JSONObject jsonObject = errorRecord.toJSONObject();
-                    jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", errorRecord.getCreateTime()));
-                    return jsonObject;
-                })
-                .toList();
-        return RunResult.ok().data(list).fluentPut("rowCount", count);
+        gameContext.getErrorReentrantLock().lock();
+
+        if (pageIndex < 1) pageIndex = 1;
+        if (pageSize < 10) pageSize = 10;
+        if (pageSize > 1000) pageSize = 1000;
+
+        try {
+            LinkedList<ErrorRecord> errorRecordList = gameContext.getErrorRecordList();
+            int skip = (pageIndex - 1) * pageSize;
+            if (skip > errorRecordList.size()) {
+                skip = errorRecordList.size() - pageSize;
+            }
+            List<JSONObject> list = errorRecordList.stream()
+                    .skip(skip)
+                    .map(errorRecord -> {
+                        JSONObject jsonObject = errorRecord.toJSONObject();
+                        jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", errorRecord.getCreateTime()));
+                        return jsonObject;
+                    })
+                    .limit(pageSize)
+                    .toList();
+            return RunResult.ok().data(list).fluentPut("rowCount", errorRecordList.size());
+        } finally {
+            gameContext.getErrorReentrantLock().unlock();
+        }
     }
 
 }

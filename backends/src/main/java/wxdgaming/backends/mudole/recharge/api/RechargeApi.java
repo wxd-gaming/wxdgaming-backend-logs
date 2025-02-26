@@ -137,7 +137,7 @@ public class RechargeApi {
                 .map(RechargeRecord::toJSONObject)
                 .peek(jsonObject -> {
                     jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("createTime")));
-                    jsonObject.put("data", jsonObject.getString("data"));
+                    jsonObject.put("other", jsonObject.getString("other"));
                 })
                 .toList();
         return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", rowCount);

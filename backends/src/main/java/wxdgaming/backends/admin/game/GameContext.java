@@ -1,6 +1,7 @@
 package wxdgaming.backends.admin.game;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.entity.games.ErrorRecord;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
@@ -13,10 +14,12 @@ import wxdgaming.boot2.core.threading.ThreadContext;
 import wxdgaming.boot2.starter.batis.sql.JdbcCache;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 游戏上下文
@@ -24,6 +27,7 @@ import java.util.concurrent.TimeUnit;
  * @author: wxd-gaming(無心道, 15388152619)
  * @version: 2025-02-22 21:33
  **/
+@Slf4j
 @Getter
 public class GameContext {
 
@@ -43,6 +47,8 @@ public class GameContext {
     private final JdbcCache<AccountRecord, String> accountRecordJdbcCache;
     private final JdbcCache<RoleRecord, Long> roleRecordJdbcCache;
     private final Map<Integer, ServerRecord> serverRecordMap = new ConcurrentHashMap<>();
+    private final ReentrantLock errorReentrantLock = new ReentrantLock();
+    private final LinkedList<ErrorRecord> errorRecordList = new LinkedList<>();
 
     public GameContext(Game game, PgsqlDataHelper dataHelper) {
         this.game = game;
@@ -73,7 +79,8 @@ public class GameContext {
             }
 
             @Override protected boolean removed(String s, AccountRecord accountRecord) {
-                return super.removed(s, accountRecord);
+                dataHelper.getDataBatch().save(accountRecord);
+                return true;
             }
 
             @Override public void put(String key, AccountRecord value) {
@@ -98,6 +105,10 @@ public class GameContext {
                 getCache().put(key, value);
             }
 
+            @Override protected boolean removed(Long aLong, RoleRecord roleRecord) {
+                dataHelper.getDataBatch().save(roleRecord);
+                return true;
+            }
         };
 
         List<ServerRecord> list = dataHelper.findList(ServerRecord.class);
@@ -140,7 +151,15 @@ public class GameContext {
         errorRecord.setPath(ThreadContext.context().getString("http-path"));
         errorRecord.setData(data);
         errorRecord.setErrorMessage(errorMessage);
-        getDataHelper().getDataBatch().insert(errorRecord);
+        errorReentrantLock.lock();
+        try {
+            errorRecordList.addFirst(errorRecord);
+            if (errorRecordList.size() > 200)
+                errorRecordList.removeLast();
+        } finally {
+            errorReentrantLock.unlock();
+        }
+        log.error("记录错误信息 {}", errorRecord);
     }
 
 }

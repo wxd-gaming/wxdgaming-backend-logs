@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * 角色api操作
@@ -29,12 +30,17 @@ public class RoleApiTest extends AccountApiTest {
     public void pushRoleList() throws Exception {
         String logToken = findLogToken();
         HashMap<Integer, List<AccountRecord>> accountRecordMap = readAccount();
+        CountDownLatch countDownLatch = new CountDownLatch(accountRecordMap.size());
         for (List<AccountRecord> recordList : accountRecordMap.values()) {
-            pushRoleList(logToken, recordList);
+            executorServices.execute(() -> {
+                pushRoleList(logToken, recordList);
+                countDownLatch.countDown();
+            });
         }
+        countDownLatch.await();
     }
 
-    public void pushRoleList(String logToken, List<AccountRecord> recordList) throws Exception {
+    public void pushRoleList(String logToken, List<AccountRecord> recordList) {
 
         List<RoleRecord> roleRecordList = new ArrayList<>();
         for (AccountRecord accountRecord : recordList) {
@@ -48,7 +54,7 @@ public class RoleApiTest extends AccountApiTest {
             record.setJob("魔剑士");
             record.setSex("男");
             record.setLv(RandomUtils.random(1, 100));
-            record.getData().fluentPut("channel", "huawei");
+            record.getOther().fluentPut("channel", "huawei");
 
             roleRecordList.add(record);
 

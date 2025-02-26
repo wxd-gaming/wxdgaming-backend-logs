@@ -16,7 +16,6 @@ import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.Event;
 import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.timer.MyClock;
-import wxdgaming.boot2.starter.batis.TableMapping;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.ann.RequestMapping;
 
@@ -30,7 +29,7 @@ import java.util.List;
  **/
 @Slf4j
 @Singleton
-@RequestMapping(path = "log")
+@RequestMapping(path = "log/login")
 public class SLogLogInOutApi {
 
     final GameService gameService;
@@ -43,11 +42,11 @@ public class SLogLogInOutApi {
     }
 
     @HttpRequest(authority = 2)
-    public RunResult pushList4Login(@ThreadParam GameContext gameContext, @Param(path = "data") List<SLog2Login> recordList) {
+    public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<SLog2Login> recordList) {
         ExecutorUtil.getInstance().getLogicExecutor().execute(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
                 for (SLog2Login record : recordList) {
-                    push4Login(gameContext, record);
+                    push(gameContext, record);
                 }
             }
         });
@@ -56,16 +55,17 @@ public class SLogLogInOutApi {
 
     /** 登录日志的批量提交 */
     @HttpRequest(authority = 2)
-    public RunResult push4Login(@ThreadParam GameContext gameContext, @Param(path = "data") SLog2Login record) {
+    public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") SLog2Login record) {
+        record.setLogType(record.tableName());
         if (record.getUid() == 0)
-            record.setUid(gameContext.newId(TableMapping.tableName(SLog2Login.class)));
-        String logKey = record.getLogType() + record.getUid();
+            record.setUid(gameContext.newId(record.tableName()));
+
+        String logKey = record.tableName() + record.getUid();
         boolean haveLogKey = gameContext.getLogKeyCache().containsKey(logKey);
         if (haveLogKey) {
-            gameContext.recordError("表结构 " + record.getLogType() + " 重复日志记录 " + record.getUid(), record.toJsonString());
+            gameContext.recordError("表结构 " + record.tableName() + " 重复日志记录 " + record.getUid(), record.toJsonString());
         } else {
 
-            record.checkDataKey();
 
             SLog2Login.LogEnum logEnum = record.getLogEnum();
             if (logEnum == null) {
@@ -83,13 +83,13 @@ public class SLogLogInOutApi {
                 gameContext.recordError("登录记录 找不到角色 " + record.getRoleId(), record.toJsonString());
                 return RunResult.ok();
             }
-
+            record.checkDataKey();
             gameContext.getLogKeyCache().put(logKey, true);
-            gameContext.getDataHelper().getDataBatch().insert(record);
+            gameContext.getDataHelper().dataBatch().insert(record);
 
             if (logEnum == SLog2Login.LogEnum.LOGIN && !roleRecord.isOnline()) {
                 roleRecord.setLastJoinTime(record.getCreateTime());
-                roleRecord.setLastJoinSid(record.getSId());
+                roleRecord.setLastJoinSid(record.getSid());
                 roleRecord.setOnline(true);
             } else if (logEnum == SLog2Login.LogEnum.LOGOUT && roleRecord.isOnline()) {
                 roleRecord.setLastExitTime(record.getCreateTime());
@@ -101,7 +101,7 @@ public class SLogLogInOutApi {
                 onlineTimeRecord.setRoleId(record.getRoleId());
                 onlineTimeRecord.setRoleName(record.getRoleName());
                 onlineTimeRecord.setLv(record.getLv());
-                onlineTimeRecord.setSid(record.getSId());
+                onlineTimeRecord.setSid(record.getSid());
                 onlineTimeRecord.setJoinTime(roleRecord.getLastJoinTime());/*记录的上次进入游戏的时间*/
                 onlineTimeRecord.setExitTime(record.getCreateTime());/*退出日志创建时间*/
                 long onlineTime = roleRecord.getLastExitTime() - roleRecord.getLastJoinTime();

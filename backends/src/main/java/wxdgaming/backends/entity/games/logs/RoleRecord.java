@@ -97,5 +97,5 @@ public class RoleRecord extends RecordBase {
 
     @JSONField(ordinal = 99)
     @DbColumn(columnType = ColumnType.Json)
-    private final JSONObject data = MapOf.newJSONObject();
+    private final JSONObject other = MapOf.newJSONObject();
 }

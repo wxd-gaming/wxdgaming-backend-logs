@@ -140,9 +140,6 @@
         function createRow(index, row) {
             let tr = `
     <tr>
-        <td style="width: 70px;">
-            <a href="#" onclick="ban('/gm/001/002/003/banLogin', '${row.uid}');return false;" title="删除">删除</a>
-        </td>
         <td tips="true" style="width: 70px;">${index}</td>
         <td tips="true" style="width: 140px;">${row.createTime}</td>
         <td tips="true" style="width: 200px;">${row.account}</td>
@@ -150,7 +147,7 @@
         <td tips="true" style="width: 120px;">${row.roleName}</td>
         <td tips="true" style="width: 40px;">${row.sId}</td>
         <td tips="true" style="width: 40px;">${row.mainId}</td>
-        <td tips="true" style="">${row.data}</td>
+        <td tips="true" style="">${row.other}</td>
     </tr>
 `;
             return tr;
@@ -183,7 +180,6 @@
     <table>
         <thead>
         <tr>
-            <th style="width: 70px;">操作</th>
             <th style="width: 70px;">序号</th>
             <th style="width: 140px;">日志时间</th>
             <th style="width: 200px;">账号</th>

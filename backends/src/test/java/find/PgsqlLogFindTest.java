@@ -52,7 +52,7 @@ public class PgsqlLogFindTest {
         long nanoTime = System.nanoTime();
         List<SLog> pgsqlLogTests = dataHelper.findListBySql(
                 SLog.class,
-                "select * from log_item where roleid = ? and json_extract_path_text(data,'itemId') = ?",
+                "select * from log_item where roleid = ? and json_extract_path_text(other,'itemId') = ?",
                 String.valueOf(RandomUtils.random(1, 1000)),
                 String.valueOf(RandomUtils.random(1, 100))
         );

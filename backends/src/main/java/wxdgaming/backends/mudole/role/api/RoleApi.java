@@ -71,8 +71,8 @@ public class RoleApi {
                 entity.setJob(record.getJob());
                 entity.setSex(record.getSex());
                 entity.setLv(record.getLv());
-                entity.getData().clear();
-                entity.getData().putAll(record.getData());
+                entity.getOther().clear();
+                entity.getOther().putAll(record.getOther());
             }
             if (!accountRecord.getRoleList().contains(record.getUid())) {
                 accountRecord.getRoleList().add(record.getUid());
@@ -173,7 +173,7 @@ public class RoleApi {
                     jsonObject.put("lastExitTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", roleRecord.getLastExitTime()));
                     jsonObject.put("totalOnlineTime", new TimeFormat().addTime(jsonObject.getLong("totalOnlineTime") * 100).toString(TimeFormat.FormatInfo.All));
                     jsonObject.put("lastOnlineTime", new TimeFormat().addTime(jsonObject.getLong("lastOnlineTime") * 100).toString(TimeFormat.FormatInfo.All));
-                    jsonObject.put("data", jsonObject.getString("data"));
+                    jsonObject.put("other", jsonObject.getString("other"));
                     return jsonObject;
                 })
                 .toList();
