@@ -38,7 +38,7 @@ public class ServerApiTest extends GameApiTest {
         List<CompletableFuture<Response<PostText>>> futures = new ArrayList<>();
         for (int i = 1; i <= count; i++) {
             ServerRecord record = new ServerRecord();
-            record.setSid(i);
+            record.setUid(i);
             record.setMainSid(0);
             record.setName("测试服");
             record.setShowName(StringUtils.randomString(4));

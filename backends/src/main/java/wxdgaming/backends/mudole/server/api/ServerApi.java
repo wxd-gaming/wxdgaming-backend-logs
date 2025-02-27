@@ -43,12 +43,12 @@ public class ServerApi {
 
     @HttpRequest(authority = 2)
     public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") ServerRecord record) {
-        if (record.getSid() == 0) {
+        if (record.getUid() == 0) {
             gameContext.recordError("sid为空", record.toJsonString());
         } else {
-            ServerRecord serverRecord = gameContext.getServerRecordMap().get(record.getSid());
+            ServerRecord serverRecord = gameContext.getServerRecordMap().get(record.getUid());
             if (serverRecord == null) {
-                gameContext.getServerRecordMap().put(record.getSid(), record);
+                gameContext.getServerRecordMap().put(record.getUid(), record);
                 gameContext.getDataHelper().getDataBatch().insert(record);
             } else {
                 serverRecord.setMainSid(record.getMainSid());
@@ -106,7 +106,7 @@ public class ServerApi {
         sqlQueryBuilder.sqlByEntity(ServerRecord.class);
 
         if (StringUtils.isNotBlank(sid)) {
-            sqlQueryBuilder.pushWhere("sid = ?", Integer.parseInt(sid));
+            sqlQueryBuilder.pushWhere("uid = ?", Integer.parseInt(sid));
         }
 
         if (StringUtils.isNotBlank(mainSid)) {

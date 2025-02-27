@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import wxdgaming.boot2.core.collection.MapOf;
 import wxdgaming.boot2.starter.batis.ColumnType;
-import wxdgaming.boot2.starter.batis.Entity;
+import wxdgaming.boot2.starter.batis.EntityIntegerUID;
 import wxdgaming.boot2.starter.batis.ann.DbColumn;
 import wxdgaming.boot2.starter.batis.ann.DbTable;
 
@@ -19,12 +19,8 @@ import wxdgaming.boot2.starter.batis.ann.DbTable;
 @Getter
 @Setter
 @DbTable(tableName = "record_server")
-public class ServerRecord extends Entity {
+public class ServerRecord extends EntityIntegerUID {
 
-
-    @DbColumn(key = true)
-    @JSONField(ordinal = 10)
-    private int sid = 0;
     /** 服务器id */
     @JSONField(ordinal = 12)
     @DbColumn(index = true)
@@ -104,4 +100,5 @@ public class ServerRecord extends Entity {
     @JSONField(ordinal = 99)
     @DbColumn(columnType = ColumnType.Json)
     private final JSONObject other = MapOf.newJSONObject();
+
 }

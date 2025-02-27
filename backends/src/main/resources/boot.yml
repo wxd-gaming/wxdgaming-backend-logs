@@ -53,8 +53,8 @@ db:
     idleTimeoutM: 10                                            #空闲超时单位分钟
     minPoolSize: 15                                             #最小连接数
     maxPoolSize: 100                                            #最大连接数
-    batchSubmitSize: 500                                        #批量提交数量
-    batchThreadSize: 1                                          #批量提交线程数
+    batchSubmitSize: 1500                                        #批量提交数量
+    batchThreadSize: 4                                          #批量提交线程数
 
 other:
   root: "wxdgaming"

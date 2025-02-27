@@ -113,7 +113,7 @@ public class GameContext {
 
         List<ServerRecord> list = dataHelper.findList(ServerRecord.class);
         for (ServerRecord serverRecord : list) {
-            serverRecordMap.put(serverRecord.getSid(), serverRecord);
+            serverRecordMap.put(serverRecord.getUid(), serverRecord);
         }
 
     }

@@ -41,8 +41,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class GameApiTest {
 
-    protected String postHost = "http://211.149.228.9:19000";
-    // protected String postHost = "http://127.0.0.1:19000";
+    // protected String postHost = "http://211.149.228.9:19000";
+    protected String postHost = "http://127.0.0.1:19000";
 
     protected int days = 120;
     protected int gameId = 2;
@@ -53,7 +53,7 @@ public class GameApiTest {
 
 
     static {
-        executorServices = ExecutorUtil.getInstance().newExecutorServices("push", 4, 4);
+        executorServices = ExecutorUtil.getInstance().newExecutorServices("push", 10, 10);
         executorServices.setQueueCheckSize(15000);
         ExecutorUtil.getInstance().init(ExecutorConfig.INSTANCE);
     }
