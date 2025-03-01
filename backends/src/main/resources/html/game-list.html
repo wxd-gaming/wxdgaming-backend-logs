@@ -74,6 +74,7 @@
                     nextPage(-999999999999999);
                 },
                 (errorMsg) => {
+                    wxd.loading_close();
                     wxd.message.alert("异常：" + errorMsg);
                 },
                 false

@@ -53,11 +53,11 @@ public class OnlineTimeApi {
 
         sqlQueryBuilder.sqlByEntity(OnlineTimeRecord.class);
 
-        sqlQueryBuilder.pushWhereByValueNotNull("account", account);
+        sqlQueryBuilder.pushWhereByValueNotNull("account=?", account);
         if (StringUtils.isNotBlank(roleId)) {
-            sqlQueryBuilder.pushWhereByValueNotNull("roleId", NumberUtil.parseLong(roleId, 0L));
+            sqlQueryBuilder.pushWhereByValueNotNull("roleid=?", NumberUtil.parseLong(roleId, 0L));
         }
-        sqlQueryBuilder.pushWhereByValueNotNull("roleName", roleName);
+        sqlQueryBuilder.pushWhereByValueNotNull("rolename=?", roleName);
 
         sqlQueryBuilder.setOrderBy("createtime desc");
 

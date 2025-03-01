@@ -123,14 +123,13 @@
     <tr>
         <td tips="true" style="width: 50px;">${index}</td>
         <td tips="true" style="width: 80px;">${row.uid}</td>
-        <td tips="true" style="width: 70px;">${row.loginAccountNum}</td>
         <td tips="true" style="width: 70px;">${row.registerAccountNum}</td>
-        <td tips="true" style="width: 70px;">${row.registerAccountRechargeNum}</td>
-        <td tips="true" style="width: 70px;">${row.fufeilv}</td>
+        <td tips="true" style="width: 70px;">${row.loginAccountNum}</td>
+        <td tips="true" style="width: 70px;" title="${row.registerAccountRechargeNum} / ${row.registerAccountNum}">${row.fufeilv}</td>
         <td tips="true" style="width: 70px;">${row.rechargeOrderNum}</td>
         <td tips="true" style="width: 170px;">${row.rechargeAmountNum}</td>
-        <td tips="true" style="width: 170px;" title="充值金额 / 今日登录账号数">${row.arpu}</td>
-        <td tips="true" style="width: 170px;" title="充值金额 / 今日充值账号数">${row.arppu}</td>
+        <td tips="true" style="width: 170px;" title="${row.rechargeAmountNum} / ${row.loginAccountNum}">${row.arpu}</td>
+        <td tips="true" style="width: 170px;" title="${row.rechargeAmountNum} / ${row.rechargeAccountNum}">${row.arppu}</td>
     </tr>
 `;
             return tr;
@@ -164,10 +163,9 @@
         <tr>
             <th style="width: 50px;">序号</th>
             <th style="width: 80px;">日期</th>
-            <th style="width: 70px;">登录</th>
             <th style="width: 70px;">注册</th>
-            <th style="width: 70px;" title="今日注册付费账号数">付费数</th>
-            <th style="width: 70px;" title="今日注册付费账号数/ 今日注册账号数">付费率</th>
+            <th style="width: 70px;">DAU</th>
+            <th style="width: 70px;" title="今日注册付费账号数 / 今日注册账号数">付费率</th>
             <th style="width: 70px;">订单数</th>
             <th style="width: 170px;">金额</th>
             <th style="width: 170px;" title="充值金额 / 今日登录账号数">ARPU</th>

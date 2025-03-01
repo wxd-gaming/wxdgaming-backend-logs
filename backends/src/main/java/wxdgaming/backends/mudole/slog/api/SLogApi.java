@@ -115,7 +115,7 @@ public class SLogApi {
             String[] split = dataJson.split(",");
             for (String s : split) {
                 String[] strings = s.split("=");
-                sqlQueryBuilder.pushWhere("json_extract_path_text(data,'" + strings[0] + "') = ?", strings[1]);
+                sqlQueryBuilder.pushWhere("json_extract_path_text(other,'" + strings[0] + "') = ?", strings[1]);
             }
         }
 

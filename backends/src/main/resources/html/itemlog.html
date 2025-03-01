@@ -52,6 +52,7 @@
                     );
                 },
                 (errorMsg) => {
+                    wxd.loading_close();
                     wxd.message.alert("异常：" + errorMsg);
                 },
                 false
@@ -81,6 +82,7 @@
                     showData();
                 },
                 (errorMsg) => {
+                    wxd.loading_close();
                     wxd.message.alert("异常：" + errorMsg);
                 },
                 false

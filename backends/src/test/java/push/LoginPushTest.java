@@ -90,13 +90,13 @@ public class LoginPushTest extends RoleApiTest {
     @Test
     public void pushLogin() {
         String logToken = findLogToken();
-        pushLogout(logToken, "120-152-abbbcdbb", 1147274963990770L, "LOGIN");
+        pushLogout(logToken, "120-96-bdbbbbcb", 1146861275593700L, "LOGIN");
     }
 
     @Test
     public void pushLogout() {
         String logToken = findLogToken();
-        pushLogout(logToken, "120-152-abbbcdbb", 1147274963990770L, "LOGOUT");
+        pushLogout(logToken, "120-96-bdbbbbcb", 1146861275593700L, "LOGOUT");
     }
 
     public void pushLogout(String logToken, String account, long roleId, String logType) {
