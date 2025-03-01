@@ -3,7 +3,6 @@ package push;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.collection.MapOf;
 import wxdgaming.boot2.core.lang.DiffTime;
@@ -35,8 +34,8 @@ public class ItemLogPushTest extends RoleApiTest {
     public void pushItemLogList() throws InterruptedException {
         String logToken = findLogToken();
         AtomicInteger submittedCount = new AtomicInteger();
-        HashMap<Integer, List<AccountRecord>> accountRecordMap = readAccount();
-        for (List<AccountRecord> recordList : accountRecordMap.values()) {
+        HashMap<Integer, List<JSONObject>> accountRecordMap = readAccount();
+        for (List<JSONObject> recordList : accountRecordMap.values()) {
             CountDownLatch countDown = new CountDownLatch(1);
             executorServices.execute(new RunnableEvent(150, 10000, () -> {
                 try {
@@ -52,11 +51,11 @@ public class ItemLogPushTest extends RoleApiTest {
     }
 
 
-    public int pushItemLog(String logToken, List<AccountRecord> recordList) {
+    public int pushItemLog(String logToken, List<JSONObject> recordList) {
         DiffTime diffTime = new DiffTime();
         List<JSONObject> sLogs = new ArrayList<>();
-        for (AccountRecord accountRecord : recordList) {
-            long createTime = accountRecord.getCreateTime();
+        for (JSONObject accountRecord : recordList) {
+            long createTime = accountRecord.getLongValue("createTime");
             LocalDateTime localDateTime = MyClock.localDateTime(createTime);
 
             for (int i = 0; i < days; i++) {
@@ -66,8 +65,8 @@ public class ItemLogPushTest extends RoleApiTest {
                 JSONObject sLog = new JSONObject();
                 sLog.fluentPut("uid", hexId.newId());/*创建唯一id，避免传递重复脏数据*/
                 sLog.fluentPut("createTime", milli);
-                sLog.fluentPut("account", accountRecord.getAccount());
-                sLog.fluentPut("roleId", accountRecord.getUid());
+                sLog.fluentPut("account", accountRecord.getString("account"));
+                sLog.fluentPut("roleId", accountRecord.getLong("uid"));
                 sLog.fluentPut("roleName", StringUtils.randomString(8));
                 sLog.fluentPut("sid", 1);
                 sLog.fluentPut("lv", RandomUtils.random(1, 100));

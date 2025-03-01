@@ -34,20 +34,9 @@
 
         let pageView;
 
-        function ban(url, uid) {
-        }
-
         function search() {
             wxd.loading();
             let urlQuery = new wxd.Map().loadSearch();
-            urlQuery.put("account", $("#account").val());
-            urlQuery.put("roleId", $("#roleId").val());
-            urlQuery.put("roleName", $("#roleName").val());
-            urlQuery.put("curSid", $("#curSid").val());
-            urlQuery.put("createSid", $("#createSid").val())
-            urlQuery.put("online", $("#online").val());
-            urlQuery.put("rechargeAmount", $("#rechargeAmount").val());
-            urlQuery.put("rechargeCount", $("#rechargeCount").val());
             pageView.remoteGetData(urlQuery);
         }
 
@@ -93,20 +82,7 @@
 </head>
 
 <body>
-<div style="padding-left: 10px; padding-top: 8px; text-align: left;vertical-align: center;">
-    <input type="button" value="搜索" onclick="search();">
-    <br>
-    <input id="online" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="是否在线，0或者1"/>
-    <input id="account" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="账号"/>
-    <input id="roleId" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="角色id"/>
-    <input id="roleName" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="角色名字"/>
-    <br>
-    <input id="createSid" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="创建区服"/>
-    <input id="curSid" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="当前区服"/>
-    <input id="rechargeAmount" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="充值金额大于等于"/>
-    <input id="rechargeCount" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="订单笔数大于等于"/>
-</div>
-<div class="tableDom" style="position: absolute;left: 10px;top: 110px;right: 15px;bottom: 35px;">
+<div class="tableDom" style="position: absolute;left: 10px;top: 10px;right: 15px;bottom: 35px;">
     <table>
         <thead>
         <tr>

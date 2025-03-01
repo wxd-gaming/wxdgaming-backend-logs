@@ -25,7 +25,7 @@
 
         label {padding-left: 5px;padding-right: 5px;}
 
-        input {margin-top: 5px;border: slategrey 1px solid;border-radius: 5px;height: 22px;}
+        input {margin-top: 5px; margin-right: 5px; border: slategrey 1px solid;border-radius: 5px;height: 22px;width: 180px;}
 
         input[type=text] {width: 160px;}
     </style>
@@ -66,7 +66,7 @@
         }
 
         $(() => {
-            pageView = new PageView("/rechargelist", search, createRow);
+            pageView = new PageView("/recharge/list", search, createRow);
             search();
         });
 
@@ -75,14 +75,16 @@
 </head>
 
 <body>
-<div style="text-align: left;padding-left: 10px;">
-    <input type="button" value="搜索" onclick="search();">
+<div style="text-align: left;padding-left: 10px;padding-top: 10px;">
+    <button type="button" onclick="search();">搜索</button>
     <br>
     <input id="account" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="账号"/>
     <input id="roleId" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="玩家ID"/>
     <input id="roleName" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="玩家名字"/>
-    <br>
     <input id="dataJson" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="a=b"/>
+    <br>
+    <label for="dateStart">开始时间</label><input id="dateStart" type="date" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder=""/>
+    <label for="dateEnd">结束时间</label><input id="dateEnd" type="date" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder=""/>
 </div>
 <div class="tableDom" style="position: absolute;left: 10px;top: 100px;right: 15px;bottom: 35px;">
     <table>

@@ -2,8 +2,6 @@ package push;
 
 import com.alibaba.fastjson.JSONObject;
 import org.junit.Test;
-import wxdgaming.backends.entity.games.logs.AccountRecord;
-import wxdgaming.backends.entity.games.logs.RoleRecord;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.util.RandomUtils;
@@ -29,9 +27,9 @@ public class RoleApiTest extends AccountApiTest {
     @Test
     public void pushRoleList() throws Exception {
         String logToken = findLogToken();
-        HashMap<Integer, List<AccountRecord>> accountRecordMap = readAccount();
+        HashMap<Integer, List<JSONObject>> accountRecordMap = readAccount();
         CountDownLatch countDownLatch = new CountDownLatch(accountRecordMap.size());
-        for (List<AccountRecord> recordList : accountRecordMap.values()) {
+        for (List<JSONObject> recordList : accountRecordMap.values()) {
             executorServices.execute(() -> {
                 pushRoleList(logToken, recordList);
                 countDownLatch.countDown();
@@ -40,25 +38,23 @@ public class RoleApiTest extends AccountApiTest {
         countDownLatch.await();
     }
 
-    public void pushRoleList(String logToken, List<AccountRecord> recordList) {
+    public void pushRoleList(String logToken, List<JSONObject> recordList) {
 
-        List<RoleRecord> roleRecordList = new ArrayList<>();
-        for (AccountRecord accountRecord : recordList) {
-            RoleRecord record = new RoleRecord();
-            record.setUid(accountRecord.getUid());
-            record.setAccount(accountRecord.getAccount());
-            record.setCreateTime(accountRecord.getCreateTime());
-            record.setCreateSid(RandomUtils.random(1, 100));
-            record.setCurSid(RandomUtils.random(1, 100));
-            record.setRoleName(StringUtils.randomString(8));
-            record.setJob("魔剑士");
-            record.setSex("男");
-            record.setLv(RandomUtils.random(1, 100));
-            record.getOther().fluentPut("channel", "huawei");
+        List<JSONObject> roleRecordList = new ArrayList<>();
+        for (JSONObject accountRecord : recordList) {
+            JSONObject record = new JSONObject();
+            record.put("uid", accountRecord.getLong("uid"));
+            record.put("account", accountRecord.getString("account"));
+            record.put("createTime", accountRecord.getLong("createTime"));
+            record.put("createSid", RandomUtils.random(1, 100));
+            record.put("curSid", RandomUtils.random(1, 100));
+            record.put("roleName", StringUtils.randomString(8));
+            record.put("Job", "魔剑士");
+            record.put("sex", "男");
+            record.put("lv", RandomUtils.random(1, 100));
+            record.put("other", new JSONObject().fluentPut("channel", "huawei"));/*附加参数，本身也是一个json*/
 
             roleRecordList.add(record);
-
-
         }
         JSONObject push = new JSONObject()
                 .fluentPut("gameId", gameId)
@@ -71,6 +67,30 @@ public class RoleApiTest extends AccountApiTest {
         if (join.responseCode() != 200 || runResult.code() != 1) {
             System.out.println(join.bodyString());
         }
+    }
+
+
+    public void pushRole() {
+
+        JSONObject record = new JSONObject();
+        record.put("uid", 1);
+        record.put("account", "xxxx");
+        record.put("createTime", System.currentTimeMillis());
+        record.put("createSid", RandomUtils.random(1, 100));
+        record.put("curSid", RandomUtils.random(1, 100));
+        record.put("roleName", StringUtils.randomString(8));
+        record.put("Job", "魔剑士");
+        record.put("sex", "男");
+        record.put("lv", RandomUtils.random(1, 100));
+        record.put("other", new JSONObject().fluentPut("channel", "huawei"));/*附加参数，本身也是一个json*/
+
+        JSONObject push = new JSONObject()
+                .fluentPut("gameId", gameId)
+                .fluentPut("token", "logToken")
+                .fluentPut("data", record);
+
+        post("role/push", push.toJSONString());
+
     }
 
 

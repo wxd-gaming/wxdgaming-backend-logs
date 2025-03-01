@@ -3,7 +3,6 @@ package push;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.boot2.core.collection.MapOf;
 import wxdgaming.boot2.core.lang.DiffTime;
 import wxdgaming.boot2.core.lang.RunResult;
@@ -14,6 +13,7 @@ import wxdgaming.boot2.starter.net.httpclient.Response;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -32,11 +32,11 @@ public class LoginPushTest extends RoleApiTest {
     @Test
     public void pushLoginLogList() throws InterruptedException {
         String logToken = findLogToken();
-        HashMap<Integer, List<AccountRecord>> accountRecordMap = readAccount();
+        HashMap<Integer, List<JSONObject>> accountRecordMap = readAccount();
         CountDownLatch countDownLatch = new CountDownLatch(accountRecordMap.size());
-        for (List<AccountRecord> recordList : accountRecordMap.values()) {
+        for (List<JSONObject> recordList : accountRecordMap.values()) {
             executorServices.execute(() -> {
-                for (AccountRecord accountRecord : recordList) {
+                for (JSONObject accountRecord : recordList) {
                     pushLoginLog(logToken, accountRecord);
                 }
                 countDownLatch.countDown();
@@ -45,9 +45,9 @@ public class LoginPushTest extends RoleApiTest {
         countDownLatch.await();
     }
 
-    public void pushLoginLog(String logToken, AccountRecord accountRecord) {
+    public void pushLoginLog(String logToken, JSONObject accountRecord) {
 
-        long createTime = accountRecord.getCreateTime();
+        long createTime = accountRecord.getLong("createTime");
         LocalDateTime localDateTime = MyClock.localDateTime(createTime);
 
         DiffTime diffTime = new DiffTime();
@@ -60,7 +60,7 @@ public class LoginPushTest extends RoleApiTest {
             boolean randomBoolean = RandomUtils.randomBoolean(random, 500);
             if (!randomBoolean) continue;
 
-            JSONObject jsonObject = buildLoginLog(logToken, accountRecord.getUid(), accountRecord.getAccount(), "LOGIN", milli);
+            JSONObject jsonObject = buildLoginLog(logToken, accountRecord.getLong("uid"), accountRecord.getString("account"), "LOGIN", milli);
             sLogs.add(jsonObject);
         }
         if (!sLogs.isEmpty()) {
@@ -80,11 +80,11 @@ public class LoginPushTest extends RoleApiTest {
     @Test
     public void randomPushLogin() {
         String logToken = findLogToken();
-        HashMap<Integer, List<AccountRecord>> accountRecordMap = readAccount();
-        List<AccountRecord> list = accountRecordMap.values().stream().flatMap(v -> v.stream()).toList();
-        AccountRecord accountRecord = RandomUtils.randomItem(list);
+        HashMap<Integer, List<JSONObject>> accountRecordMap = readAccount();
+        List<JSONObject> list = accountRecordMap.values().stream().flatMap(Collection::stream).toList();
+        JSONObject accountRecord = RandomUtils.randomItem(list);
         /*模拟数据 账号的uid就是角色的uid*/
-        pushLogout(logToken, accountRecord.getAccount(), accountRecord.getUid(), "LOGIN");
+        pushLogout(logToken, accountRecord.getString("account"), accountRecord.getLong("uid"), "LOGIN");
     }
 
     @Test

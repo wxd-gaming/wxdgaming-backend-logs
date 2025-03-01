@@ -2,7 +2,6 @@ package push;
 
 import com.alibaba.fastjson.JSONObject;
 import org.junit.Test;
-import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.RechargeRecord;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.lang.DiffTime;
@@ -30,11 +29,11 @@ public class RechargeApiTest extends AccountApiTest {
     @Test
     public void pushRechargeList() throws Exception {
         String logToken = findLogToken();
-        HashMap<Integer, List<AccountRecord>> accountRecordMap = readAccount();
+        HashMap<Integer, List<JSONObject>> accountRecordMap = readAccount();
         CountDownLatch countDownLatch = new CountDownLatch(accountRecordMap.size());
-        for (List<AccountRecord> recordList : accountRecordMap.values()) {
+        for (List<JSONObject> recordList : accountRecordMap.values()) {
             executorServices.execute(() -> {
-                for (AccountRecord accountRecord : recordList) {
+                for (JSONObject accountRecord : recordList) {
                     test(logToken, accountRecord);
                 }
                 countDownLatch.countDown();
@@ -43,9 +42,9 @@ public class RechargeApiTest extends AccountApiTest {
         countDownLatch.await();
     }
 
-    public void test(String logToken, AccountRecord accountRecord) {
+    public void test(String logToken, JSONObject accountRecord) {
 
-        long createTime = accountRecord.getCreateTime();
+        long createTime = accountRecord.getLong("createTime");
         LocalDateTime localDateTime = MyClock.localDateTime(createTime);
 
         DiffTime diffTime = new DiffTime();
@@ -60,10 +59,10 @@ public class RechargeApiTest extends AccountApiTest {
 
             RechargeRecord record = new RechargeRecord();
             record.setUid(hexId.newId());
-            record.setAccount(accountRecord.getAccount());
+            record.setAccount(accountRecord.getString("account"));
             record.setSid(RandomUtils.random(1, 100));
             record.setCreateTime(milli);
-            record.setRoleId(accountRecord.getUid());
+            record.setRoleId(accountRecord.getLong("uid"));
             record.setRoleName(StringUtils.randomString(8));
             record.setLv(RandomUtils.random(1, 100));
             record.setChannel("huawei");

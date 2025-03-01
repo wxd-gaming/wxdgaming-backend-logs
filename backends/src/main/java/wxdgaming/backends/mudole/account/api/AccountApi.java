@@ -46,25 +46,31 @@ public class AccountApi {
     }
 
     @HttpRequest(authority = 2)
-    public RunResult push(@ThreadParam GameContext gameContext,
-                          @Param(path = "data") AccountRecord accountRecord) {
-        AccountRecord entity = gameContext.getAccountRecord(accountRecord.getAccount());
+    public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") JSONObject data) {
+        String account = data.getString("account");
+        AccountRecord entity = gameContext.getAccountRecord(account);
         if (entity == null) {
-            if (accountRecord.getUid() == 0) {
-                accountRecord.setUid(gameContext.getAccountHexId().newId());
+            entity = new AccountRecord();
+            Long uid = data.getLong("uid");
+            entity.setUid(uid);
+            if (entity.getUid() == 0) {
+                entity.setUid(gameContext.getAccountHexId().newId());
             }
-            accountRecord.checkDataKey();
-            gameContext.getAccountRecordJdbcCache().put(accountRecord.getAccount(), accountRecord);
+            long createTime = data.getLong("createTime");
+            entity.setCreateTime(createTime);
+            JSONObject other = data.getJSONObject("other");
+            entity.getOther().putAll(other);
+            entity.checkDataKey();
+            gameContext.getAccountRecordJdbcCache().put(entity.getAccount(), entity);
         }
         return RunResult.ok();
     }
 
     @HttpRequest(authority = 2)
-    public RunResult pushList(@ThreadParam GameContext gameContext,
-                              @Param(path = "data") List<AccountRecord> recordList) {
+    public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<JSONObject> recordList) {
         ExecutorUtil.getInstance().getLogicExecutor().execute(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
-                for (AccountRecord record : recordList) {
+                for (JSONObject record : recordList) {
                     push(gameContext, record);
                 }
             }

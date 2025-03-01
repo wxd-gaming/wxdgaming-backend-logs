@@ -5,7 +5,6 @@ import com.alibaba.fastjson.TypeReference;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.system.Game;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
@@ -117,9 +116,9 @@ public class GameApiTest {
         return logToken;
     }
 
-    public HashMap<Integer, List<AccountRecord>> readAccount() {
+    public HashMap<Integer, List<JSONObject>> readAccount() {
         String readString = FileReadUtil.readString("account.json", StandardCharsets.UTF_8);
-        return FastJsonUtil.parse(readString, new TypeReference<HashMap<Integer, List<AccountRecord>>>() {});
+        return FastJsonUtil.parse(readString, new TypeReference<HashMap<Integer, List<JSONObject>>>() {});
     }
 
     public void login() {

@@ -54,6 +54,19 @@
                                              erroronmissingdir="false">
                                     </fileset>
                                 </copy>
+
+                                <copy todir="${project.build.directory}/html" overwrite="true">
+                                    <fileset dir="${project.basedir}/../" erroronmissingdir="false">
+                                        <include name="README.md"/>
+                                    </fileset>
+                                </copy>
+
+                                <copy todir="${project.build.directory}/html/png" overwrite="true">
+                                    <fileset dir="${project.basedir}/../png" erroronmissingdir="false">
+
+                                    </fileset>
+                                </copy>
+
                             </target>
                         </configuration>
                     </execution>
