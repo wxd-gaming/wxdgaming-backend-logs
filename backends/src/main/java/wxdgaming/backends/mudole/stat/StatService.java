@@ -37,7 +37,7 @@ public class StatService {
         this.gameService = gameService;
     }
 
-    @Scheduled("0 */2")
+    @Scheduled("0 */20")
     public void gameStat() {
         Collection<GameContext> values = gameService.getGameContextHashMap().values();
         final long dayOfStartMillis = MyClock.dayOfStartMillis();
@@ -159,7 +159,7 @@ public class StatService {
         }
     }
 
-    @Scheduled("0 */2")
+    @Scheduled("0 */20")
     public void accountStat() {
         Collection<GameContext> values = gameService.getGameContextHashMap().values();
         final long dayOfStartMillis = MyClock.dayOfStartMillis();
