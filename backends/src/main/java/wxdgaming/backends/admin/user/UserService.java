@@ -39,7 +39,7 @@ public class UserService {
         AssertUtil.assertNull(ROOT, "json path=other.root root 账号配置异常");
         PWDKEY = BootConfig.getIns().getNestedValue("other.pwd-key", String.class);
         AssertUtil.assertNull(ROOT, "json path=other.pwd-key 密码 md5 私钥配置异常");
-        userCache = new JdbcCache<User, String>(this.pgsqlService, 120/*120分钟*/) {
+        userCache = new JdbcCache<User, String>(this.pgsqlService, 1, 120/*120分钟*/) {
             @Override protected User loader(String account) {
                 return pgsqlService.findByWhere(User.class, "account = ?", account);
             }
