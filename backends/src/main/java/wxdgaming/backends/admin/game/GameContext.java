@@ -60,7 +60,7 @@ public class GameContext {
         this.logKeyCache = Cache.<String, Boolean>builder()
                 .cacheName("logKeyCache")
                 .hashArea(100)
-                .heartTime(2, TimeUnit.HOURS)
+                .heartTime(24, TimeUnit.HOURS)
                 .expireAfterWrite(2, TimeUnit.DAYS)
                 .build();
         this.accountRecordJdbcCache = new JdbcCache<>(dataHelper, 60) {

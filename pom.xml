@@ -70,6 +70,11 @@
         </dependency>
         <dependency>
             <groupId>wxdgaming.boot2</groupId>
+            <artifactId>wxdgaming.boot2.starter.batis.sql.pgsql</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>wxdgaming.boot2</groupId>
             <artifactId>wxdgaming.boot2.starter.net.httpclient</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -80,7 +85,7 @@
         </dependency>
         <dependency>
             <groupId>wxdgaming.boot2</groupId>
-            <artifactId>wxdgaming.boot2.starter.batis.sql.pgsql</artifactId>
+            <artifactId>wxdgaming.boot2.starter.js</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
