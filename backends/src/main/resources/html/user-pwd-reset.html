@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重设密码</title>
+
+    <script charset="utf-8" type="text/javascript" src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script charset="utf-8" type="text/javascript" src="/js/com.wxd.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/style/com.wxd.css"/>
+
+    <style>
+        html, body {
+            display: block;width: 100%;height: 100%;overflow: hidden;background: rgb(255, 255, 255);
+            font-size: 14px;
+        }
+
+        html, body, div, input, button {
+            margin: 0;border: 0;box-sizing: border-box;
+        }
+
+        input[type=text], input[type=date], input[type=password] {width: 160px;}
+
+        input {border: 1px solid black;border-radius: 5px;height: 22px; }
+
+        .tijiao { color: rgb(255, 253, 253); width: 80px; height: 35px; background-color: rgb(241, 52, 10); border: none; }
+    </style>
+
+    <script>
+        function resetPwd() {
+            let urlQuery = new wxd.Map().loadSearch();
+            urlQuery.put("pwd", $("#pwd").val());
+            wxd.netty.post("/user/resetpwd", urlQuery.toString(),
+                function (responseText) {
+                    window.parent.parentAlert(responseText);
+                },
+                (errorMsg) => {
+                    wxd.loading_close();
+                    window.parent.parentAlert("异常：" + errorMsg);
+                },
+                false
+            );
+        }
+    </script>
+
+</head>
+<body>
+<div style="position: absolute;left: 50%;top: 50%;transform: translate(-50%,-50%);width: 380px;text-align: center;padding: 3px;">
+    <label for="pwd">新密码：</label><input type="password" id="pwd" style="width: 260px;">
+    <br>
+    <br>
+    <button class="tijiao" onclick="resetPwd();">提交</button>
+</div>
+</body>
+</html>

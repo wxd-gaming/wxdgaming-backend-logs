@@ -14,24 +14,6 @@
 
     <script type="application/javascript">
 
-        $(() => {
-            checkToken();
-        });
-
-        function checkToken() {
-
-            wxd.netty.post("/checkLogin", "",
-                function (responseText) {
-                    if (responseText.code === 1) {
-                        localStorage.setItem("token", responseText.data);
-                        window.top.location.href = "/index.html";
-                    }
-                }, function (error) {
-
-                }
-            );
-        }
-
         function login() {
             let map = new wxd.Map();
             map.put("account", $("#accountName").val());

@@ -8,15 +8,17 @@ import wxdgaming.backends.admin.user.UserService;
 import wxdgaming.backends.entity.system.User;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
+import wxdgaming.boot2.core.chatset.StringUtils;
+import wxdgaming.boot2.core.format.HexId;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
-import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.ann.RequestMapping;
 import wxdgaming.boot2.starter.net.server.http.HttpContext;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 系统用户管理
@@ -29,26 +31,31 @@ import java.util.List;
 @RequestMapping(path = "user")
 public class UserApi {
 
-    final PgsqlService pgsqlService;
     final UserService userService;
 
+    final HexId hexId = new HexId(1);
+
     @Inject
-    public UserApi(PgsqlService pgsqlService, UserService userService) {
-        this.pgsqlService = pgsqlService;
+    public UserApi(UserService userService) {
         this.userService = userService;
     }
 
     @HttpRequest(authority = 9)
     public RunResult resetPwd(HttpContext httpContext,
                               @ThreadParam() User user,
-                              @Param(path = "uid") int uid,
+                              @Param(path = "account") String account,
                               @Param(path = "pwd") String pwd) {
-        User findUser = pgsqlService.findByKey(User.class, uid);
+
+        if (StringUtils.isBlank(pwd) || pwd.length() < 6) {
+            return RunResult.error("密码长度不能小于6位");
+        }
+
+        User findUser = userService.findByAccount(account);
         if (findUser == null) {
             return RunResult.error("用户不存在");
         }
 
-        if (!user.isRoot() && uid == user.getUid()) {
+        if (!user.isRoot() && Objects.equals(account, user.getAccount())) {
             return RunResult.error("权限不足");
         }
 
@@ -64,24 +71,71 @@ public class UserApi {
 
         String string = userService.md5Pwd(findUser.getUid(), findUser.getAccount(), pwd);
         findUser.setPwd(string);
+        findUser.setUpdateIndex(findUser.getUpdateIndex() + 1);
 
-        pgsqlService.update(findUser);
+        userService.getPgsqlService().update(findUser);
+
         log.info("管理员 {} 修改用户 {} 密码", user.getAccount(), findUser.getAccount());
+        return RunResult.ok();
+    }
+
+    @HttpRequest(authority = 9)
+    public RunResult add(HttpContext httpContext,
+                         @ThreadParam() User admin,
+                         @Param(path = "account") String account,
+                         @Param(path = "pwd") String pwd,
+                         @Param(path = "phone") String phone) {
+
+        if (StringUtils.isBlank(account) || account.length() < 4) {
+            return RunResult.error("账号长度不能小于4位");
+        }
+
+        if (StringUtils.isBlank(pwd) || pwd.length() < 6) {
+            return RunResult.error("密码长度不能小于6位");
+        }
+
+        if (StringUtils.isBlank(phone) || phone.length() < 11) {
+            return RunResult.error("手机号码格式错误");
+        }
+
+        if (userService.findByAccount(account) != null) {
+            return RunResult.error("账号已存在");
+        }
+
+        if (!admin.isRoot() && !admin.isAdmin()) {
+            return RunResult.error("权限不足");
+        }
+
+        /*这里是添加默认管理员*/
+        User newUser = new User();
+        newUser.setCreatedTime(System.currentTimeMillis());
+        newUser.setUid(hexId.newId());
+        newUser.setAccount(account);
+        newUser.setUpdateIndex(1);
+        newUser.setPhone(phone);
+        if (admin.isRoot()) {
+            newUser.setAdmin(true);
+        } else if (admin.isAdmin()) {
+            /*设置父账号*/
+            newUser.setParentUid(admin.getUid());
+        }
+        newUser.setPwd(userService.md5Pwd(newUser.getUid(), newUser.getAccount(), pwd));
+        userService.getPgsqlService().insert(newUser);
+        userService.getUserCache().put(newUser.getAccount(), newUser);
+
         return RunResult.ok();
     }
 
     @HttpRequest(authority = 9)
     public RunResult ban(HttpContext httpContext,
                          @ThreadParam() User user,
-                         @Param(path = "uid") int uid) {
-        if (uid == user.getUid()) {
+                         @Param(path = "account") String account) {
+
+        if (Objects.equals(account, user.getAccount())) {
             return RunResult.error("不能禁用自己");
         }
-        User findUser = pgsqlService.findByKey(User.class, uid);
-        if (findUser == null) {
-            return RunResult.error("用户不存在");
-        }
 
+        User findUser = userService.findByAccount(account);
         if (findUser.isAdmin()) {
             if (!user.isRoot()) {
                 return RunResult.error("权限不足");
@@ -92,8 +146,9 @@ public class UserApi {
             }
         }
 
-        findUser.setDisConnect(true);
-        pgsqlService.update(findUser);
+        findUser.setDisConnect(!findUser.isDisConnect());
+
+        userService.getPgsqlService().update(findUser);
         log.info("管理员 {} 用户 {} 被禁用", user.getAccount(), findUser.getAccount());
         return RunResult.ok();
     }
@@ -107,7 +162,7 @@ public class UserApi {
             return RunResult.error("权限不足");
         }
 
-        SqlQueryBuilder sqlQueryBuilder = pgsqlService.queryBuilder();
+        SqlQueryBuilder sqlQueryBuilder = userService.getPgsqlService().queryBuilder();
         sqlQueryBuilder.sqlByEntity(User.class);
 
         sqlQueryBuilder.pushWhereByValueNotNull("account=?", account);
@@ -115,6 +170,8 @@ public class UserApi {
         if (!user.isRoot()) {
             sqlQueryBuilder.pushWhere("parentuid=?", user.getUid());
         }
+
+        sqlQueryBuilder.pushWhere("uid<>?", 1);
 
         long count = sqlQueryBuilder.findCount();
 

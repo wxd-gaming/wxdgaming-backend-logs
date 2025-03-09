@@ -7,10 +7,11 @@ import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.system.Game;
+import wxdgaming.backends.entity.system.User;
 import wxdgaming.boot2.core.ann.Body;
 import wxdgaming.boot2.core.ann.Param;
+import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
-import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
@@ -71,12 +72,14 @@ public class GameApi {
     }
 
     @HttpRequest(authority = 9)
-    public RunResult list(HttpContext session) {
+    public RunResult list(HttpContext session, @ThreadParam() User user) {
         List<JSONObject> list = gameService.getGameContextHashMap().values().stream()
                 .map(GameContext::getGame)
-                .map(FastJsonUtil::toJSONObject)
-                .peek(jsonObject -> {
+                .filter(game -> user.isRoot() || user.getAuthorizationGames().contains(game.getUid()))
+                .map(game -> {
+                    JSONObject jsonObject = game.toJSONObject();
                     jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm", jsonObject.getLong("createTime")));
+                    return jsonObject;
                 })
                 .toList();
         return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", list.size());

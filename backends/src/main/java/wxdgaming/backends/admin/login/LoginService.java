@@ -44,18 +44,28 @@ public class LoginService {
 
         try {
             Jws<Claims> claimsJws = JwtUtils.parseJWT(token);
-            String account = claimsJws.getPayload().get("account", String.class);
+            Claims payload = claimsJws.getPayload();
+            String account = payload.get("account", String.class);
             if (account == null) {
                 return RunResult.error("未登录");
             }
+
             User user = userService.findByAccount(account);
             if (user == null) {
                 return RunResult.error("账号异常");
             }
+
+            int updateIndex = payload.get("update-index", Integer.class);
+            if (user.getUpdateIndex() != updateIndex) {
+                return RunResult.error("登录已过期");
+            }
+
             if (user.isDisConnect()) {
                 return RunResult.error("账号已被禁用");
             }
+
             ThreadContext.putContent("user", user);
+            ThreadContext.putContent(user);
             return RunResult.ok();
         } catch (Exception e) {
             log.error("登录校验失败", e);

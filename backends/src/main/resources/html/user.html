@@ -25,17 +25,35 @@
 
         label {padding-left: 5px;padding-right: 5px;}
 
-        input {margin-top: 5px;border: slategrey 1px solid;border-radius: 5px;height: 22px;}
+        button {border: slategrey 1px solid;border-radius: 5px;height: 32px;line-height: 32px;}
 
-        input[type=text] {width: 160px;}
+        input[type=text], input[type=date], input[type=password] {width: 160px;}
+
+
+        input {margin-top: 5px;border: slategrey 1px solid;border-radius: 5px;height: 28px;line-height: 28px; }
+
     </style>
 
     <script>
         let pageView;
 
-        function ban(uid) {
+        function parentAlert(msg) {
+            wxd.message.alert(
+                msg,
+                "提示：",
+                "关闭",
+                () => {
+                    setTimeout(() => {
+                        $("#div_load_box").parent().remove();
+                        search();
+                    }, 1);
+                }
+            );
+        }
+
+        function ban(account) {
             let urlQuery = new wxd.Map().loadSearch();
-            urlQuery.put("uid", uid);
+            urlQuery.put("account", account);
             wxd.netty.post("/user/ban", urlQuery.toString(),
                 function (responseText) {
                     wxd.message.alert(
@@ -68,9 +86,9 @@
         function createRow(index, row) {
             let tr = `
     <tr>
-        <td tips="true" style="width: 70px;">
-            <a href="#" onclick="ban(${row.uid});return false;">禁止/启用</a>
-            <a href="#" onclick="return false;">重置密码</a>
+        <td tips="true" style="width: 170px;">
+            <a href="#" onclick="ban(${row.account});return false;">禁止/启用</a>
+            <a href="#" onclick="wxd.loadHtml('/user-pwd-reset.html?account=${row.account}','400px','140px',null,'-50px','-50px');return false;">重置密码</a>
         </td>
         <td tips="true" style="width: 40px;">${index}</td>
         <td tips="true" style="width: 140px;">${row.uid}</td>
@@ -100,7 +118,10 @@
 
 <body>
 <div style="padding-left: 10px; padding-top: 8px; text-align: left;vertical-align: center;">
-    <input type="button" value="搜索" onclick="search();">
+    <button type="button" onclick="wxd.loadHtml('/user-add.html','400px','240px',null,'-50px','-50px');">
+        添加用户
+    </button>
+    <button type="button" onclick="search();">搜索</button>
     <br>
     <input id="user" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="登录账号"/>
 </div>
@@ -108,7 +129,7 @@
     <table>
         <thead>
         <tr>
-            <th style="width: 70px;">操作</th>
+            <th style="width: 170px;">操作</th>
             <th style="width: 40px;">序号</th>
             <th style="width: 140px;">账号ID</th>
             <th style="width: 200px;">账号</th>

@@ -2,12 +2,13 @@ package wxdgaming.backends.admin.user;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.entity.system.User;
 import wxdgaming.boot2.core.BootConfig;
 import wxdgaming.boot2.core.ann.Sort;
 import wxdgaming.boot2.core.ann.Start;
-import wxdgaming.boot2.core.format.HexId;
+import wxdgaming.boot2.core.shutdown;
 import wxdgaming.boot2.core.util.AssertUtil;
 import wxdgaming.boot2.core.util.Md5Util;
 import wxdgaming.boot2.starter.batis.sql.JdbcCache;
@@ -20,6 +21,7 @@ import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
  * @version: 2025-02-11 20:50
  **/
 @Slf4j
+@Getter
 @Singleton
 public class UserService {
 
@@ -27,7 +29,6 @@ public class UserService {
     public static String ROOT = null;
     /** 密钥key */
     public static String PWDKEY = null;
-    final HexId hexId = new HexId(1);
 
     final PgsqlService pgsqlService;
     final JdbcCache<User, String> userCache;
@@ -56,11 +57,18 @@ public class UserService {
             user.setCreatedTime(System.currentTimeMillis());
             user.setUid(1);
             user.setAccount(ROOT);
+            user.setUpdateIndex(1);
+            user.setPhone("15388152619");
             user.setRoot(true);
             user.setAdmin(true);
             user.setPwd(md5Pwd(user.getUid(), user.getAccount(), "123456"));
             userCache.put(user.getAccount(), user);
         }
+    }
+
+    @shutdown
+    public void shutdown() {
+        userCache.shutdown();
     }
 
     public String md5Pwd(long uid, String account, String password) {

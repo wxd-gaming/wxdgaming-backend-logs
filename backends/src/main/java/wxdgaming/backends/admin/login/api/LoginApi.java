@@ -61,6 +61,7 @@ public class LoginApi {
 
         String outToken = JwtUtils.createJwtBuilder(daysMillis)
                 .claim("account", user.getAccount())
+                .claim("update-index", user.getUpdateIndex())
                 .compact();
 
         httpContext.getResponse().getResponseCookie().addCookie(HttpHeadNameType.AUTHORIZATION.getValue(), outToken, "/", null, daysMillis);
