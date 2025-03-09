@@ -56,10 +56,15 @@ public class UserService {
             user.setCreatedTime(System.currentTimeMillis());
             user.setUid(1);
             user.setAccount(ROOT);
-            user.setPwd(Md5Util.md5DigestEncode(String.valueOf(user.getUid()), user.getAccount(), PWDKEY, "123456"));
+            user.setRoot(true);
             user.setAdmin(true);
+            user.setPwd(md5Pwd(user.getUid(), user.getAccount(), "123456"));
             userCache.put(user.getAccount(), user);
         }
+    }
+
+    public String md5Pwd(long uid, String account, String password) {
+        return Md5Util.md5DigestEncode(String.valueOf(uid), account, PWDKEY, password);
     }
 
     public User findByAccount(String account) {

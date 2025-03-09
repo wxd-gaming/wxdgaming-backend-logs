@@ -4,8 +4,10 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.admin.login.LoginService;
+import wxdgaming.backends.entity.system.User;
 import wxdgaming.boot2.core.io.Objects;
 import wxdgaming.boot2.core.lang.RunResult;
+import wxdgaming.boot2.core.threading.ThreadContext;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.server.http.HttpContext;
 import wxdgaming.boot2.starter.net.server.http.HttpFilter;
@@ -31,10 +33,28 @@ public class Authority_9_ByUser_Filter extends HttpFilter {
 
     @Override public Object doFilter(HttpRequest httpRequest, Method method, String url, HttpContext httpContext) {
         if (httpRequest != null && Objects.checkHave(httpRequest.authority(), 9)) {
-            RunResult runResult = loginService.checkLogin(httpContext);
-            if (runResult.code() != 1) {
-                return runResult;
+            return checkUser(httpContext, url);
+        }
+        return null;
+    }
+
+    public Object checkUser(HttpContext httpContext, String url) {
+        RunResult runResult = loginService.checkLogin(httpContext);
+        if (runResult.code() != 1) {
+            return runResult;
+        }
+        User user = ThreadContext.context("user");
+        if (user.isAdmin()) return null;
+
+        int gameId = httpContext.getRequest().getReqParams().getIntValue("gameId");
+        if (gameId > 0) {
+            if (!user.getAuthorizationGames().contains(gameId)) {
+                return RunResult.error("权限不足");
             }
+        }
+
+        if (!user.checkAuthorization(url)) {
+            return RunResult.error("权限不足");
         }
         return null;
     }

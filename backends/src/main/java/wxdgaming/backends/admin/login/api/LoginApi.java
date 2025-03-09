@@ -10,11 +10,10 @@ import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.io.Objects;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.util.JwtUtils;
-import wxdgaming.boot2.core.util.Md5Util;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
-import wxdgaming.boot2.starter.net.http.HttpHeadNameType;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.ann.RequestMapping;
+import wxdgaming.boot2.starter.net.http.HttpHeadNameType;
 import wxdgaming.boot2.starter.net.server.http.HttpContext;
 
 import java.util.concurrent.TimeUnit;
@@ -30,13 +29,15 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping(path = "/")
 public class LoginApi {
 
-    PgsqlService dataHelper;
-    LoginService loginService;
+    final PgsqlService dataHelper;
+    final LoginService loginService;
+    final UserService userService;
 
     @Inject
-    public LoginApi(LoginService loginService, PgsqlService dataHelper) {
+    public LoginApi(LoginService loginService, PgsqlService dataHelper, UserService userService) {
         this.loginService = loginService;
         this.dataHelper = dataHelper;
+        this.userService = userService;
     }
 
     @HttpRequest
@@ -46,7 +47,7 @@ public class LoginApi {
             return RunResult.error("账号不存在");
         }
 
-        String md5Sign = Md5Util.md5DigestEncode(String.valueOf(user.getUid()), user.getAccount(), UserService.PWDKEY, pwd);
+        String md5Sign = userService.md5Pwd(user.getUid(), user.getAccount(), pwd);
         if (!Objects.equals(md5Sign, user.getPwd())) {
             return RunResult.error("密码错误");
         }

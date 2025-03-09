@@ -110,6 +110,7 @@ public class RoleApi {
 
     @HttpRequest
     public RunResult list(HttpContext httpContext,
+                          @ThreadParam(path = "user") User user,
                           @Param(path = "gameId") int gameId,
                           @Param(path = "pageIndex") int pageIndex,
                           @Param(path = "pageSize") int pageSize,
@@ -122,7 +123,6 @@ public class RoleApi {
                           @Param(path = "rechargeAmount", required = false) String rechargeAmount,
                           @Param(path = "rechargeCount", required = false) String rechargeCount) {
 
-        User user = ThreadContext.context("user");
         log.info("{}", user);
 
         GameContext gameContext = gameService.gameContext(gameId);

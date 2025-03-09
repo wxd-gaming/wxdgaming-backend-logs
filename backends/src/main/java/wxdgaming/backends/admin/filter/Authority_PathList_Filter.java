@@ -26,7 +26,7 @@ public class Authority_PathList_Filter extends Authority_9_ByUser_Filter {
 
     @Override public Object doFilter(HttpRequest httpRequest, Method method, String url, HttpContext httpContext) {
         if (httpContext.getRequest().getUriPath().endsWith("/list")) {
-            super.doFilter(httpRequest, method, url, httpContext);
+            return checkUser(httpContext, url);
         }
         return null;
     }
