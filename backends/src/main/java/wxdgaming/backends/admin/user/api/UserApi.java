@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import wxdgaming.backends.admin.game.GameContext;
+import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.admin.user.UserService;
 import wxdgaming.backends.entity.system.User;
 import wxdgaming.boot2.core.ann.Param;
@@ -17,6 +19,8 @@ import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.ann.RequestMapping;
 import wxdgaming.boot2.starter.net.server.http.HttpContext;
 
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -32,12 +36,13 @@ import java.util.Objects;
 public class UserApi {
 
     final UserService userService;
-
+    final GameService gameService;
     final HexId hexId = new HexId(1);
 
     @Inject
-    public UserApi(UserService userService) {
+    public UserApi(UserService userService, GameService gameService) {
         this.userService = userService;
+        this.gameService = gameService;
     }
 
     @HttpRequest(authority = 9)
@@ -127,6 +132,68 @@ public class UserApi {
     }
 
     @HttpRequest(authority = 9)
+    public RunResult authorGames(HttpContext httpContext,
+                                 @ThreadParam() User user,
+                                 @Param(path = "account") String account,
+                                 @Param(path = "authors", defaultValue = "[]") List<Integer> authors) {
+        if (!(user.isAdmin() || user.isRoot())) {
+            return RunResult.error("权限不足");
+        }
+        if (Objects.equals(account, user.getAccount())) {
+            return RunResult.error("无法给自己授权");
+        }
+        User byAccount = userService.findByAccount(account);
+        if (byAccount == null) {
+            return RunResult.error("用户不存在");
+        }
+
+        if (byAccount.isAdmin()) {
+            if (!user.isRoot()) {
+                return RunResult.error("权限不足");
+            }
+        }
+
+        HashSet<Integer> integers = new HashSet<>(authors);
+        if (!user.isRoot()) {
+            /*我要给别的账号授权，前提是我必须有权限*/
+            HashSet<Integer> authorizationGames = user.getAuthorizationGames();
+            integers.removeIf(v -> !authorizationGames.contains(v));
+        }
+        byAccount.setAuthorizationGames(integers);
+
+        return RunResult.ok();
+    }
+
+    @HttpRequest(authority = 9)
+    public RunResult authorGamesList(HttpContext session,
+                                     @ThreadParam() User user,
+                                     @Param(path = "account") String account) {
+
+        if (Objects.equals(account, user.getAccount())) {
+            return RunResult.error("无法给自己授权");
+        }
+
+        User byAccount = userService.findByAccount(account);
+        if (byAccount == null) {
+            return RunResult.error("用户不存在");
+        }
+
+        List<JSONObject> list = gameService.getGameContextHashMap().values()
+                .stream()
+                .sorted(Comparator.comparingInt(GameContext::getGameId))
+                .map(GameContext::getGame)
+                .filter(game -> user.isRoot() || user.getAuthorizationGames().contains(game.getUid()))
+                .map(game -> {
+                    JSONObject jsonObject = game.toJSONObject();
+                    jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm", jsonObject.getLong("createTime")));
+                    jsonObject.put("checked", byAccount.getAuthorizationGames().contains(game.getUid()) ? "checked" : "");
+                    return jsonObject;
+                })
+                .toList();
+        return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", list.size());
+    }
+
+    @HttpRequest(authority = 9)
     public RunResult ban(HttpContext httpContext,
                          @ThreadParam() User user,
                          @Param(path = "account") String account) {
@@ -156,26 +223,30 @@ public class UserApi {
     @HttpRequest()
     public RunResult list(HttpContext httpContext,
                           @ThreadParam() User user,
+                          @Param(path = "pageIndex") int pageIndex,
+                          @Param(path = "pageSize") int pageSize,
                           @Param(path = "account") String account) {
 
         if (!user.isRoot() && !user.isAdmin()) {
             return RunResult.error("权限不足");
         }
 
-        SqlQueryBuilder sqlQueryBuilder = userService.getPgsqlService().queryBuilder();
-        sqlQueryBuilder.sqlByEntity(User.class);
+        SqlQueryBuilder queryBuilder = userService.getPgsqlService().queryBuilder();
+        queryBuilder.sqlByEntity(User.class);
 
-        sqlQueryBuilder.pushWhereByValueNotNull("account=?", account);
+        queryBuilder.pushWhereByValueNotNull("account=?", account);
 
         if (!user.isRoot()) {
-            sqlQueryBuilder.pushWhere("parentuid=?", user.getUid());
+            queryBuilder.pushWhere("parentuid=?", user.getUid());
         }
 
-        sqlQueryBuilder.pushWhere("uid<>?", 1);
+        queryBuilder.pushWhere("uid<>?", 1);
+        queryBuilder.setOrderBy("uid desc");
+        queryBuilder.limit((pageIndex - 1) * pageSize, pageSize, 10, 1000);
 
-        long count = sqlQueryBuilder.findCount();
+        long count = queryBuilder.findCount();
 
-        List<User> list2Entity = sqlQueryBuilder.findList2Entity(User.class);
+        List<User> list2Entity = queryBuilder.findList2Entity(User.class);
 
         List<JSONObject> list = list2Entity.stream()
                 .map(u -> {

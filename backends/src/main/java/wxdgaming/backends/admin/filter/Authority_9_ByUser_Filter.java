@@ -44,7 +44,7 @@ public class Authority_9_ByUser_Filter extends HttpFilter {
             return runResult;
         }
         User user = ThreadContext.context("user");
-        if (user.isAdmin()) return null;
+        if (user.isRoot()) return null;
 
         int gameId = httpContext.getRequest().getReqParams().getIntValue("gameId");
         if (gameId > 0) {

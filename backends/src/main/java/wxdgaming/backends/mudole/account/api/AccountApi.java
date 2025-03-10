@@ -112,13 +112,7 @@ public class AccountApi {
 
         queryBuilder.setOrderBy("createtime desc");
 
-        if (pageIndex > 0) {
-            queryBuilder.setSkip((pageIndex - 1) * pageSize);
-        }
-
-        if (pageSize <= 10) pageSize = 10;
-        if (pageSize > 1000) pageSize = 1000;
-        queryBuilder.setLimit(pageSize);
+        queryBuilder.limit((pageIndex - 1) * pageSize, pageSize, 10, 1000);
 
         long rowCount = queryBuilder.findCount();
         List<AccountRecord> records = queryBuilder.findList2Entity(AccountRecord.class);

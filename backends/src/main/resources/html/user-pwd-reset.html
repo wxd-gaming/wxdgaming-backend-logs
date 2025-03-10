@@ -34,10 +34,13 @@
             urlQuery.put("pwd", $("#pwd").val());
             wxd.netty.post("/user/resetpwd", urlQuery.toString(),
                 function (responseText) {
-                    window.parent.parentAlert(responseText);
+                    if (responseText.code !== 1) {
+                        window.parent.parentNotice(responseText.msg);
+                    } else {
+                        window.parent.parentAlert("完成");
+                    }
                 },
                 (errorMsg) => {
-                    wxd.loading_close();
                     window.parent.parentAlert("异常：" + errorMsg);
                 },
                 false

@@ -19,6 +19,7 @@ import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.ann.RequestMapping;
 import wxdgaming.boot2.starter.net.server.http.HttpContext;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -72,10 +73,26 @@ public class GameApi {
     }
 
     @HttpRequest(authority = 9)
-    public RunResult list(HttpContext session, @ThreadParam() User user) {
-        List<JSONObject> list = gameService.getGameContextHashMap().values().stream()
+    public RunResult list(HttpContext session,
+                          @ThreadParam() User user,
+                          @Param(path = "pageIndex") int pageIndex,
+                          @Param(path = "pageSize") int pageSize) {
+
+        int skip = 0;
+        if (pageIndex > 0) {
+            skip = ((pageIndex - 1) * pageSize);
+        }
+
+        if (pageSize <= 10) pageSize = 10;
+        if (pageSize > 100000) pageSize = 100000;
+
+        List<JSONObject> list = gameService.getGameContextHashMap().values()
+                .stream()
+                .sorted(Comparator.comparingInt(GameContext::getGameId))
                 .map(GameContext::getGame)
                 .filter(game -> user.isRoot() || user.getAuthorizationGames().contains(game.getUid()))
+                .skip(skip)
+                .limit(pageSize)
                 .map(game -> {
                     JSONObject jsonObject = game.toJSONObject();
                     jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm", jsonObject.getLong("createTime")));

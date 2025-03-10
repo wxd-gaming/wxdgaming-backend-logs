@@ -40,13 +40,12 @@
             wxd.netty.post("/user/add", urlQuery.toString(),
                 function (responseText) {
                     if (responseText.code !== 1) {
-                        window.parent.parentAlert(responseText.msg);
+                        window.parent.parentNotice(responseText.msg);
                     } else {
                         window.parent.parentAlert("完成");
                     }
                 },
                 (errorMsg) => {
-                    wxd.loading_close();
                     window.parent.parentAlert("异常：" + errorMsg);
                 },
                 false

@@ -45,11 +45,17 @@
 
         function getMenu() {
             wxd.loading();
-
+            let postQuery = new wxd.Map().loadSearch();
+            postQuery.put("pageIndex", 1);
+            postQuery.put("pageSize", 10000);
             let url = "/game/list";
-            wxd.netty.post(url, "",
+            wxd.netty.post(url, postQuery.toString(),
                 function (responseText) {
                     console.log(JSON.stringify(responseText));
+                    if (responseText.code !== 1) {
+                        wxd.message.alert(responseText.msg, "Error");
+                        return;
+                    }
                     var data = responseText.data;
                     for (const datum of data) {
 
