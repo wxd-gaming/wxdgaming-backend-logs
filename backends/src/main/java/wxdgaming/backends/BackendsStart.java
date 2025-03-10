@@ -10,7 +10,12 @@ import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlScan;
 import wxdgaming.boot2.starter.js.JsScan;
 import wxdgaming.boot2.starter.js.JsService;
 import wxdgaming.boot2.starter.net.NetScan;
+import wxdgaming.boot2.starter.net.server.http.HttpListenerContent;
+import wxdgaming.boot2.starter.net.server.http.HttpListenerFactory;
+import wxdgaming.boot2.starter.net.server.http.HttpMapping;
 import wxdgaming.boot2.starter.scheduled.ScheduledScan;
+
+import java.util.Collection;
 
 /**
  * 后台管理系统
@@ -35,6 +40,14 @@ public class BackendsStart {
         GameStat gameStat = new GameStat();
         Value execute = jsService.threadContext().execute("GameStat", 2, gameStat);
         System.out.println(gameStat.getArpu());
+
+        HttpListenerFactory httpListenerFactory = run.getInstance(HttpListenerFactory.class);
+        HttpListenerContent httpListenerContent = httpListenerFactory.getHttpListenerContent();
+        Collection<HttpMapping> values = httpListenerContent.getHttpMappingMap().values();
+        for (HttpMapping value : values) {
+            System.out.println(value.path() + " - " + value.comment());
+        }
+
     }
 
 }

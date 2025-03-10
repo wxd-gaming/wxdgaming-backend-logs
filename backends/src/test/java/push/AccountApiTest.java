@@ -65,7 +65,7 @@ public class AccountApiTest extends GameApiTest {
                                 .fluentPut("createTime", System.currentTimeMillis())
                                 .fluentPut("other", new JSONObject().fluentPut("channel", "huawei").fluentPut("os", "huawei"))
                 );
-        post("account/push", push.toString());
+        post("log/account/push", push.toString());
     }
 
     @Test
@@ -80,7 +80,7 @@ public class AccountApiTest extends GameApiTest {
                     .fluentPut("token", logToken)
                     .fluentPut("data", entry.getValue());
 
-            CompletableFuture<Response<PostText>> post = post("account/pushList", push.toJSONString());
+            CompletableFuture<Response<PostText>> post = post("log/account/pushList", push.toJSONString());
             futures.add(post);
 
             for (CompletableFuture<Response<PostText>> future : futures) {

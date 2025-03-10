@@ -33,7 +33,7 @@ logToken：3ugv7y8cP0Uk86gRYYm7I9AXLM36Rjz8
                                 .fluentPut("createTime", System.currentTimeMillis())
                                 .fluentPut("other", new JSONObject().fluentPut("channel", "huawei").fluentPut("os", "huawei"))
                 );
-        post("account/push", push.toString());
+        post("log/account/push", push.toString());
     }
 ```
 
@@ -59,7 +59,7 @@ logToken：3ugv7y8cP0Uk86gRYYm7I9AXLM36Rjz8
                 .fluentPut("token", "logToken")
                 .fluentPut("data", record);
 
-        post("role/push", push.toJSONString());
+        post("log/role/push", push.toJSONString());
 
     }
 ```

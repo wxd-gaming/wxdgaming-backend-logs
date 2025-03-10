@@ -60,6 +60,10 @@ public class User extends EntityLongUID implements Serializable {
     /** 授权路由 */
     @JSONField(ordinal = 12)
     private HashSet<String> authorizationRouting = new HashSet<>();
+    @JSONField(ordinal = 13)
+    private boolean isAllGame;
+    @JSONField(ordinal = 14)
+    private boolean isAllRouting;
 
     /** 检查路由授权 */
     public boolean checkAuthorization(String path) {

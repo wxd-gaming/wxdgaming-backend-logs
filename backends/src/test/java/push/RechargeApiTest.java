@@ -79,7 +79,7 @@ public class RechargeApiTest extends AccountApiTest {
                     .fluentPut("gameId", gameId)
                     .fluentPut("token", logToken)
                     .fluentPut("data", sLogs);
-            Response<PostText> join = post("recharge/pushList", push.toJSONString()).join();
+            Response<PostText> join = post("log/recharge/pushList", push.toJSONString()).join();
             RunResult runResult = join.bodyRunResult();
             if (join.responseCode() != 200 || runResult.code() != 1) {
                 System.out.println(join.bodyString());

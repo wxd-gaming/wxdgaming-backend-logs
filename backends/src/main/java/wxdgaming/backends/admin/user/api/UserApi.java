@@ -11,6 +11,7 @@ import wxdgaming.backends.entity.system.User;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
+import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
 import wxdgaming.boot2.core.format.HexId;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.timer.MyClock;
@@ -18,11 +19,14 @@ import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.ann.RequestMapping;
 import wxdgaming.boot2.starter.net.server.http.HttpContext;
+import wxdgaming.boot2.starter.net.server.http.HttpListenerFactory;
+import wxdgaming.boot2.starter.net.server.http.HttpMapping;
 
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * 系统用户管理
@@ -37,15 +41,17 @@ public class UserApi {
 
     final UserService userService;
     final GameService gameService;
+    final HttpListenerFactory httpListenerFactory;
     final HexId hexId = new HexId(1);
 
     @Inject
-    public UserApi(UserService userService, GameService gameService) {
+    public UserApi(UserService userService, GameService gameService, HttpListenerFactory httpListenerFactory) {
         this.userService = userService;
         this.gameService = gameService;
+        this.httpListenerFactory = httpListenerFactory;
     }
 
-    @HttpRequest(authority = 9)
+    @HttpRequest(authority = 9, comment = "重设密码")
     public RunResult resetPwd(HttpContext httpContext,
                               @ThreadParam() User user,
                               @Param(path = "account") String account,
@@ -84,7 +90,7 @@ public class UserApi {
         return RunResult.ok();
     }
 
-    @HttpRequest(authority = 9)
+    @HttpRequest(authority = 9, comment = "添加用户")
     public RunResult add(HttpContext httpContext,
                          @ThreadParam() User admin,
                          @Param(path = "account") String account,
@@ -131,7 +137,7 @@ public class UserApi {
         return RunResult.ok();
     }
 
-    @HttpRequest(authority = 9)
+    @HttpRequest(authority = 9, comment = "授权游戏")
     public RunResult authorGames(HttpContext httpContext,
                                  @ThreadParam() User user,
                                  @Param(path = "account") String account,
@@ -164,7 +170,41 @@ public class UserApi {
         return RunResult.ok();
     }
 
-    @HttpRequest(authority = 9)
+    @HttpRequest(authority = 9, comment = "授权游戏")
+    public RunResult authorRouting(HttpContext httpContext,
+                                   @ThreadParam() User user,
+                                   @Param(path = "account") String account,
+                                   @Param(path = "authors", defaultValue = "[]") String authorString) {
+        if (!(user.isAdmin() || user.isRoot())) {
+            return RunResult.error("权限不足");
+        }
+        if (Objects.equals(account, user.getAccount())) {
+            return RunResult.error("无法给自己授权");
+        }
+        User byAccount = userService.findByAccount(account);
+        if (byAccount == null) {
+            return RunResult.error("用户不存在");
+        }
+
+        if (byAccount.isAdmin()) {
+            if (!user.isRoot()) {
+                return RunResult.error("权限不足");
+            }
+        }
+
+        List<String> authorList = FastJsonUtil.parseArray(authorString, String.class);
+        HashSet<String> integers = new HashSet<>(authorList);
+        if (!user.isRoot()) {
+            /*我要给别的账号授权，前提是我必须有权限*/
+            HashSet<String> authorizationGames = user.getAuthorizationRouting();
+            integers.removeIf(v -> !authorizationGames.contains(v));
+        }
+        byAccount.setAuthorizationRouting(integers);
+
+        return RunResult.ok();
+    }
+
+    @HttpRequest(authority = 9, comment = "授权游戏列表")
     public RunResult authorGamesList(HttpContext session,
                                      @ThreadParam() User user,
                                      @Param(path = "account") String account) {
@@ -184,8 +224,9 @@ public class UserApi {
                 .map(GameContext::getGame)
                 .filter(game -> user.isRoot() || user.getAuthorizationGames().contains(game.getUid()))
                 .map(game -> {
-                    JSONObject jsonObject = game.toJSONObject();
-                    jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm", jsonObject.getLong("createTime")));
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("uid", game.getUid());
+                    jsonObject.put("name", game.getName());
                     jsonObject.put("checked", byAccount.getAuthorizationGames().contains(game.getUid()) ? "checked" : "");
                     return jsonObject;
                 })
@@ -193,7 +234,39 @@ public class UserApi {
         return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", list.size());
     }
 
-    @HttpRequest(authority = 9)
+    @HttpRequest(authority = 9, comment = "授权路由列表")
+    public RunResult authorRoutingList(HttpContext session,
+                                       @ThreadParam() User user,
+                                       @Param(path = "account") String account) {
+
+        if (Objects.equals(account, user.getAccount())) {
+            return RunResult.error("无法给自己授权");
+        }
+
+        User byAccount = userService.findByAccount(account);
+        if (byAccount == null) {
+            return RunResult.error("用户不存在");
+        }
+        Stream<HttpMapping> stream = httpListenerFactory.getHttpListenerContent().getHttpMappingMap().values().stream();
+        List<JSONObject> list = stream
+                .sorted(Comparator.comparing(HttpMapping::path))
+                .filter(mapping -> user.isRoot() || user.getAuthorizationRouting().contains(mapping.path()))
+                .map(mapping -> {
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("uid", mapping.path());
+                    if (StringUtils.isBlank(mapping.httpRequest().comment())) {
+                        jsonObject.put("name", mapping.path());
+                    } else {
+                        jsonObject.put("name", mapping.httpRequest().comment() + "<br>" + mapping.path());
+                    }
+                    jsonObject.put("checked", byAccount.getAuthorizationRouting().contains(mapping.path()) ? "checked" : "");
+                    return jsonObject;
+                })
+                .toList();
+        return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", list.size());
+    }
+
+    @HttpRequest(authority = 9, comment = "登录用户禁止和解禁")
     public RunResult ban(HttpContext httpContext,
                          @ThreadParam() User user,
                          @Param(path = "account") String account) {
@@ -220,7 +293,7 @@ public class UserApi {
         return RunResult.ok();
     }
 
-    @HttpRequest()
+    @HttpRequest(comment = "用户列表")
     public RunResult list(HttpContext httpContext,
                           @ThreadParam() User user,
                           @Param(path = "pageIndex") int pageIndex,

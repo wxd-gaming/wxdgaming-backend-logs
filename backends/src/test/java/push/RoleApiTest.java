@@ -61,7 +61,7 @@ public class RoleApiTest extends AccountApiTest {
                 .fluentPut("token", logToken)
                 .fluentPut("data", roleRecordList);
 
-        CompletableFuture<Response<PostText>> future = post("role/pushList", push.toJSONString());
+        CompletableFuture<Response<PostText>> future = post("log/role/pushList", push.toJSONString());
         Response<PostText> join = future.join();
         RunResult runResult = join.bodyRunResult();
         if (join.responseCode() != 200 || runResult.code() != 1) {
@@ -89,7 +89,7 @@ public class RoleApiTest extends AccountApiTest {
                 .fluentPut("token", "logToken")
                 .fluentPut("data", record);
 
-        post("role/push", push.toJSONString());
+        post("log/role/push", push.toJSONString());
 
     }
 

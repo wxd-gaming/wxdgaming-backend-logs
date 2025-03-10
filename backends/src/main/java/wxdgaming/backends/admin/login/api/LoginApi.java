@@ -40,7 +40,7 @@ public class LoginApi {
         this.userService = userService;
     }
 
-    @HttpRequest
+    @HttpRequest(comment = "登录")
     public RunResult login(HttpContext httpContext, @Param(path = "account") String account, @Param(path = "pwd") String pwd) {
         User user = dataHelper.findByWhere(User.class, "account = ?", account);
         if (user == null) {
@@ -69,7 +69,7 @@ public class LoginApi {
         return RunResult.ok();
     }
 
-    @HttpRequest
+    @HttpRequest(comment = "检查登录权限")
     public RunResult checkLogin(HttpContext httpContext) {
         return loginService.checkLogin(httpContext);
     }

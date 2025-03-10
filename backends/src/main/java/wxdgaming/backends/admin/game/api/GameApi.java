@@ -42,7 +42,7 @@ public class GameApi {
         this.pgsqlService = pgsqlService;
     }
 
-    @HttpRequest(authority = 9)
+    @HttpRequest(authority = 9, comment = "添加游戏")
     public RunResult push(HttpContext session, @Body Game game) {
         GameContext gameContext = gameService.gameContext(game.getUid());
         if (gameContext == null) {
@@ -72,7 +72,7 @@ public class GameApi {
         return RunResult.ok().data(gameContext.getGame());
     }
 
-    @HttpRequest(authority = 9)
+    @HttpRequest(authority = 9, comment = "游戏列表")
     public RunResult list(HttpContext session,
                           @ThreadParam() User user,
                           @Param(path = "pageIndex") int pageIndex,
@@ -102,7 +102,7 @@ public class GameApi {
         return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", list.size());
     }
 
-    @HttpRequest(authority = 9)
+    @HttpRequest(authority = 9, comment = "添加日志表")
     public RunResult addLogType(HttpContext session, JSONObject data) {
         Integer gameId = data.getInteger("gameId");
         String token = data.getString("token");
@@ -121,7 +121,7 @@ public class GameApi {
         return RunResult.ok();
     }
 
-    @HttpRequest(authority = 9)
+    @HttpRequest(authority = 9, comment = "日志列表")
     public RunResult listLogType(HttpContext session, JSONObject data) {
         Integer gameId = data.getInteger("gameId");
         String token = data.getString("token");

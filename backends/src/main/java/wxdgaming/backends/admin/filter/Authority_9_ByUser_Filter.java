@@ -11,8 +11,11 @@ import wxdgaming.boot2.core.threading.ThreadContext;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.server.http.HttpContext;
 import wxdgaming.boot2.starter.net.server.http.HttpFilter;
+import wxdgaming.boot2.starter.net.server.http.HttpListenerFactory;
+import wxdgaming.boot2.starter.net.server.http.HttpMapping;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
 
 /**
  * 检查登陆权限
@@ -25,10 +28,12 @@ import java.lang.reflect.Method;
 public class Authority_9_ByUser_Filter extends HttpFilter {
 
     final LoginService loginService;
+    final HttpListenerFactory httpListenerFactory;
 
     @Inject
-    public Authority_9_ByUser_Filter(LoginService loginService) {
+    public Authority_9_ByUser_Filter(LoginService loginService, HttpListenerFactory httpListenerFactory) {
         this.loginService = loginService;
+        this.httpListenerFactory = httpListenerFactory;
     }
 
     @Override public Object doFilter(HttpRequest httpRequest, Method method, String url, HttpContext httpContext) {
@@ -51,6 +56,18 @@ public class Authority_9_ByUser_Filter extends HttpFilter {
             if (!user.getAuthorizationGames().contains(gameId)) {
                 return RunResult.error("权限不足");
             }
+        }
+        HashMap<String, HttpMapping> httpMappingMap = httpListenerFactory.getHttpListenerContent().getHttpMappingMap();
+        HttpMapping httpMapping = httpMappingMap.get(url);
+        if (httpMapping == null)
+            return RunResult.error("权限不足");
+
+        if (httpMapping.path().startsWith("/log/") || httpMapping.path().startsWith("log/")) {
+            return null;
+        }
+
+        if (httpMapping.httpRequest().authority().length == 0) {
+            return null;
         }
 
         if (!user.checkAuthorization(url)) {

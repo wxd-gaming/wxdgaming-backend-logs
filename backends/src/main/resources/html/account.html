@@ -92,7 +92,7 @@
         $(() => {
             let urlQuery = new wxd.Map().loadSearch();
             gameId = urlQuery.get("gameId");
-            pageView = new PageView("/account/list", search, createRow);
+            pageView = new PageView("/log/account/list", search, createRow);
             search();
         });
 

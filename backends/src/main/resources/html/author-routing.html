@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏授权</title>
+
+    <script charset="utf-8" type="text/javascript" src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script charset="utf-8" type="text/javascript" src="/js/com.wxd.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/style/com.wxd.css"/>
+    <style>
+        html, body {display: block;width: 100%;height: 100%;overflow: hidden;}
+
+        .box {display: block;width: 100%;height: calc(100% - 80px);overflow-y: auto;margin-top: 0px;padding-bottom: 25px;}
+
+        ul {list-style: none;display: flow;width: 100%;padding: 0;}
+
+        li {display: inline-block;margin-bottom: 15px;margin-right: 25px;min-width: 180px;text-wrap: wrap;}
+
+        .tijiao { color: rgb(255, 253, 253); width: 80px; height: 35px; background-color: rgb(241, 52, 10); border: none; margin-top: 20px;border-radius: 5px;}
+    </style>
+    <script>
+
+        function submit() {
+            let authors = [];
+            $("input[name='options']:checked").each((index, item) => {
+                authors.push($(item).val());
+            });
+            let urlQuery = new wxd.Map().loadSearch();
+            urlQuery.put("authors", JSON.stringify(authors));
+            wxd.netty.post("/user/authorRouting", urlQuery.toString(),
+                function (responseText) {
+                    if (responseText.code !== 1) {
+                        window.parent.parentNotice(responseText.msg);
+                    } else {
+                        window.parent.parentAlert("完成");
+                    }
+                },
+                (errorMsg) => {
+                    window.parent.parentNotice("异常：" + errorMsg);
+                },
+                false
+            );
+        }
+
+        $(() => {
+            wxd.loading();
+            let postQuery = new wxd.Map().loadSearch();
+            postQuery.put("pageIndex", 1);
+            postQuery.put("pageSize", 10000);
+            let url = "/user/authorRoutingList";
+            wxd.netty.post(url, postQuery.toString(),
+                (responseText) => {
+                    if (responseText.code !== 1) {
+                        wxd.message.alert("异常：" + responseText.msg);
+                        return
+                    }
+                    let datas = responseText.data;
+                    for (let i = 0; i < datas.length; i++) {
+                        let data = datas[i];
+                        $(".box ul").append(`
+                            <li>
+                                <input type="checkbox" id="option${data.uid}" name="options" value="${data.uid}" ${data.checked}>
+                                <label for="option${data.uid}">${data.name}</label>
+                            </li>
+`);
+                    }
+                    wxd.loading_close();
+                },
+                (errorMsg) => {
+                    wxd.loading_close();
+                    wxd.message.alert("异常：" + errorMsg);
+                },
+                false
+            );
+        });
+    </script>
+</head>
+<body>
+<div style="padding-left: 30px;height: 80px;">
+    <button class="tijiao" onclick="submit();">提交</button>
+</div>
+<div class="box">
+    <ul>
+    </ul>
+</div>
+</body>
+</html>

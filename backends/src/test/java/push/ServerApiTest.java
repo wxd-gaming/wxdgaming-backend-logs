@@ -63,7 +63,7 @@ public class ServerApiTest extends GameApiTest {
                     .fluentPut("data", record);
 
 
-            CompletableFuture<Response<PostText>> post = post("server/push", push.toJSONString());
+            CompletableFuture<Response<PostText>> post = post("log/server/push", push.toJSONString());
             futures.add(post);
         }
 

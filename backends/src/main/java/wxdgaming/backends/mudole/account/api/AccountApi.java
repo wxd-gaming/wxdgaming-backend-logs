@@ -33,7 +33,7 @@ import java.util.List;
  **/
 @Slf4j
 @Singleton
-@RequestMapping(path = "account")
+@RequestMapping(path = "log/account")
 public class AccountApi {
 
     final GameService gameService;
