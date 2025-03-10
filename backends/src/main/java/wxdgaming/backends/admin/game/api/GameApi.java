@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import wxdgaming.backends.admin.AdminService;
 import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.system.Game;
@@ -12,15 +13,22 @@ import wxdgaming.boot2.core.ann.Body;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
+import wxdgaming.boot2.core.io.FileUtil;
 import wxdgaming.boot2.core.lang.RunResult;
+import wxdgaming.boot2.core.lang.Tuple2;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.ann.RequestMapping;
 import wxdgaming.boot2.starter.net.server.http.HttpContext;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 游戏操作
@@ -35,17 +43,42 @@ public class GameApi {
 
     final PgsqlService pgsqlService;
     final GameService gameService;
+    final AdminService adminService;
 
     @Inject
-    public GameApi(GameService gameService, PgsqlService pgsqlService) {
+    public GameApi(GameService gameService, PgsqlService pgsqlService, AdminService adminService) {
         this.gameService = gameService;
         this.pgsqlService = pgsqlService;
+        this.adminService = adminService;
     }
 
     @HttpRequest(authority = 9, comment = "添加游戏")
-    public RunResult push(HttpContext session, @Body Game game) {
-        GameContext gameContext = gameService.gameContext(game.getUid());
+    public RunResult add(HttpContext session, @ThreadParam() User user, @Param(path = "gameName") String gameName) {
+        if (!user.isAdmin()) return RunResult.error("权限不足");
+        int newGameId = gameService.newGameId();
+        Game game = new Game();
+        game.setUid(newGameId);
+        game.setName(gameName);
+        game.setCreateTime(System.currentTimeMillis());
+        game.setAppToken(StringUtils.randomString(12));
+        game.setRechargeToken(StringUtils.randomString(18));
+        game.setLogToken(StringUtils.randomString(32));
+        pgsqlService.insert(game);
+        gameService.addGameCache(game);
+        return RunResult.ok();
+    }
+
+    @HttpRequest(authority = 9, comment = "添加游戏")
+    public RunResult push(HttpContext session, @ThreadParam() User user, @Body Game game) {
+        if (!user.isAdmin()) return RunResult.error("权限不足");
+        GameContext gameContext = null;
+        if (game.getUid() > 0) {
+            gameContext = gameService.gameContext(game.getUid());
+        }
+
         if (gameContext == null) {
+            int newGameId = gameService.newGameId();
+            game.setUid(newGameId);
             game.setCreateTime(System.currentTimeMillis());
             game.setAppToken(StringUtils.randomString(12));
             game.setRechargeToken(StringUtils.randomString(18));
@@ -60,6 +93,7 @@ public class GameApi {
             queryEntity.setLogToken(game.getLogToken());
             gameService.addGameCache(game);
         }
+        user.getAuthorizationGames().add(game.getUid());
         return RunResult.ok();
     }
 
@@ -90,7 +124,7 @@ public class GameApi {
                 .stream()
                 .sorted(Comparator.comparingInt(GameContext::getGameId))
                 .map(GameContext::getGame)
-                .filter(game -> user.isRoot() || user.getAuthorizationGames().contains(game.getUid()))
+                .filter(game -> user.isRoot() || user.isAllGame() || user.getAuthorizationGames().contains(game.getUid()))
                 .skip(skip)
                 .limit(pageSize)
                 .map(game -> {
@@ -100,6 +134,39 @@ public class GameApi {
                 })
                 .toList();
         return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", list.size());
+    }
+
+    @HttpRequest(authority = 9, comment = "游戏列表")
+    public RunResult menu(HttpContext session, @ThreadParam() User user) {
+        List<JSONObject> list = gameService.getGameContextHashMap().values()
+                .stream()
+                .sorted(Comparator.comparingInt(GameContext::getGameId))
+                .map(GameContext::getGame)
+                .filter(game -> user.isRoot() || user.isAllGame() || user.getAuthorizationGames().contains(game.getUid()))
+                .map(game -> {
+                    JSONObject jsonObject = game.toJSONObject();
+                    jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm", jsonObject.getLong("createTime")));
+                    return jsonObject;
+                })
+                .collect(Collectors.toList());
+
+        List<String> routings = new ArrayList<>();
+
+        Stream<Tuple2<Path, byte[]>> htmlStream = FileUtil.resourceStreams("html", ".html");
+        htmlStream.forEach(tuple2 -> {
+            Path left = tuple2.getLeft();
+            String pathString = left.toString();
+            int indexOf = pathString.indexOf("html" + File.separator);
+            if (indexOf < 0) {
+                return;
+            }
+            pathString = "/" + pathString.substring(indexOf + 5);
+            if ((user.isRoot() || user.getAuthorizationRouting().contains(pathString))) {
+                routings.add(pathString);
+            }
+        });
+
+        return RunResult.ok().fluentPut("data", list).fluentPut("routings", routings).fluentPut("rowCount", list.size());
     }
 
     @HttpRequest(authority = 9, comment = "添加日志表")

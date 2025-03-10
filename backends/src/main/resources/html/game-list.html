@@ -25,12 +25,40 @@
 
         label {padding-left: 5px;padding-right: 5px;}
 
-        input {margin-top: 5px;border: slategrey 1px solid;border-radius: 5px;height: 22px;}
+        #div_button button {border: slategrey 1px solid;border-radius: 5px;height: 32px;line-height: 32px;}
 
-        input[type=text] {width: 160px;}
+        #div_button input[type=text], input[type=date], input[type=password] {width: 160px;}
+
+        #div_button input {margin-top: 5px;border: slategrey 1px solid;border-radius: 5px;height: 28px;line-height: 28px; }
     </style>
 
     <script>
+
+        function parentLoading() {
+            wxd.loading();
+        }
+
+        function parentLoading_close() {
+            wxd.loading_close();
+        }
+
+        function parentNotice(content, isError, closeTime) {
+            wxd.message.notice(content, isError, closeTime);
+        }
+
+        function parentAlert(msg) {
+            wxd.message.alert(
+                msg,
+                "提示：",
+                "关闭",
+                () => {
+                    setTimeout(() => {
+                        $("#div_load_box").parent().remove();
+                        search();
+                    }, 1);
+                }
+            );
+        }
 
         let pageView;
 
@@ -71,16 +99,13 @@
 </head>
 
 <body>
-<div id="base" style="padding-left: 15px;">
-
-</div>
-<br>
-<div style="text-align: left;padding-left: 10px;">
-    <input type="button" value="搜索" onclick="search();">
+<div id="div_button" style="padding-left: 10px;padding-top: 8px; text-align: left;vertical-align: center;">
+    <button type="button" onclick="wxd.loadHtml('/game-add.html','400px','240px',null,'-50px','-50px');">添加</button>
+    <button type="button" onclick="search();">搜索</button>
     <br>
     <input id="search" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="游戏ID或者游戏名字"/>
 </div>
-<div class="tableDom" style="position: absolute;left: 10px;top: 80px;right: 15px;bottom: 35px;">
+<div class="tableDom" style="position: absolute;left: 10px;top: 100px;right: 15px;bottom: 35px;">
     <table>
         <thead>
         <tr>

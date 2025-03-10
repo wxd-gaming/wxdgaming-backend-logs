@@ -2,12 +2,11 @@ package wxdgaming.backends.admin;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import wxdgaming.backends.entity.system.User;
 import wxdgaming.boot2.core.ann.Sort;
 import wxdgaming.boot2.core.ann.Start;
-import wxdgaming.boot2.core.reflect.ReflectContext;
-import wxdgaming.boot2.starter.batis.Entity;
+import wxdgaming.boot2.core.shutdown;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
 
 /**
@@ -17,6 +16,7 @@ import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
  * @version: 2025-02-11 09:50
  **/
 @Slf4j
+@Getter
 @Singleton
 public class AdminService {
 
@@ -30,6 +30,11 @@ public class AdminService {
     @Start
     @Sort(100)
     public void start() throws Exception {
+
+    }
+
+    @shutdown
+    public void shutdown() {
 
     }
 

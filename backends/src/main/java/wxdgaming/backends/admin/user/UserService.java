@@ -61,6 +61,8 @@ public class UserService {
             user.setPhone("15388152619");
             user.setRoot(true);
             user.setAdmin(true);
+            user.setAllGame(true);
+            user.setAllRouting(true);
             user.setPwd(md5Pwd(user.getUid(), user.getAccount(), "123456"));
             userCache.put(user.getAccount(), user);
         }

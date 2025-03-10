@@ -9,6 +9,7 @@ import wxdgaming.backends.entity.games.GameTableScan;
 import wxdgaming.backends.entity.games.logs.RecordBase;
 import wxdgaming.backends.entity.games.logs.SLog;
 import wxdgaming.backends.entity.system.Game;
+import wxdgaming.backends.entity.system.GlobalData;
 import wxdgaming.boot2.core.ann.Start;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.reflect.ReflectContext;
@@ -41,8 +42,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @Singleton
 public class GameService {
 
-    private final ConcurrentHashMap<Integer, GameContext> gameContextHashMap = new ConcurrentHashMap<>();
+    final ConcurrentHashMap<Integer, GameContext> gameContextHashMap = new ConcurrentHashMap<>();
 
+    GlobalData globalData;
     final PgsqlService pgsqlService;
     final ReflectContext logReflectContext;
 
@@ -54,12 +56,28 @@ public class GameService {
 
     @Start
     public void start() throws Exception {
+        globalData = this.pgsqlService.findByKey(GlobalData.class, 1);
+        if (globalData == null) {
+            globalData = new GlobalData();
+            globalData.setUid(1);
+            globalData.setNewEntity(true);
+            this.pgsqlService.insert(globalData);
+        }
         scheduled();
     }
 
     @shutdown
     public void shutdown() {
+        this.pgsqlService.update(globalData);
         gameContextHashMap.forEach((k, v) -> v.shutdown());
+    }
+
+    public int newGameId() {
+        int incremented;
+        do {
+            incremented = globalData.getNewGameId().incrementAndGet();
+        } while (gameContextHashMap.containsKey(incremented));
+        return incremented;
     }
 
     /** 每日凌晨检查数据库，检查表分区信息 */

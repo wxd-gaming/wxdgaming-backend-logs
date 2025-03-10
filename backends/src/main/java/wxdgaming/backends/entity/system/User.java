@@ -66,8 +66,14 @@ public class User extends EntityLongUID implements Serializable {
     private boolean isAllRouting;
 
     /** 检查路由授权 */
-    public boolean checkAuthorization(String path) {
-        return admin || authorizationRouting.contains(path);
+    public boolean checkAuthorRouting(String path) {
+        return root || isAllRouting || authorizationRouting.contains(path);
+    }
+
+
+    /** 检查路由授权 */
+    public boolean checkAuthorGame(int gameId) {
+        return root || isAllGame || authorizationGames.contains(gameId);
     }
 
 }

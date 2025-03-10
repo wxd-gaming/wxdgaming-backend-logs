@@ -53,7 +53,7 @@ public class Authority_9_ByUser_Filter extends HttpFilter {
 
         int gameId = httpContext.getRequest().getReqParams().getIntValue("gameId");
         if (gameId > 0) {
-            if (!user.getAuthorizationGames().contains(gameId)) {
+            if (!user.checkAuthorGame(gameId)) {
                 return RunResult.error("权限不足");
             }
         }
@@ -70,7 +70,7 @@ public class Authority_9_ByUser_Filter extends HttpFilter {
             return null;
         }
 
-        if (!user.checkAuthorization(url)) {
+        if (!user.checkAuthorRouting(url)) {
             return RunResult.error("权限不足");
         }
         return null;

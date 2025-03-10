@@ -13,7 +13,9 @@ import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
 import wxdgaming.boot2.core.format.HexId;
+import wxdgaming.boot2.core.io.FileUtil;
 import wxdgaming.boot2.core.lang.RunResult;
+import wxdgaming.boot2.core.lang.Tuple2;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
@@ -22,10 +24,13 @@ import wxdgaming.boot2.starter.net.server.http.HttpContext;
 import wxdgaming.boot2.starter.net.server.http.HttpListenerFactory;
 import wxdgaming.boot2.starter.net.server.http.HttpMapping;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -222,12 +227,12 @@ public class UserApi {
                 .stream()
                 .sorted(Comparator.comparingInt(GameContext::getGameId))
                 .map(GameContext::getGame)
-                .filter(game -> user.isRoot() || user.getAuthorizationGames().contains(game.getUid()))
+                .filter(game -> user.isRoot() || user.isAllGame() || user.getAuthorizationGames().contains(game.getUid()))
                 .map(game -> {
                     JSONObject jsonObject = new JSONObject();
                     jsonObject.put("uid", game.getUid());
                     jsonObject.put("name", game.getName());
-                    jsonObject.put("checked", byAccount.getAuthorizationGames().contains(game.getUid()) ? "checked" : "");
+                    jsonObject.put("checked", byAccount.isAllGame() || byAccount.getAuthorizationGames().contains(game.getUid()) ? "checked" : "");
                     return jsonObject;
                 })
                 .toList();
@@ -248,9 +253,10 @@ public class UserApi {
             return RunResult.error("用户不存在");
         }
         Stream<HttpMapping> stream = httpListenerFactory.getHttpListenerContent().getHttpMappingMap().values().stream();
+
         List<JSONObject> list = stream
                 .sorted(Comparator.comparing(HttpMapping::path))
-                .filter(mapping -> user.isRoot() || user.getAuthorizationRouting().contains(mapping.path()))
+                .filter(mapping -> user.isRoot() || user.isAllRouting() || user.getAuthorizationRouting().contains(mapping.path()))
                 .map(mapping -> {
                     JSONObject jsonObject = new JSONObject();
                     jsonObject.put("uid", mapping.path());
@@ -259,10 +265,27 @@ public class UserApi {
                     } else {
                         jsonObject.put("name", mapping.httpRequest().comment() + "<br>" + mapping.path());
                     }
-                    jsonObject.put("checked", byAccount.getAuthorizationRouting().contains(mapping.path()) ? "checked" : "");
+                    jsonObject.put("checked", byAccount.isAllRouting() || byAccount.getAuthorizationRouting().contains(mapping.path()) ? "checked" : "");
                     return jsonObject;
                 })
-                .toList();
+                .collect(Collectors.toList());
+
+        Stream<Tuple2<Path, byte[]>> htmlStream = FileUtil.resourceStreams("html", ".html");
+        htmlStream.forEach(tuple2 -> {
+            Path left = tuple2.getLeft();
+            String pathString = left.toString();
+            int indexOf = pathString.indexOf("html" + File.separator);
+            if (indexOf < 0) {
+                return;
+            }
+            pathString = "/" + pathString.substring(indexOf + 5);
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("uid", pathString);
+            jsonObject.put("name", pathString);
+            jsonObject.put("checked", byAccount.isAllRouting() || byAccount.getAuthorizationRouting().contains(pathString) ? "checked" : "");
+            list.add(jsonObject);
+        });
+
         return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", list.size());
     }
 

@@ -34,7 +34,14 @@
     </style>
 
     <script>
-        let pageView;
+
+        function parentLoading() {
+            wxd.loading();
+        }
+
+        function parentLoading_close() {
+            wxd.loading_close();
+        }
 
         function parentNotice(content, isError, closeTime) {
             wxd.message.notice(content, isError, closeTime);
@@ -77,6 +84,8 @@
                 false
             );
         }
+
+        let pageView;
 
         function search() {
             wxd.loading();

@@ -45,6 +45,18 @@
             );
         }
 
+        function allChecked() {
+            $("input[name='options']").each((index, item) => {
+                $(item).prop("checked", $(item).prop("checked"));
+            });
+        }
+
+        function reChecked() {
+            $("input[name='options']").each((index, item) => {
+                $(item).prop("checked", !$(item).prop("checked"));
+            });
+        }
+
         $(() => {
             wxd.loading();
             let postQuery = new wxd.Map().loadSearch();
@@ -60,7 +72,7 @@
                     let datas = responseText.data;
                     for (let i = 0; i < datas.length; i++) {
                         let data = datas[i];
-                        $(".box ul").append(`
+                        $(".box #ul_list").append(`
                             <li>
                                 <input type="checkbox" id="option${data.uid}" name="options" value="${data.uid}" ${data.checked}>
                                 <label for="option${data.uid}">${data.name}</label>
@@ -84,6 +96,14 @@
 </div>
 <div class="box">
     <ul>
+        <li>
+            <input type="checkbox" id="option1" name="other1" value="other1" onchange="allChecked()"><label for="option1">全选</label>
+        </li>
+        <li>
+            <input type="checkbox" id="option2" name="other1" value="other1" onchange="reChecked()"><label for="option2">反选</label>
+        </li>
+    </ul>
+    <ul id="ul_list">
     </ul>
 </div>
 </body>

@@ -43,15 +43,27 @@
 
         });
 
+        let defaultRouting = [
+            ["/logerror.html", "错误日志"],
+            ["/gamestat.html", "游戏统计"],
+            ["/accountstat.html", "账号留存"],
+            ["/recharge.html", "充值详情"],
+            ["/server-list.html", "区服信息"],
+            ["/account.html", "账号列表"],
+            ["/role.html", "角色列表"],
+            ["/login-log.html", "登录记录"],
+            ["/roleonline.html", "在线时长查询"],
+            ["/itemlog.html", "道具日志"]
+        ]
+
         function getMenu() {
             wxd.loading();
             let postQuery = new wxd.Map().loadSearch();
             postQuery.put("pageIndex", 1);
             postQuery.put("pageSize", 10000);
-            let url = "/game/list";
+            let url = "/game/menu";
             wxd.netty.post(url, postQuery.toString(),
                 function (responseText) {
-                    console.log(JSON.stringify(responseText));
                     if (responseText.code !== 1) {
                         wxd.message.alert(responseText.msg, "Error");
                         return;
@@ -61,12 +73,21 @@
 
                         let appendA = "";
 
-                        var tableMapping = datum.tableMapping;
-                        console.log(tableMapping);
+                        let routings = responseText.routings;
+
+                        for (const routing of defaultRouting) {
+                            for (const key in routings) {
+                                if (routings[key] === routing[0]) {
+                                    appendA += `<a class="J_menuItem" href="${routing[0]}?gameId=${datum.uid}">${datum.name}-${routing[1]}</a>`;
+                                    break;
+                                }
+                            }
+                        }
+                        let tableMapping = datum.tableMapping;
                         for (const key in tableMapping) {
                             appendA += `<a class="J_menuItem" href="/log.html?gameId=${datum.uid}&logType=${key}">${datum.name}-${tableMapping[key]}</a>`;
                         }
-                        console.log(appendA);
+
                         let appendLi = `
                         <li>
                             <a href="#">
@@ -76,16 +97,6 @@
                             </a>
                             <ul class="nav nav-second-level">
                                 <li id="game-menu-sub-${datum.uid}">
-                                    <a class="J_menuItem" href="/logerror.html?gameId=${datum.uid}">${datum.name}-错误日志</a>
-                                    <a class="J_menuItem" href="/gamestat.html?gameId=${datum.uid}">${datum.name}-游戏统计</a>
-                                    <a class="J_menuItem" href="/accountstat.html?gameId=${datum.uid}">${datum.name}-账号留存</a>
-                                    <a class="J_menuItem" href="/recharge.html?gameId=${datum.uid}">${datum.name}-充值详情</a>
-                                    <a class="J_menuItem" href="/server-list.html?gameId=${datum.uid}">${datum.name}-区服信息</a>
-                                    <a class="J_menuItem" href="/account.html?gameId=${datum.uid}">${datum.name}-账号列表</a>
-                                    <a class="J_menuItem" href="/role.html?gameId=${datum.uid}">${datum.name}-角色列表</a>
-                                    <a class="J_menuItem" href="/login-log.html?gameId=${datum.uid}">${datum.name}-登录记录</a>
-                                    <a class="J_menuItem" href="/roleonline.html?gameId=${datum.uid}">${datum.name}-在线时长查询</a>
-                                    <a class="J_menuItem" href="/itemlog.html?gameId=${datum.uid}">${datum.name}-道具日志</a>
                                     ${appendA}
                                 </li>
                             </ul>

@@ -5,6 +5,8 @@ import org.graalvm.polyglot.Value;
 import wxdgaming.backends.entity.games.GameStat;
 import wxdgaming.boot2.core.CoreScan;
 import wxdgaming.boot2.core.RunApplication;
+import wxdgaming.boot2.core.io.FileUtil;
+import wxdgaming.boot2.core.lang.Tuple2;
 import wxdgaming.boot2.starter.WxdApplication;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlScan;
 import wxdgaming.boot2.starter.js.JsScan;
@@ -15,7 +17,10 @@ import wxdgaming.boot2.starter.net.server.http.HttpListenerFactory;
 import wxdgaming.boot2.starter.net.server.http.HttpMapping;
 import wxdgaming.boot2.starter.scheduled.ScheduledScan;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.Collection;
+import java.util.stream.Stream;
 
 /**
  * 后台管理系统
@@ -47,6 +52,18 @@ public class BackendsStart {
         for (HttpMapping value : values) {
             System.out.println(value.path() + " - " + value.comment());
         }
+
+        Stream<Tuple2<Path, byte[]>> html = FileUtil.resourceStreams("html", ".html");
+        html.forEach(tuple2 -> {
+            Path left = tuple2.getLeft();
+            String pathString = left.toString();
+            int indexOf = pathString.indexOf("html" + File.separator);
+            if (indexOf < 0) {
+                return;
+            }
+            pathString = "/" + pathString.substring(indexOf + 5);
+            System.out.println(pathString);
+        });
 
     }
 

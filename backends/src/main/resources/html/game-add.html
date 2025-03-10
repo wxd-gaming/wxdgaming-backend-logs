@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>添加用户</title>
+    <title>添加游戏</title>
 
     <script charset="utf-8" type="text/javascript" src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
     <script charset="utf-8" type="text/javascript" src="/js/com.wxd.js"></script>
@@ -32,21 +32,21 @@
     </style>
 
     <script>
-
         function add() {
+            window.parent.parentLoading();
             let urlQuery = new wxd.Map().loadSearch();
-            urlQuery.put("account", $("#account").val());
-            urlQuery.put("pwd", $("#pwd").val());
-            urlQuery.put("phone", $("#phone").val());
-            wxd.netty.post("/user/add", urlQuery.toString(),
+            urlQuery.put("gameName", $("#gameName").val());
+            wxd.netty.post("/game/add", urlQuery.toString(),
                 function (responseText) {
+                    window.parent.parentLoading_close();
                     if (responseText.code !== 1) {
-                        window.parent.parentNotice(responseText.msg);
+                        window.parent.parentNotice(responseText.msg, true);
                     } else {
                         window.parent.parentAlert("完成");
                     }
                 },
                 (errorMsg) => {
+                    window.parent.parentLoading_close();
                     window.parent.parentAlert("异常：" + errorMsg);
                 },
                 false
@@ -58,9 +58,7 @@
 <body>
 <div style="position: absolute;left: 50%;top: 50%;transform: translate(-50%,-50%);width: 380px;text-align: center;padding: 3px;">
     <ul>
-        <li><label for="account">账号：</label><input type="text" id="account" style="width: 260px;"></li>
-        <li><label for="pwd">密码：</label><input type="password" id="pwd" style="width: 260px;"></li>
-        <li><label for="phone">电话：</label><input type="text" id="phone" style="width: 260px;"></li>
+        <li><label for="gameName">游戏名字：</label><input type="text" id="gameName" style="width: 260px;"></li>
     </ul>
     <button class="tijiao" onclick="add();">提交</button>
 </div>
