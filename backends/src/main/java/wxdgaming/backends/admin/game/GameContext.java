@@ -64,7 +64,7 @@ public class GameContext {
                 .heartTime(24, TimeUnit.HOURS)
                 .expireAfterWrite(2, TimeUnit.DAYS)
                 .build();
-        this.accountRecordJdbcCache = new JdbcCache<>(dataHelper, 100, 60) {
+        this.accountRecordJdbcCache = new JdbcCache<>(dataHelper, 10, 60) {
 
             @Override protected AccountRecord loader(String account) {
                 AccountRecord byWhere = dataHelper.findByWhere(AccountRecord.class, "account = ?", account);
@@ -91,7 +91,7 @@ public class GameContext {
 
         };
 
-        this.roleRecordJdbcCache = new JdbcCache<>(dataHelper, 100, 60) {
+        this.roleRecordJdbcCache = new JdbcCache<>(dataHelper, 10, 60) {
             @Override protected RoleRecord loader(Long uid) {
                 RoleRecord byWhere = dataHelper.findByWhere(RoleRecord.class, "uid = ?", uid);
                 if (byWhere != null) {
