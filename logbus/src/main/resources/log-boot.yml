@@ -1,0 +1,33 @@
+debug: true
+sid: 1
+executor:
+  default:
+    coreSize: 2                        #默认线程池的核心线程数
+    maxSize: 4                         #默认线程池的最大线程数
+    maxQueueSize: 10000                #队列超过就会打印异常
+  logic:
+    coreSize: 10                       #逻辑线程池
+    maxSize: 32                        #逻辑线程池
+    maxQueueSize: 50000                #队列超过就会打印异常
+  virtual:
+    coreSize: 100                      #虚拟线程池
+    maxSize: 200                       #虚拟线程池
+    maxQueueSize: 1500000              #队列超过就会打印异常
+http:
+  client:
+    core: 20                            #连接池的核心连接数
+    max: 300                            #连接池的最大连接数
+    resetTimeM: 30                      #连接池重置时间，时间太长连接池会异常 单位分钟
+    sslProtocol: TLS                    #ssl 类型
+    connectTimeOut: 3000                #创建连接超时时间
+    connectionRequestTimeout: 1000      #从连接池获取连接超时
+    keepAliveTimeout: 30000             #连接有效时间
+    readTimeout: 3000                   #读取超时时间
+
+logbus:
+  portUrl: http://127.0.0.1:19000/
+  appId: 1
+  appToken: ddddd
+  logToken: ddddd
+  batch: true
+  batchThread: 10
