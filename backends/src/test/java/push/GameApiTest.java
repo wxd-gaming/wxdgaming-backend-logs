@@ -39,8 +39,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class GameApiTest {
 
-    protected String postHost = "http://211.149.228.9:19000";
-    // protected String postHost = "http://127.0.0.1:19000";
+    // protected String postHost = "http://211.149.228.9:19000";
+    protected String postHost = "http://127.0.0.1:19000";
 
     protected static int days = 120;
     protected static int gameId = 2;
