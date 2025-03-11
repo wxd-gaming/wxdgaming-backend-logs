@@ -7,6 +7,7 @@ import wxdgaming.boot2.core.CoreScan;
 import wxdgaming.boot2.core.RunApplication;
 import wxdgaming.boot2.core.io.FileUtil;
 import wxdgaming.boot2.core.lang.Tuple2;
+import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.starter.WxdApplication;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlScan;
 import wxdgaming.boot2.starter.js.JsScan;

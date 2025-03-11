@@ -17,7 +17,6 @@ import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.format.TimeFormat;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.Event;
-import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.threading.ExecutorWith;
 import wxdgaming.boot2.core.threading.ThreadContext;
 import wxdgaming.boot2.core.timer.MyClock;
@@ -38,7 +37,7 @@ import java.util.List;
  **/
 @Slf4j
 @Singleton
-@RequestMapping(path = "role")
+@RequestMapping(path = "log/role")
 public class RoleApi {
 
     final GameService gameService;
@@ -55,41 +54,40 @@ public class RoleApi {
     @HttpRequest(authority = 2)
     @ExecutorWith(useVirtualThread = true)
     public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") RoleRecord record) {
-
         log.info("role - {}", record.toJsonString());
-        AccountRecord accountRecord = gameContext.getAccountRecord(record.getAccount());
-        if (accountRecord == null) {
-            gameContext.recordError("角色记录 找不到账号 " + record.getAccount(), record.toJsonString());
-        } else {
-            RoleRecord entity = gameContext.getRoleRecord(record.getUid());
-            if (entity == null) {
-                record.checkDataKey();
-                gameContext.getRoleRecordJdbcCache().put(record.getUid(), record);
-            } else {
-                entity.setCurSid(record.getCurSid());
-                entity.setRoleName(record.getRoleName());
-                entity.setJob(record.getJob());
-                entity.setSex(record.getSex());
-                entity.setLv(record.getLv());
-                entity.getOther().clear();
-                entity.getOther().putAll(record.getOther());
+        gameContext.submit(new Event(5000, 10000) {
+            @Override public void onEvent() throws Exception {
+                AccountRecord accountRecord = gameContext.getAccountRecord(record.getAccount());
+                if (accountRecord == null) {
+                    gameContext.recordError("角色记录 找不到账号 " + record.getAccount(), record.toJsonString());
+                } else {
+                    RoleRecord entity = gameContext.getRoleRecord(record.getUid());
+                    if (entity == null) {
+                        record.checkDataKey();
+                        gameContext.getRoleRecordJdbcCache().put(record.getUid(), record);
+                    } else {
+                        entity.setCurSid(record.getCurSid());
+                        entity.setRoleName(record.getRoleName());
+                        entity.setJob(record.getJob());
+                        entity.setSex(record.getSex());
+                        entity.setLv(record.getLv());
+                        entity.getOther().clear();
+                        entity.getOther().putAll(record.getOther());
+                    }
+                    if (!accountRecord.getRoleList().contains(record.getUid())) {
+                        accountRecord.getRoleList().add(record.getUid());
+                    }
+                }
             }
-            if (!accountRecord.getRoleList().contains(record.getUid())) {
-                accountRecord.getRoleList().add(record.getUid());
-            }
-        }
+        });
         return RunResult.ok();
     }
 
     @HttpRequest(authority = 2)
     public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<RoleRecord> recordList) {
-        ExecutorUtil.getInstance().getLogicExecutor().execute(new Event(5000, 10000) {
-            @Override public void onEvent() throws Exception {
-                for (RoleRecord record : recordList) {
-                    push(gameContext, record);
-                }
-            }
-        });
+        for (RoleRecord record : recordList) {
+            push(gameContext, record);
+        }
         return RunResult.ok();
     }
 

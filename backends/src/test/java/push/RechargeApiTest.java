@@ -33,10 +33,13 @@ public class RechargeApiTest extends AccountApiTest {
         CountDownLatch countDownLatch = new CountDownLatch(accountRecordMap.size());
         for (List<JSONObject> recordList : accountRecordMap.values()) {
             executorServices.execute(() -> {
-                for (JSONObject accountRecord : recordList) {
-                    test(logToken, accountRecord);
+                try {
+                    for (JSONObject accountRecord : recordList) {
+                        test(logToken, accountRecord);
+                    }
+                } finally {
+                    countDownLatch.countDown();
                 }
-                countDownLatch.countDown();
             });
         }
         countDownLatch.await();

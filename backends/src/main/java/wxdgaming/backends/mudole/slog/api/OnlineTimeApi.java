@@ -29,7 +29,7 @@ import java.util.List;
  **/
 @Slf4j
 @Singleton
-@RequestMapping(path = "online")
+@RequestMapping(path = "log/online")
 public class OnlineTimeApi {
 
     private final GameService gameService;

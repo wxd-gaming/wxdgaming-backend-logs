@@ -146,7 +146,7 @@ public class UserApi {
     public RunResult authorGames(HttpContext httpContext,
                                  @ThreadParam() User user,
                                  @Param(path = "account") String account,
-                                 @Param(path = "authors", defaultValue = "[]") List<Integer> authors) {
+                                 @Param(path = "authors", defaultValue = "[]") String authorString) {
         if (!(user.isAdmin() || user.isRoot())) {
             return RunResult.error("权限不足");
         }
@@ -163,8 +163,8 @@ public class UserApi {
                 return RunResult.error("权限不足");
             }
         }
-
-        HashSet<Integer> integers = new HashSet<>(authors);
+        List<Integer> authorList = FastJsonUtil.parseArray(authorString, Integer.class);
+        HashSet<Integer> integers = new HashSet<>(authorList);
         if (!user.isRoot()) {
             /*我要给别的账号授权，前提是我必须有权限*/
             HashSet<Integer> authorizationGames = user.getAuthorizationGames();
@@ -263,7 +263,7 @@ public class UserApi {
                     if (StringUtils.isBlank(mapping.httpRequest().comment())) {
                         jsonObject.put("name", mapping.path());
                     } else {
-                        jsonObject.put("name", mapping.httpRequest().comment() + "<br>" + mapping.path());
+                        jsonObject.put("name", mapping.path() + "<br>" + mapping.httpRequest().comment());
                     }
                     jsonObject.put("checked", byAccount.isAllRouting() || byAccount.getAuthorizationRouting().contains(mapping.path()) ? "checked" : "");
                     return jsonObject;
@@ -279,6 +279,9 @@ public class UserApi {
                 return;
             }
             pathString = "/" + pathString.substring(indexOf + 5);
+
+            pathString = pathString.replace("\\", "/");
+
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("uid", pathString);
             jsonObject.put("name", pathString);
@@ -286,7 +289,9 @@ public class UserApi {
             list.add(jsonObject);
         });
 
-        return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", list.size());
+        list.sort(Comparator.comparing(o -> o.getString("uid")));
+
+        return RunResult.ok().fluentPut("data", list);
     }
 
     @HttpRequest(authority = 9, comment = "登录用户禁止和解禁")

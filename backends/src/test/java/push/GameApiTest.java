@@ -12,7 +12,6 @@ import wxdgaming.boot2.core.collection.MapOf;
 import wxdgaming.boot2.core.format.HexId;
 import wxdgaming.boot2.core.io.FileReadUtil;
 import wxdgaming.boot2.core.lang.RunResult;
-import wxdgaming.boot2.core.threading.ExecutorConfig;
 import wxdgaming.boot2.core.threading.ExecutorServices;
 import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.timer.MyClock;
@@ -43,18 +42,17 @@ public class GameApiTest {
     protected String postHost = "http://211.149.228.9:19000";
     // protected String postHost = "http://127.0.0.1:19000";
 
-    protected int days = 120;
-    protected int gameId = 2;
-    protected HexId hexId = new HexId(gameId);
+    protected static int days = 120;
+    protected static int gameId = 2;
+    protected static HexId hexId = new HexId(gameId);
 
     protected AtomicBoolean logined = new AtomicBoolean();
     protected static ExecutorServices executorServices;
 
 
     static {
-        executorServices = ExecutorUtil.getInstance().newExecutorServices("push", 10, 10);
-        executorServices.setQueueCheckSize(15000);
-        ExecutorUtil.getInstance().init(ExecutorConfig.INSTANCE);
+        executorServices = ExecutorUtil.getInstance().newExecutorServices("push", 10, 10, 10000);
+        ExecutorUtil.getInstance().init();
     }
 
     public void post(String path, Entity entity) throws Exception {
@@ -162,15 +160,14 @@ public class GameApiTest {
     @Test
     public void pushGame() throws Exception {
         Game game = new Game();
-        game.setUid(gameId);
-        game.setName("神剑诀");
+        game.setName("超变传世");
         game.setIcon("icon");
         game.setDesc("desc");
         game.setUrl("url");
         game.setCreateTime(MyClock.time2Milli(LocalDateTime.now().plusDays(-125)));
 
         LinkedHashMap<String, String> tableMapping = game.getTableMapping();
-        tableMapping.put("log_item", "道具日志");
+        tableMapping.put("log_lv", "升级日志");
 
         post("game/push", game);
     }

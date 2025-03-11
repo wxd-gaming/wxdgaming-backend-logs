@@ -29,7 +29,7 @@
                 authors.push($(item).val());
             });
             let urlQuery = new wxd.Map().loadSearch();
-            urlQuery.put("authors", authors);
+            urlQuery.put("authors", JSON.stringify(authors));
             wxd.netty.post("/user/authorGames", urlQuery.toString(),
                 function (responseText) {
                     if (responseText.code !== 1) {
@@ -43,6 +43,18 @@
                 },
                 false
             );
+        }
+
+        function allChecked() {
+            $("input[name='options']").each((index, item) => {
+                $(item).prop("checked", $("#optionAll").prop("checked"));
+            });
+        }
+
+        function reChecked() {
+            $("input[name='options']").each((index, item) => {
+                $(item).prop("checked", !$(item).prop("checked"));
+            });
         }
 
         $(() => {
@@ -81,6 +93,8 @@
 <body>
 <div style="padding-left: 30px;height: 80px;">
     <button class="tijiao" onclick="submit();">提交</button>
+    <input type="checkbox" id="optionAll" name="other1" value="other1" onchange="allChecked()"><label for="optionAll">全选</label>
+    <input type="checkbox" id="optionBe" name="other1" value="other1" onchange="reChecked()"><label for="optionBe">反选</label>
 </div>
 <div class="box">
     <ul>

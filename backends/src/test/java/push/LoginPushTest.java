@@ -3,6 +3,7 @@ package push;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
+import org.junit.jupiter.api.RepeatedTest;
 import wxdgaming.boot2.core.collection.MapOf;
 import wxdgaming.boot2.core.lang.DiffTime;
 import wxdgaming.boot2.core.lang.RunResult;
@@ -36,10 +37,13 @@ public class LoginPushTest extends RoleApiTest {
         CountDownLatch countDownLatch = new CountDownLatch(accountRecordMap.size());
         for (List<JSONObject> recordList : accountRecordMap.values()) {
             executorServices.execute(() -> {
-                for (JSONObject accountRecord : recordList) {
-                    pushLoginLog(logToken, accountRecord);
+                try {
+                    for (JSONObject accountRecord : recordList) {
+                        pushLoginLog(logToken, accountRecord);
+                    }
+                } finally {
+                    countDownLatch.countDown();
                 }
-                countDownLatch.countDown();
             });
         }
         countDownLatch.await();
@@ -78,13 +82,14 @@ public class LoginPushTest extends RoleApiTest {
     }
 
     @Test
+    @RepeatedTest(100)
     public void randomPushLogin() {
         String logToken = findLogToken();
         HashMap<Integer, List<JSONObject>> accountRecordMap = readAccount();
         List<JSONObject> list = accountRecordMap.values().stream().flatMap(Collection::stream).toList();
         JSONObject accountRecord = RandomUtils.randomItem(list);
         /*模拟数据 账号的uid就是角色的uid*/
-        pushLogout(logToken, accountRecord.getString("account"), accountRecord.getLong("uid"), "LOGIN");
+        pushLogout(logToken, accountRecord.getString("account"), accountRecord.getLong("uid"), RandomUtils.randomBoolean() ? "LOGIN" : "LOGOUT");
     }
 
     @Test
@@ -100,7 +105,7 @@ public class LoginPushTest extends RoleApiTest {
     }
 
     public void pushLogout(String logToken, String account, long roleId, String logType) {
-        JSONObject data = buildLoginLog(logToken, roleId, account, logType, System.currentTimeMillis());
+        JSONObject data = buildLoginLog(logToken, roleId, account, logType, randomCreateTime());
         JSONObject jsonObject = MapOf.newJSONObject();
         jsonObject.put("gameId", gameId);
         jsonObject.put("token", logToken);

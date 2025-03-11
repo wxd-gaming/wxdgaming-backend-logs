@@ -14,7 +14,6 @@ import wxdgaming.boot2.core.ann.Start;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.reflect.ReflectContext;
 import wxdgaming.boot2.core.shutdown;
-import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.batis.TableMapping;
 import wxdgaming.boot2.starter.batis.ann.DbTable;
@@ -24,11 +23,9 @@ import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
 import wxdgaming.boot2.starter.scheduled.ann.Scheduled;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -116,6 +113,7 @@ public class GameService {
                 .forEach(content -> {
                     TableMapping tableMapping = gameContext.getDataHelper().tableMapping((Class) content.getCls());
                     checkSLogTable(
+                            gameContext,
                             gameContext.getDataHelper(),
                             dbTableMap, tableStructMap,
                             tableMapping, RecordBase.class.isAssignableFrom(content.getCls()),
@@ -127,18 +125,18 @@ public class GameService {
             String tableName = entry.getKey();
             String tableComment = entry.getValue();
             TableMapping tableMapping = gameContext.getDataHelper().tableMapping(SLog.class);
-            checkSLogTable(gameContext.getDataHelper(), dbTableMap, tableStructMap, tableMapping, true, tableName, tableComment);
+            checkSLogTable(gameContext, gameContext.getDataHelper(), dbTableMap, tableStructMap, tableMapping, true, tableName, tableComment);
         }
     }
 
-    public void checkSLogTable(PgsqlDataHelper dataHelper, String tableName, String tableComment) {
+    public void checkSLogTable(GameContext gameContext, PgsqlDataHelper dataHelper, String tableName, String tableComment) {
         Map<String, String> dbTableMap = dataHelper.findTableMap();
         Map<String, LinkedHashMap<String, JSONObject>> tableStructMap = dataHelper.findTableStructMap();
         TableMapping tableMapping = dataHelper.tableMapping(SLog.class);
-        checkSLogTable(dataHelper, dbTableMap, tableStructMap, tableMapping, true, tableName, tableComment);
+        checkSLogTable(gameContext, dataHelper, dbTableMap, tableStructMap, tableMapping, true, tableName, tableComment);
     }
 
-    public void checkSLogTable(PgsqlDataHelper dataHelper,
+    public void checkSLogTable(GameContext gameContext, PgsqlDataHelper dataHelper,
                                Map<String, String> dbTableMap,
                                Map<String, LinkedHashMap<String, JSONObject>> tableStructMap,
                                TableMapping tableMapping,
@@ -150,18 +148,19 @@ public class GameService {
         if (checkPartition) {
             /*TODO 处理分区表 */
             LocalDateTime localDate = LocalDateTime.now().plusDays(-120);
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
+            StringBuilder sb = new StringBuilder();
             for (int i = 0; i < 125; i++) {
-                final int fi = i;
-                CompletableFuture<Void> voidCompletableFuture = ExecutorUtil.getInstance().getLogicExecutor().completableFuture(() -> {
-                    /*创建表分区*/
-                    String from = MyClock.formatDate("yyyyMMdd", localDate.plusDays(fi));
-                    String to = MyClock.formatDate("yyyyMMdd", localDate.plusDays(fi + 1));
-                    dataHelper.addPartition(dbTableMap, tableName, from, to);
-                }, dataHelper.getDbName() + " 添加分区 " + tableName, 10000, 100000);
-                futures.add(voidCompletableFuture);
+                /*创建表分区*/
+                String from = MyClock.formatDate("yyyyMMdd", localDate.plusDays(i));
+                String to = MyClock.formatDate("yyyyMMdd", localDate.plusDays(i + 1));
+
+                String partition_table_name = tableName + "_" + from;
+                if (dbTableMap.containsKey(partition_table_name)) {
+                    continue;
+                }
+                sb.append(dataHelper.buildPartition(tableName, from, to)).append("\n");
             }
-            futures.forEach(CompletableFuture::join);
+            dataHelper.executeUpdate(sb.toString());
         }
     }
 

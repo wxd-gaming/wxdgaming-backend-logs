@@ -6,17 +6,14 @@ import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
-import wxdgaming.backends.entity.games.ErrorRecord;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.RechargeRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
-import wxdgaming.boot2.core.ann.Body;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.Event;
-import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.threading.ExecutorWith;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.core.util.NumberUtil;
@@ -36,7 +33,7 @@ import java.util.List;
  **/
 @Slf4j
 @Singleton
-@RequestMapping(path = "recharge")
+@RequestMapping(path = "log/recharge")
 public class RechargeApi {
 
     final GameService gameService;
@@ -49,53 +46,54 @@ public class RechargeApi {
     @HttpRequest(authority = 2)
     @ExecutorWith(useVirtualThread = true)
     public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") RechargeRecord record) {
-        if (record.getUid() == 0) {
-            record.setUid(gameContext.getRechargeHexId().newId());
-        }
-        record.checkDataKey();
-        String logKey = "recharge" + record.getUid();
-        boolean containsKey = gameContext.getLogKeyCache().containsKey(logKey);
-        if (!containsKey) {
-            gameContext.getLogKeyCache().put(logKey, true);
-            gameContext.getDataHelper().dataBatch().insert(record);
-            String account = record.getAccount();
-            AccountRecord accountRecord = gameContext.getAccountRecord(account);
-            if (accountRecord != null) {
-                accountRecord.getRechargeAmount().addAndGet(record.getAmount());
-                accountRecord.getRechargeCount().incrementAndGet();
-                if (accountRecord.getRechargeFirstTime() == 0) {
-                    accountRecord.setRechargeFirstTime(record.getCreateTime());
+        gameContext.submit(new Event(5000, 10000) {
+            @Override public void onEvent() throws Exception {
+                if (record.getUid() == 0) {
+                    record.setUid(gameContext.getRechargeHexId().newId());
                 }
-                accountRecord.setRechargeLastTime(record.getCreateTime());
-            } else {
-                gameContext.recordError("重复充值记录 找不到账号 " + record.getAccount(), record.toJsonString());
-            }
-            RoleRecord roleRecord = gameContext.getRoleRecord(record.getRoleId());
-            if (roleRecord != null) {
-                roleRecord.getRechargeAmount().addAndGet(record.getAmount());
-                roleRecord.getRechargeCount().incrementAndGet();
-                if (roleRecord.getRechargeFirstTime() == 0) {
-                    roleRecord.setRechargeFirstTime(record.getCreateTime());
+                record.checkDataKey();
+                String logKey = "recharge" + record.getUid();
+                boolean containsKey = gameContext.getLogKeyCache().containsKey(logKey);
+                if (!containsKey) {
+                    gameContext.getLogKeyCache().put(logKey, true);
+                    gameContext.getDataHelper().dataBatch().insert(record);
+                    String account = record.getAccount();
+                    AccountRecord accountRecord = gameContext.getAccountRecord(account);
+                    if (accountRecord != null) {
+                        accountRecord.getRechargeAmount().addAndGet(record.getAmount());
+                        accountRecord.getRechargeCount().incrementAndGet();
+                        if (accountRecord.getRechargeFirstTime() == 0) {
+                            accountRecord.setRechargeFirstTime(record.getCreateTime());
+                        }
+                        accountRecord.setRechargeLastTime(record.getCreateTime());
+                    } else {
+                        gameContext.recordError("充值记录 找不到账号 " + record.getAccount(), record.toJsonString());
+                    }
+                    RoleRecord roleRecord = gameContext.getRoleRecord(record.getRoleId());
+                    if (roleRecord != null) {
+                        roleRecord.getRechargeAmount().addAndGet(record.getAmount());
+                        roleRecord.getRechargeCount().incrementAndGet();
+                        if (roleRecord.getRechargeFirstTime() == 0) {
+                            roleRecord.setRechargeFirstTime(record.getCreateTime());
+                        }
+                        roleRecord.setRechargeLastTime(record.getCreateTime());
+                    } else {
+                        gameContext.recordError("充值记录 找不到对应的角色 " + record.getRoleId(), record.toJsonString());
+                    }
+                } else {
+                    gameContext.recordError("重复充值记录 " + record.getUid(), record.toJsonString());
                 }
-                roleRecord.setRechargeLastTime(record.getCreateTime());
-            } else {
-                gameContext.recordError("重复充值记录 找不到对应的角色 " + record.getRoleId(), record.toJsonString());
             }
-        } else {
-            gameContext.recordError("重复充值记录 " + record.getUid(), record.toJsonString());
-        }
+        });
         return RunResult.ok();
     }
 
     @HttpRequest(authority = 2)
     public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<RechargeRecord> recordList) {
-        ExecutorUtil.getInstance().getLogicExecutor().execute(new Event(5000, 10000) {
-            @Override public void onEvent() throws Exception {
-                for (RechargeRecord record : recordList) {
-                    push(gameContext, record);
-                }
-            }
-        });
+
+        for (RechargeRecord record : recordList) {
+            push(gameContext, record);
+        }
         return RunResult.ok();
     }
 

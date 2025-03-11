@@ -59,12 +59,14 @@ public class GameApi {
         Game game = new Game();
         game.setUid(newGameId);
         game.setName(gameName);
-        game.setCreateTime(System.currentTimeMillis());
+        if (game.getCreateTime() == 0) {
+            game.setCreateTime(System.currentTimeMillis());
+        }
         game.setAppToken(StringUtils.randomString(12));
         game.setRechargeToken(StringUtils.randomString(18));
         game.setLogToken(StringUtils.randomString(32));
         pgsqlService.insert(game);
-        gameService.addGameCache(game);
+        Thread.ofPlatform().start(() -> gameService.addGameCache(game));
         return RunResult.ok();
     }
 
@@ -79,19 +81,21 @@ public class GameApi {
         if (gameContext == null) {
             int newGameId = gameService.newGameId();
             game.setUid(newGameId);
-            game.setCreateTime(System.currentTimeMillis());
+            if (game.getCreateTime() == 0) {
+                game.setCreateTime(System.currentTimeMillis());
+            }
             game.setAppToken(StringUtils.randomString(12));
             game.setRechargeToken(StringUtils.randomString(18));
             game.setLogToken(StringUtils.randomString(32));
             pgsqlService.insert(game);
-            gameService.addGameCache(game);
+            Thread.ofPlatform().start(() -> gameService.addGameCache(game));
         } else {
             Game queryEntity = gameContext.getGame();
             queryEntity.getTableMapping().putAll(game.getTableMapping());
             queryEntity.setAppToken(game.getAppToken());
             queryEntity.setRechargeToken(game.getRechargeToken());
             queryEntity.setLogToken(game.getLogToken());
-            gameService.addGameCache(game);
+            Thread.ofPlatform().start(() -> gameService.addGameCache(game));
         }
         user.getAuthorizationGames().add(game.getUid());
         return RunResult.ok();
@@ -166,7 +170,7 @@ public class GameApi {
             }
         });
 
-        return RunResult.ok().fluentPut("data", list).fluentPut("routings", routings).fluentPut("rowCount", list.size());
+        return RunResult.ok().fluentPut("data", list).fluentPut("routings", routings).fluentPut("admin", user.isRoot() || user.isAdmin());
     }
 
     @HttpRequest(authority = 9, comment = "添加日志表")
@@ -181,7 +185,7 @@ public class GameApi {
         Game game = gameContext.getGame();
 
         if (!game.getTableMapping().containsKey(data.getString("logType"))) {
-            gameService.checkSLogTable(gameContext.getDataHelper(), data.getString("logType"), data.getString("logComment"));
+            gameService.checkSLogTable(gameContext, gameContext.getDataHelper(), data.getString("logType"), data.getString("logComment"));
             game.getTableMapping().put(data.getString("logType"), data.getString("logComment"));
             this.pgsqlService.update(game);
         }

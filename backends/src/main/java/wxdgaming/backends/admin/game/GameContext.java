@@ -10,6 +10,7 @@ import wxdgaming.backends.entity.system.Game;
 import wxdgaming.boot2.core.cache.Cache;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.format.HexId;
+import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.threading.ThreadContext;
 import wxdgaming.boot2.starter.batis.sql.JdbcCache;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
@@ -160,6 +161,10 @@ public class GameContext {
             errorReentrantLock.unlock();
         }
         log.error("记录错误信息 {}", errorRecord);
+    }
+
+    public void submit(Runnable runnable) {
+        ExecutorUtil.getInstance().getVirtualExecutor().submit("queue-game-" + gameId, runnable);
     }
 
 }

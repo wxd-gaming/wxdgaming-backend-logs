@@ -47,7 +47,7 @@
 
         function allChecked() {
             $("input[name='options']").each((index, item) => {
-                $(item).prop("checked", $(item).prop("checked"));
+                $(item).prop("checked", $("#optionAll").prop("checked"));
             });
         }
 
@@ -93,16 +93,10 @@
 <body>
 <div style="padding-left: 30px;height: 80px;">
     <button class="tijiao" onclick="submit();">提交</button>
+    <input type="checkbox" id="optionAll" name="other1" value="other1" onchange="allChecked()"><label for="optionAll">全选</label>
+    <input type="checkbox" id="optionBe" name="other1" value="other1" onchange="reChecked()"><label for="optionBe">反选</label>
 </div>
 <div class="box">
-    <ul>
-        <li>
-            <input type="checkbox" id="option1" name="other1" value="other1" onchange="allChecked()"><label for="option1">全选</label>
-        </li>
-        <li>
-            <input type="checkbox" id="option2" name="other1" value="other1" onchange="reChecked()"><label for="option2">反选</label>
-        </li>
-    </ul>
     <ul id="ul_list">
     </ul>
 </div>

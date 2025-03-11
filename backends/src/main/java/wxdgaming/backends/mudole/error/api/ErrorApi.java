@@ -24,7 +24,7 @@ import java.util.List;
  **/
 @Slf4j
 @Singleton
-@RequestMapping(path = "/error")
+@RequestMapping(path = "/log/error")
 public class ErrorApi {
 
     final GameService gameService;

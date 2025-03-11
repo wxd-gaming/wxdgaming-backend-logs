@@ -16,7 +16,6 @@ import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.Event;
-import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.threading.ExecutorWith;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.core.util.NumberUtil;
@@ -50,44 +49,45 @@ public class SLogItemApi {
 
     @HttpRequest(authority = 2)
     public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<SLog2Item> recordList) {
-        ExecutorUtil.getInstance().getLogicExecutor().execute(new Event(5000, 10000) {
-            @Override public void onEvent() throws Exception {
-                for (SLog2Item record : recordList) {
-                    push(gameContext, record);
-                }
-            }
-        });
+
+        for (SLog2Item record : recordList) {
+            push(gameContext, record);
+        }
         return RunResult.ok();
     }
 
     /** 登录日志的批量提交 */
     @HttpRequest(authority = 2)
     public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") SLog2Item record) {
-        record.setLogType(record.tableName());
-        if (record.getUid() == 0)
-            record.setUid(gameContext.newId(record.tableName()));
+        gameContext.submit(new Event(5000, 10000) {
+            @Override public void onEvent() throws Exception {
+                record.setLogType(record.tableName());
+                if (record.getUid() == 0)
+                    record.setUid(gameContext.newId(record.tableName()));
 
-        String logKey = record.tableName() + record.getUid();
-        boolean haveLogKey = gameContext.getLogKeyCache().containsKey(logKey);
-        if (haveLogKey) {
-            gameContext.recordError("表结构 " + record.tableName() + " 重复日志记录 " + record.getUid(), record.toJsonString());
-        } else {
-            record.checkDataKey();
-            AccountRecord accountRecord = gameContext.getAccountRecord(record.getAccount());
-            if (accountRecord == null) {
-                gameContext.recordError("道具记录 找不到账号 " + record.getAccount(), record.toJsonString());
-                return RunResult.ok();
+                String logKey = record.tableName() + record.getUid();
+                boolean haveLogKey = gameContext.getLogKeyCache().containsKey(logKey);
+                if (haveLogKey) {
+                    gameContext.recordError("表结构 " + record.tableName() + " 重复日志记录 " + record.getUid(), record.toJsonString());
+                } else {
+                    record.checkDataKey();
+                    AccountRecord accountRecord = gameContext.getAccountRecord(record.getAccount());
+                    if (accountRecord == null) {
+                        gameContext.recordError("道具记录 找不到账号 " + record.getAccount(), record.toJsonString());
+                        return;
+                    }
+
+                    RoleRecord roleRecord = gameContext.getRoleRecord(record.getRoleId());
+                    if (roleRecord == null) {
+                        gameContext.recordError("道具记录 找不到角色 " + record.getRoleId(), record.toJsonString());
+                        return;
+                    }
+
+                    gameContext.getLogKeyCache().put(logKey, true);
+                    gameContext.getDataHelper().getDataBatch().insert(record);
+                }
             }
-
-            RoleRecord roleRecord = gameContext.getRoleRecord(record.getRoleId());
-            if (roleRecord == null) {
-                gameContext.recordError("道具记录 找不到角色 " + record.getRoleId(), record.toJsonString());
-                return RunResult.ok();
-            }
-
-            gameContext.getLogKeyCache().put(logKey, true);
-            gameContext.getDataHelper().getDataBatch().insert(record);
-        }
+        });
         return RunResult.ok();
     }
 

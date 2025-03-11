@@ -14,7 +14,6 @@ import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.format.TimeFormat;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.Event;
-import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.core.util.NumberUtil;
 import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
@@ -47,34 +46,36 @@ public class AccountApi {
 
     @HttpRequest(authority = 2)
     public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") JSONObject data) {
-        String account = data.getString("account");
-        AccountRecord entity = gameContext.getAccountRecord(account);
-        if (entity == null) {
-            entity = new AccountRecord();
-            Long uid = data.getLong("uid");
-            entity.setUid(uid);
-            if (entity.getUid() == 0) {
-                entity.setUid(gameContext.getAccountHexId().newId());
+        gameContext.submit(new Event(5000, 10000) {
+            @Override public void onEvent() throws Exception {
+                String account = data.getString("account");
+                AccountRecord entity = gameContext.getAccountRecord(account);
+                if (entity == null) {
+                    entity = new AccountRecord();
+                    Long uid = data.getLong("uid");
+                    entity.setUid(uid);
+                    if (entity.getUid() == 0) {
+                        entity.setUid(gameContext.getAccountHexId().newId());
+                    }
+                    entity.setAccount(account);
+                    long createTime = data.getLong("createTime");
+                    entity.setCreateTime(createTime);
+                    JSONObject other = data.getJSONObject("other");
+                    entity.getOther().putAll(other);
+                    entity.checkDataKey();
+                    gameContext.getAccountRecordJdbcCache().put(entity.getAccount(), entity);
+                }
             }
-            long createTime = data.getLong("createTime");
-            entity.setCreateTime(createTime);
-            JSONObject other = data.getJSONObject("other");
-            entity.getOther().putAll(other);
-            entity.checkDataKey();
-            gameContext.getAccountRecordJdbcCache().put(entity.getAccount(), entity);
-        }
+        });
         return RunResult.ok();
     }
 
     @HttpRequest(authority = 2)
     public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<JSONObject> recordList) {
-        ExecutorUtil.getInstance().getLogicExecutor().execute(new Event(5000, 10000) {
-            @Override public void onEvent() throws Exception {
-                for (JSONObject record : recordList) {
-                    push(gameContext, record);
-                }
-            }
-        });
+
+        for (JSONObject record : recordList) {
+            push(gameContext, record);
+        }
         return RunResult.ok();
     }
 

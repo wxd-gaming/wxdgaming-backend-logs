@@ -78,7 +78,7 @@ public class ServerApi {
 
     @HttpRequest(authority = 2)
     public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<ServerRecord> recordList) {
-        ExecutorUtil.getInstance().getLogicExecutor().execute(new Event(5000, 10000) {
+        gameContext.submit(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
                 for (ServerRecord record : recordList) {
                     push(gameContext, record);

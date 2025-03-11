@@ -31,8 +31,11 @@ public class RoleApiTest extends AccountApiTest {
         CountDownLatch countDownLatch = new CountDownLatch(accountRecordMap.size());
         for (List<JSONObject> recordList : accountRecordMap.values()) {
             executorServices.execute(() -> {
-                pushRoleList(logToken, recordList);
-                countDownLatch.countDown();
+                try {
+                    pushRoleList(logToken, recordList);
+                } finally {
+                    countDownLatch.countDown();
+                }
             });
         }
         countDownLatch.await();

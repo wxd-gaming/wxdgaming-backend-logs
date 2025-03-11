@@ -13,7 +13,6 @@ import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.Event;
-import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.threading.ExecutorWith;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
@@ -32,7 +31,7 @@ import java.util.List;
  **/
 @Slf4j
 @Singleton
-@RequestMapping(path = "log")
+@RequestMapping(path = "log/slog")
 public class SLogApi {
 
     final GameService gameService;
@@ -48,35 +47,36 @@ public class SLogApi {
     @ExecutorWith(useVirtualThread = true)
     public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") SLog sLog) {
         log.info("sLog - {}", sLog.toJsonString());
-        boolean haveLogType = gameContext.getGame().getTableMapping().containsKey(sLog.getLogType());
-        if (!haveLogType) {
-            gameContext.recordError("表结构不存在 " + sLog.getLogType(), sLog.toJsonString());
-        } else {
-            if (sLog.getUid() == 0)
-                sLog.setUid(gameContext.newId(sLog.getLogType()));
+        gameContext.submit(new Event(5000, 10000) {
+            @Override public void onEvent() throws Exception {
+                boolean haveLogType = gameContext.getGame().getTableMapping().containsKey(sLog.getLogType());
+                if (!haveLogType) {
+                    gameContext.recordError("表结构不存在 " + sLog.getLogType(), sLog.toJsonString());
+                } else {
+                    if (sLog.getUid() == 0)
+                        sLog.setUid(gameContext.newId(sLog.getLogType()));
 
-            String logKey = sLog.tableName() + sLog.getUid();
-            boolean haveLogKey = gameContext.getLogKeyCache().containsKey(logKey);
-            if (haveLogKey) {
-                gameContext.recordError("表结构 " + sLog.getLogType() + " 重复日志记录 " + sLog.getUid(), sLog.toJsonString());
-            } else {
-                gameContext.getLogKeyCache().put(logKey, true);
-                sLog.checkDataKey();
-                gameContext.getDataHelper().getDataBatch().insert(sLog);
+                    String logKey = sLog.tableName() + sLog.getUid();
+                    boolean haveLogKey = gameContext.getLogKeyCache().containsKey(logKey);
+                    if (haveLogKey) {
+                        gameContext.recordError("表结构 " + sLog.getLogType() + " 重复日志记录 " + sLog.getUid(), sLog.toJsonString());
+                    } else {
+                        gameContext.getLogKeyCache().put(logKey, true);
+                        sLog.checkDataKey();
+                        gameContext.getDataHelper().getDataBatch().insert(sLog);
+                    }
+                }
             }
-        }
+        });
         return RunResult.ok();
     }
 
     @HttpRequest(authority = 2)
     public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<SLog> recordList) {
-        ExecutorUtil.getInstance().getLogicExecutor().execute(new Event(5000, 10000) {
-            @Override public void onEvent() throws Exception {
-                for (SLog record : recordList) {
-                    push(gameContext, record);
-                }
-            }
-        });
+
+        for (SLog record : recordList) {
+            push(gameContext, record);
+        }
         return RunResult.ok();
     }
 

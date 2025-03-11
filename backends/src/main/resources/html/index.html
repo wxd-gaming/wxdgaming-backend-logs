@@ -26,91 +26,6 @@
 
     <link rel="stylesheet" href="style/com.wxd.css">
 
-    <script type="application/javascript">
-        $(() => {
-
-            wxd.netty.post("/checkLogin", "",
-                function (responseText) {
-                    if (responseText.code === 1) {
-                        getMenu();
-                    } else {
-                        wxd.message.alert(responseText.msg, "Error", "确认", () => {
-                            window.top.location.href = "/login.html";
-                        });
-                    }
-                }
-            );
-
-        });
-
-        let defaultRouting = [
-            ["/logerror.html", "错误日志"],
-            ["/gamestat.html", "游戏统计"],
-            ["/accountstat.html", "账号留存"],
-            ["/recharge.html", "充值详情"],
-            ["/server-list.html", "区服信息"],
-            ["/account.html", "账号列表"],
-            ["/role.html", "角色列表"],
-            ["/login-log.html", "登录记录"],
-            ["/roleonline.html", "在线时长查询"],
-            ["/itemlog.html", "道具日志"]
-        ]
-
-        function getMenu() {
-            wxd.loading();
-            let postQuery = new wxd.Map().loadSearch();
-            postQuery.put("pageIndex", 1);
-            postQuery.put("pageSize", 10000);
-            let url = "/game/menu";
-            wxd.netty.post(url, postQuery.toString(),
-                function (responseText) {
-                    if (responseText.code !== 1) {
-                        wxd.message.alert(responseText.msg, "Error");
-                        return;
-                    }
-                    var data = responseText.data;
-                    for (const datum of data) {
-
-                        let appendA = "";
-
-                        let routings = responseText.routings;
-
-                        for (const routing of defaultRouting) {
-                            for (const key in routings) {
-                                if (routings[key] === routing[0]) {
-                                    appendA += `<a class="J_menuItem" href="${routing[0]}?gameId=${datum.uid}">${datum.name}-${routing[1]}</a>`;
-                                    break;
-                                }
-                            }
-                        }
-                        let tableMapping = datum.tableMapping;
-                        for (const key in tableMapping) {
-                            appendA += `<a class="J_menuItem" href="/log.html?gameId=${datum.uid}&logType=${key}">${datum.name}-${tableMapping[key]}</a>`;
-                        }
-
-                        let appendLi = `
-                        <li>
-                            <a href="#">
-                                <i class="fa fa-home"></i>
-                                <span class="nav-label">${datum.name}</span>
-                                <span class="fa arrow"></span>
-                            </a>
-                            <ul class="nav nav-second-level">
-                                <li id="game-menu-sub-${datum.uid}">
-                                    ${appendA}
-                                </li>
-                            </ul>
-                        </li>
-                        `;
-                        $("#side-menu").append(appendLi);
-                    }
-                    wxd.loading_close();
-                }
-            );
-
-        }
-
-    </script>
 </head>
 
 <body class="fixed-sidebar full-height-layout gray-bg" style="overflow:hidden">
@@ -144,19 +59,19 @@
                     <div class="logo-element">H+
                     </div>
                 </li>
-                <li>
-                    <a href="#">
-                        <i class="fa fa-home"></i>
-                        <span class="nav-label">管理</span>
-                        <span class="fa arrow"></span>
-                    </a>
-                    <ul class="nav nav-second-level">
-                        <li id="side-menu-sub">
-                            <a class="J_menuItem" href="game-list.html">游戏列表</a>
-                            <a class="J_menuItem" href="user.html" title="登录账号管理">用户列表</a>
-                        </li>
-                    </ul>
-                </li>
+                <!--                <li>-->
+                <!--                    <a href="#">-->
+                <!--                        <i class="fa fa-home"></i>-->
+                <!--                        <span class="nav-label">管理</span>-->
+                <!--                        <span class="fa arrow"></span>-->
+                <!--                    </a>-->
+                <!--                    <ul class="nav nav-second-level">-->
+                <!--                        <li id="side-menu-sub">-->
+                <!--                            <a class="J_menuItem" href="game-list.html">游戏列表</a>-->
+                <!--                            <a class="J_menuItem" href="user.html" title="登录账号管理">用户列表</a>-->
+                <!--                        </li>-->
+                <!--                    </ul>-->
+                <!--                </li>-->
             </ul>
         </div>
     </nav>
@@ -177,6 +92,108 @@
     </div>
     <!--右侧部分结束-->
 </div>
+
+<script type="application/javascript">
+
+    let defaultRouting = [
+        ["/log/error.html", "错误日志"],
+        ["/stat/game.html", "游戏统计"],
+        ["/stat/account.html", "账号留存"],
+        ["/server-list.html", "区服信息"],
+        ["/log/recharge.html", "充值详情"],
+        ["/log/account.html", "账号列表"],
+        ["/log/role.html", "角色列表"],
+        ["/log/login.html", "登录记录"],
+        ["/log/role-online.html", "在线时长查询"],
+        ["/log/item.html", "道具日志"],
+    ]
+
+    function getMenu() {
+        wxd.loading();
+        let postQuery = new wxd.Map().loadSearch();
+        postQuery.put("pageIndex", 1);
+        postQuery.put("pageSize", 10000);
+        let url = "/game/menu";
+        wxd.netty.post(url, postQuery.toString(),
+            function (responseText) {
+                if (responseText.code !== 1) {
+                    wxd.message.alert(responseText.msg, "Error", "确认", () => {
+                        window.top.location.href = "/login.html";
+                    });
+                    return;
+                }
+
+                let isAdmin = responseText.admin;
+                if (isAdmin) {
+                    let adminLi = `
+                <li>
+                    <a href="#">
+                        <i class="fa fa-home"></i>
+                        <span class="nav-label">管理</span>
+                        <span class="fa arrow"></span>
+                    </a>
+                    <ul class="nav nav-second-level">
+                        <li id="side-menu-sub-admin">
+                            <a class="J_menuItem" href="game-list.html">游戏列表</a>
+                            <a class="J_menuItem" href="user.html" title="登录账号管理">用户列表</a>
+                        </li>
+                    </ul>
+                </li>
+`;
+                    $("#side-menu").append(adminLi);
+                }
+
+                var data = responseText.data;
+                for (const datum of data) {
+
+                    let appendA = "";
+                    let routings = responseText.routings;
+
+                    for (const routing of defaultRouting) {
+                        for (const key in routings) {
+                            if (routings[key] === routing[0]) {
+                                appendA += `<a class="J_menuItem" href="${routing[0]}?gameId=${datum.uid}">${datum.name}-${routing[1]}</a>`;
+                                break;
+                            }
+                        }
+                    }
+
+                    let tableMapping = datum.tableMapping;
+                    for (const key in tableMapping) {
+                        appendA += `<a class="J_menuItem" href="/log/slog.html?gameId=${datum.uid}&logType=${key}">${datum.name}-${tableMapping[key]}</a>`;
+                    }
+
+                    let appendLi = `
+                        <li>
+                            <a href="#">
+                                <i class="fa fa-home"></i>
+                                <span class="nav-label">${datum.name}</span>
+                                <span class="fa arrow"></span>
+                            </a>
+                            <ul class="nav nav-second-level">
+                                <li id="game-menu-sub-${datum.uid}">
+                                    ${appendA}
+                                </li>
+                            </ul>
+                        </li>
+                        `;
+                    $("#side-menu").append(appendLi);
+                }
+                wxd.loading_close();
+            },
+            () => {
+                wxd.message.alert(responseText.msg, "Error", "确认", () => {
+                    window.top.location.href = "/login.html";
+                });
+            },
+            false
+        );
+    }
+
+    getMenu();
+
+</script>
+
 <script type="text/javascript" src="js/bootstrap.min.js?v=3.3.5"></script>
 <script type="text/javascript" src="js/plugins/metisMenu/jquery.metisMenu.js"></script>
 <script type="text/javascript" src="js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
