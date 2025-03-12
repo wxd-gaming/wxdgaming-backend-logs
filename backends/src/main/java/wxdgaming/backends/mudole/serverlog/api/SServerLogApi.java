@@ -1,4 +1,4 @@
-package wxdgaming.backends.mudole.slog.api;
+package wxdgaming.backends.mudole.serverlog.api;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
@@ -6,8 +6,8 @@ import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
-import wxdgaming.backends.entity.games.logs.SLog;
-import wxdgaming.backends.mudole.slog.SLogService;
+import wxdgaming.backends.entity.games.logs.SServerLog;
+import wxdgaming.backends.mudole.serverlog.SServerLogService;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
@@ -24,46 +24,46 @@ import wxdgaming.boot2.starter.net.server.http.HttpContext;
 import java.util.List;
 
 /**
- * 日志
+ * 区服日志
  *
  * @author: wxd-gaming(無心道, 15388152619)
- * @version: 2025-01-22 16:54
- **/
+ * @version: 2025-03-12 20:05
+ */
 @Slf4j
 @Singleton
-@RequestMapping(path = "log/slog")
-public class SLogApi {
+@RequestMapping(path = "log/server/slog")
+public class SServerLogApi {
 
     final GameService gameService;
-    final SLogService SLogService;
+    final SServerLogService sServerLogService;
 
     @Inject
-    public SLogApi(GameService gameService, SLogService SLogService) {
+    public SServerLogApi(GameService gameService, SServerLogService sServerLogService) {
         this.gameService = gameService;
-        this.SLogService = SLogService;
+        this.sServerLogService = sServerLogService;
     }
 
     @HttpRequest(authority = 2)
     @ExecutorWith(useVirtualThread = true)
-    public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") SLog sLog) {
-        log.info("sLog - {}", sLog.toJsonString());
+    public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") SServerLog sServerLog) {
+        log.info("sLog - {}", sServerLog.toJsonString());
         gameContext.submit(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
-                boolean haveLogType = gameContext.getGame().getTableMapping().containsKey(sLog.getLogType());
+                boolean haveLogType = gameContext.getGame().getServerTableMapping().containsKey(sServerLog.getLogType());
                 if (!haveLogType) {
-                    gameContext.recordError("表结构不存在 " + sLog.getLogType(), sLog.toJsonString());
+                    gameContext.recordError("表结构不存在 " + sServerLog.getLogType(), sServerLog.toJsonString());
                 } else {
-                    if (sLog.getUid() == 0)
-                        sLog.setUid(gameContext.newId(sLog.getLogType()));
+                    if (sServerLog.getUid() == 0)
+                        sServerLog.setUid(gameContext.newId(sServerLog.getLogType()));
 
-                    String logKey = sLog.tableName() + sLog.getUid();
+                    String logKey = sServerLog.tableName() + sServerLog.getUid();
                     boolean haveLogKey = gameContext.getLogKeyCache().containsKey(logKey);
                     if (haveLogKey) {
-                        gameContext.recordError("表结构 " + sLog.getLogType() + " 重复日志记录 " + sLog.getUid(), sLog.toJsonString());
+                        gameContext.recordError("表结构 " + sServerLog.getLogType() + " 重复日志记录 " + sServerLog.getUid(), sServerLog.toJsonString());
                     } else {
                         gameContext.getLogKeyCache().put(logKey, true);
-                        sLog.checkDataKey();
-                        gameContext.getDataHelper().getDataBatch().insert(sLog);
+                        sServerLog.checkDataKey();
+                        gameContext.getDataHelper().getDataBatch().insert(sServerLog);
                     }
                 }
             }
@@ -72,9 +72,9 @@ public class SLogApi {
     }
 
     @HttpRequest(authority = 2)
-    public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<SLog> recordList) {
+    public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<SServerLog> recordList) {
 
-        for (SLog record : recordList) {
+        for (SServerLog record : recordList) {
             push(gameContext, record);
         }
         return RunResult.ok();
@@ -99,7 +99,7 @@ public class SLogApi {
             return RunResult.error("gameId error");
         }
 
-        if (!gameContext.getGame().getTableMapping().containsKey(logType)) {
+        if (!gameContext.getGame().getRoleTableMapping().containsKey(logType)) {
             return RunResult.error("log type error");
         }
         PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
@@ -125,10 +125,10 @@ public class SLogApi {
 
         long rowCount = sqlQueryBuilder.findCount();
 
-        List<SLog> slogs = sqlQueryBuilder.findList2Entity(SLog.class);
+        List<SServerLog> slogs = sqlQueryBuilder.findList2Entity(SServerLog.class);
 
         List<JSONObject> list = slogs.stream()
-                .map(SLog::toJSONObject)
+                .map(SServerLog::toJSONObject)
                 .peek(jsonObject -> {
                     jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("createTime")));
                     jsonObject.put("other", jsonObject.getString("other"));

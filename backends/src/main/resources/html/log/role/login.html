@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>日志</title>
+    <title>角色在线时长查询</title>
 
     <script charset="utf-8" type="text/javascript" src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
     <script charset="utf-8" type="text/javascript" src="/js/com.wxd.js"></script>
@@ -40,77 +40,54 @@
             urlQuery.put("account", $("#account").val());
             urlQuery.put("roleId", $("#roleId").val());
             urlQuery.put("roleName", $("#roleName").val());
-            urlQuery.put("otherJson", $("#otherJson").val());
             pageView.remoteGetData(urlQuery);
         }
+
 
         function createRow(index, row) {
             let tr = `
     <tr>
-        <td tips="true" style="width: 70px;">${index}</td>
-        <td tips="true" style="width: 140px;">${row.createTime}</td>
-        <td tips="true" style="width: 40px;">${row.sid}</td>
+        <td tips="true" style="width: 40px;">${index}</td>
         <td tips="true" style="width: 200px;">${row.account}</td>
         <td tips="true" style="width: 140px;">${row.roleId}</td>
         <td tips="true" style="width: 120px;">${row.roleName}</td>
         <td tips="true" style="width: 40px;">${row.lv}</td>
-        <td tips="true" style="width: 80px;">${row.changeType}</td>
-        <td tips="true" style="width: 80px;">${row.itemId}</td>
-        <td tips="true" style="width: 80px;">${row.itemName}</td>
-        <td tips="true" style="width: 80px;">${row.itemCount}</td>
-        <td tips="true" style="width: 80px;">${row.itemBind}</td>
-        <td tips="true" style="width: 80px;">${row.itemType}</td>
-        <td tips="true" style="width: 80px;">${row.itemSubType}</td>
-        <td tips="true" style="width: 100px;">${row.source}</td>
-        <td tips="true" style="width: 180px;">${row.comment}</td>
-        <td tips="true" style="width: 280px;">${row.other}</td>
+        <td tips="true" style="width: 140px;">${row.logEnum}</td>
+        <td tips="true" style="width: 140px;">${row.createTime}</td>
+        <td tips="true" style="width: 180px;">${row.other}</td>
     </tr>
 `;
             return tr;
         }
 
         $(() => {
-            pageView = new PageView("/log/item/list", search, createRow);
+            pageView = new PageView("/log/role/login/list", search, createRow);
             search();
         });
 
     </script>
-
 </head>
 
 <body>
-<div style="text-align: left;padding-left: 10px;">
+<div style="padding-left: 10px; padding-top: 8px; text-align: left;vertical-align: center;">
     <input type="button" value="搜索" onclick="search();">
     <br>
     <input id="account" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="账号"/>
-    <input id="roleId" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="玩家ID"/>
-    <input id="roleName" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="玩家名字"/>
-    <br>
-    <input id="itemId" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="道具id"/>
-    <input id="itemName" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="道具名字"/>
-    <input id="otherJson" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="a=b"/>
+    <input id="roleId" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="角色id"/>
+    <input id="roleName" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="角色名字"/>
 </div>
-<div class="tableDom" style="position: absolute;left: 10px;top: 100px;right: 15px;bottom: 35px;">
+<div class="tableDom" style="position: absolute;left: 10px;top: 80px;right: 15px;bottom: 35px;">
     <table>
         <thead>
         <tr>
-            <th style="width: 70px;">序号</th>
-            <th style="width: 140px;">日志时间</th>
-            <th style="width: 40px;">区服</th>
+            <th style="width: 40px;">序号</th>
             <th style="width: 200px;">账号</th>
             <th style="width: 140px;">角色ID</th>
             <th style="width: 120px;">角色名字</th>
             <th style="width: 40px;">等级</th>
-            <th style="width: 80px;" title="GET=获取; COST=消费">类型</th>
-            <th style="width: 80px;">道具Id</th>
-            <th style="width: 80px;">道具名字</th>
-            <th style="width: 80px;">道具数量</th>
-            <th style="width: 80px;">绑定状态</th>
-            <th style="width: 80px;">类型</th>
-            <th style="width: 80px;">子类型</th>
-            <th style="width: 100px;">来源</th>
-            <th style="width: 180px;">详情</th>
-            <th style="width: 280px;">其它</th>
+            <th style="width: 140px;">类型</th>
+            <th style="width: 140px;">时间</th>
+            <th style="width: 180px;">其它</th>
         </tr>
         </thead>
         <tbody>

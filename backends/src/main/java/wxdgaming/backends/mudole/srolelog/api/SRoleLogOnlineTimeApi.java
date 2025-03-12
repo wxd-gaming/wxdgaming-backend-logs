@@ -1,4 +1,4 @@
-package wxdgaming.backends.mudole.slog.api;
+package wxdgaming.backends.mudole.srolelog.api;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
@@ -29,13 +29,13 @@ import java.util.List;
  **/
 @Slf4j
 @Singleton
-@RequestMapping(path = "log/online")
-public class OnlineTimeApi {
+@RequestMapping(path = "log/role/online")
+public class SRoleLogOnlineTimeApi {
 
     private final GameService gameService;
 
     @Inject
-    public OnlineTimeApi(GameService gameService) {
+    public SRoleLogOnlineTimeApi(GameService gameService) {
         this.gameService = gameService;
     }
 

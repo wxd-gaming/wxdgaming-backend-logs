@@ -91,7 +91,7 @@ public class ItemLogPushTest extends RoleApiTest {
                     .fluentPut("token", logToken)
                     .fluentPut("data", sLogs);
 
-            CompletableFuture<Response<PostText>> future = post("log/item/pushList", push.toJSONString());
+            CompletableFuture<Response<PostText>> future = post("log/role/item/pushList", push.toJSONString());
             Response<PostText> join = future.join();
             if (join.responseCode() != 200 || join.bodyRunResult().code() != 1) {
                 log.error("{}", join.bodyString());

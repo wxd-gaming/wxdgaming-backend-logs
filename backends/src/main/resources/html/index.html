@@ -100,12 +100,12 @@
         ["/stat/game.html", "游戏统计"],
         ["/stat/account.html", "账号留存"],
         ["/server-list.html", "区服信息"],
-        ["/log/recharge.html", "充值详情"],
         ["/log/account.html", "账号列表"],
-        ["/log/role.html", "角色列表"],
-        ["/log/login.html", "登录记录"],
-        ["/log/role-online.html", "在线时长查询"],
-        ["/log/item.html", "道具日志"],
+        ["/log/role/role.html", "角色列表"],
+        ["/log/role/recharge.html", "充值详情"],
+        ["/log/role/login.html", "登录记录"],
+        ["/log/role/role-online.html", "在线时长查询"],
+        ["/log/role/role/item.html", "道具日志"],
     ]
 
     function getMenu() {
@@ -160,7 +160,7 @@
 
                     let tableMapping = datum.tableMapping;
                     for (const key in tableMapping) {
-                        appendA += `<a class="J_menuItem" href="/log/slog.html?gameId=${datum.uid}&logType=${key}">${datum.name}-${tableMapping[key]}</a>`;
+                        appendA += `<a class="J_menuItem" href="/log/role/s-role-log.html?gameId=${datum.uid}&logType=${key}">${datum.name}-${tableMapping[key]}</a>`;
                     }
 
                     let appendLi = `

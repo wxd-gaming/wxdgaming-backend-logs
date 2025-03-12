@@ -174,7 +174,7 @@ public class GameApi {
     }
 
     @HttpRequest(authority = 9, comment = "添加日志表")
-    public RunResult addLogType(HttpContext session, JSONObject data) {
+    public RunResult addLogType(HttpContext session, @ThreadParam() User user, JSONObject data) {
         Integer gameId = data.getInteger("gameId");
         String token = data.getString("token");
         RunResult runResult = gameService.checkAppToken(gameId, token);
@@ -185,7 +185,7 @@ public class GameApi {
         Game game = gameContext.getGame();
 
         if (!game.getTableMapping().containsKey(data.getString("logType"))) {
-            gameService.checkSLogTable(gameContext, gameContext.getDataHelper(), data.getString("logType"), data.getString("logComment"));
+            gameService.checkSRoleLogTable(gameContext, gameContext.getDataHelper(), data.getString("logType"), data.getString("logComment"));
             game.getTableMapping().put(data.getString("logType"), data.getString("logComment"));
             this.pgsqlService.update(game);
         }
@@ -193,7 +193,7 @@ public class GameApi {
     }
 
     @HttpRequest(authority = 9, comment = "日志列表")
-    public RunResult listLogType(HttpContext session, JSONObject data) {
+    public RunResult listLogType(HttpContext session, @ThreadParam() User user, JSONObject data) {
         Integer gameId = data.getInteger("gameId");
         String token = data.getString("token");
         RunResult runResult = gameService.checkAppToken(gameId, token);

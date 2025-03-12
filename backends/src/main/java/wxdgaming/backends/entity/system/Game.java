@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import wxdgaming.boot2.starter.batis.ColumnType;
-import wxdgaming.boot2.starter.batis.Entity;
 import wxdgaming.boot2.starter.batis.EntityIntegerUID;
 import wxdgaming.boot2.starter.batis.ann.DbColumn;
 import wxdgaming.boot2.starter.batis.ann.DbTable;
@@ -43,8 +42,14 @@ public class Game extends EntityIntegerUID {
     private String rechargeToken;
     @DbColumn(index = true, columnType = ColumnType.String, length = 128)
     private String logToken;
+    /** 基于 {@link wxdgaming.backends.entity.games.logs.SRoleLog} 类 */
     @JSONField(ordinal = 16)
     @DbColumn(columnType = ColumnType.String, length = 30000)
-    private LinkedHashMap<String, String> tableMapping = new LinkedHashMap<>();
+    private LinkedHashMap<String, String> roleTableMapping = new LinkedHashMap<>();
+
+    /** 基于 {@link wxdgaming.backends.entity.games.logs.SServerLog} 类 */
+    @JSONField(ordinal = 16)
+    @DbColumn(columnType = ColumnType.String, length = 30000)
+    private LinkedHashMap<String, String> serverTableMapping = new LinkedHashMap<>();
 
 }

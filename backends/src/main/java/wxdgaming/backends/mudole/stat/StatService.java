@@ -10,7 +10,6 @@ import wxdgaming.backends.entity.games.GameStat;
 import wxdgaming.backends.entity.system.Game;
 import wxdgaming.boot2.core.io.Objects;
 import wxdgaming.boot2.core.threading.Event;
-import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.scheduled.ann.Scheduled;
@@ -155,7 +154,7 @@ public class StatService {
                     }
                 }
             };
-            ExecutorUtil.getInstance().getVirtualExecutor().execute(event);
+            gameContext.submit(event);
         }
     }
 
@@ -224,7 +223,7 @@ public class StatService {
                 }
             };
 
-            ExecutorUtil.getInstance().getVirtualExecutor().execute(event);
+            gameContext.submit(event);
         }
     }
 

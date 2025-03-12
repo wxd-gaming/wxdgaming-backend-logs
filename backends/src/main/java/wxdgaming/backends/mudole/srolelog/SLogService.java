@@ -1,4 +1,4 @@
-package wxdgaming.backends.mudole.slog;
+package wxdgaming.backends.mudole.srolelog;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;

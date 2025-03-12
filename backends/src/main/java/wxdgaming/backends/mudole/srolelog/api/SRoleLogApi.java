@@ -1,4 +1,4 @@
-package wxdgaming.backends.mudole.slog.api;
+package wxdgaming.backends.mudole.srolelog.api;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
@@ -6,11 +6,8 @@ import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
-import wxdgaming.backends.entity.games.logs.AccountRecord;
-import wxdgaming.backends.entity.games.logs.RoleRecord;
-import wxdgaming.backends.entity.games.logs.SLog;
-import wxdgaming.backends.entity.games.logs.SLog2Item;
-import wxdgaming.backends.mudole.slog.SLogService;
+import wxdgaming.backends.entity.games.logs.SRoleLog;
+import wxdgaming.backends.mudole.srolelog.SLogService;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
@@ -18,7 +15,6 @@ import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.Event;
 import wxdgaming.boot2.core.threading.ExecutorWith;
 import wxdgaming.boot2.core.timer.MyClock;
-import wxdgaming.boot2.core.util.NumberUtil;
 import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
@@ -35,74 +31,67 @@ import java.util.List;
  **/
 @Slf4j
 @Singleton
-@RequestMapping(path = "log/item")
-public class SLogItemApi {
+@RequestMapping(path = "log/role/slog")
+public class SRoleLogApi {
 
     final GameService gameService;
     final SLogService SLogService;
 
     @Inject
-    public SLogItemApi(GameService gameService, SLogService SLogService) {
+    public SRoleLogApi(GameService gameService, SLogService SLogService) {
         this.gameService = gameService;
         this.SLogService = SLogService;
     }
 
     @HttpRequest(authority = 2)
-    public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<SLog2Item> recordList) {
-
-        for (SLog2Item record : recordList) {
-            push(gameContext, record);
-        }
-        return RunResult.ok();
-    }
-
-    /** 登录日志的批量提交 */
-    @HttpRequest(authority = 2)
-    public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") SLog2Item record) {
+    @ExecutorWith(useVirtualThread = true)
+    public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") SRoleLog sRoleLog) {
+        log.info("sLog - {}", sRoleLog.toJsonString());
         gameContext.submit(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
-                record.setLogType(record.tableName());
-                if (record.getUid() == 0)
-                    record.setUid(gameContext.newId(record.tableName()));
-
-                String logKey = record.tableName() + record.getUid();
-                boolean haveLogKey = gameContext.getLogKeyCache().containsKey(logKey);
-                if (haveLogKey) {
-                    gameContext.recordError("表结构 " + record.tableName() + " 重复日志记录 " + record.getUid(), record.toJsonString());
+                boolean haveLogType = gameContext.getGame().getRoleTableMapping().containsKey(sRoleLog.getLogType());
+                if (!haveLogType) {
+                    gameContext.recordError("表结构不存在 " + sRoleLog.getLogType(), sRoleLog.toJsonString());
                 } else {
-                    record.checkDataKey();
-                    AccountRecord accountRecord = gameContext.getAccountRecord(record.getAccount());
-                    if (accountRecord == null) {
-                        gameContext.recordError("道具记录 找不到账号 " + record.getAccount(), record.toJsonString());
-                        return;
-                    }
+                    if (sRoleLog.getUid() == 0)
+                        sRoleLog.setUid(gameContext.newId(sRoleLog.getLogType()));
 
-                    RoleRecord roleRecord = gameContext.getRoleRecord(record.getRoleId());
-                    if (roleRecord == null) {
-                        gameContext.recordError("道具记录 找不到角色 " + record.getRoleId(), record.toJsonString());
-                        return;
+                    String logKey = sRoleLog.tableName() + sRoleLog.getUid();
+                    boolean haveLogKey = gameContext.getLogKeyCache().containsKey(logKey);
+                    if (haveLogKey) {
+                        gameContext.recordError("表结构 " + sRoleLog.getLogType() + " 重复日志记录 " + sRoleLog.getUid(), sRoleLog.toJsonString());
+                    } else {
+                        gameContext.getLogKeyCache().put(logKey, true);
+                        sRoleLog.checkDataKey();
+                        gameContext.getDataHelper().getDataBatch().insert(sRoleLog);
                     }
-
-                    gameContext.getLogKeyCache().put(logKey, true);
-                    gameContext.getDataHelper().getDataBatch().insert(record);
                 }
             }
         });
         return RunResult.ok();
     }
 
+    @HttpRequest(authority = 2)
+    public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<SRoleLog> recordList) {
+
+        for (SRoleLog record : recordList) {
+            push(gameContext, record);
+        }
+        return RunResult.ok();
+    }
+
+
     @HttpRequest(authority = 9)
     @ExecutorWith(useVirtualThread = true)
     public RunResult list(HttpContext httpSession,
                           @Param(path = "gameId") int gameId,
+                          @Param(path = "logType") String logType,
                           @Param(path = "pageIndex") int pageIndex,
                           @Param(path = "pageSize") int pageSize,
                           @Param(path = "account", required = false) String account,
                           @Param(path = "roleId", required = false) String roleId,
                           @Param(path = "roleName", required = false) String roleName,
-                          @Param(path = "itemId", required = false) String itemId,
-                          @Param(path = "itemName", required = false) String itemName,
-                          @Param(path = "otherJson", required = false) String otherJson) {
+                          @Param(path = "dataJson", required = false) String dataJson) {
 
         GameContext gameContext = gameService.gameContext(gameId);
 
@@ -110,20 +99,20 @@ public class SLogItemApi {
             return RunResult.error("gameId error");
         }
 
+        if (!gameContext.getGame().getRoleTableMapping().containsKey(logType)) {
+            return RunResult.error("log type error");
+        }
         PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
         SqlQueryBuilder sqlQueryBuilder = pgsqlDataHelper.queryBuilder();
 
-        sqlQueryBuilder.sqlByEntity(SLog2Item.class)
+        sqlQueryBuilder
+                .setTableName(logType)
                 .pushWhereByValueNotNull("account=?", account)
                 .pushWhereByValueNotNull("roleid=?", roleId)
                 .pushWhereByValueNotNull("rolename=?", roleName);
 
-        if (StringUtils.isNotBlank(itemId)) {
-            sqlQueryBuilder.pushWhereByValueNotNull("itemid=?", NumberUtil.parseInt(itemId, 0));
-        }
-        sqlQueryBuilder.pushWhereByValueNotNull("itemname=?", itemName);
-        if (StringUtils.isNotBlank(otherJson)) {
-            String[] split = otherJson.split(",");
+        if (StringUtils.isNotBlank(dataJson)) {
+            String[] split = dataJson.split(",");
             for (String s : split) {
                 String[] strings = s.split("=");
                 sqlQueryBuilder.pushWhere("json_extract_path_text(other,'" + strings[0] + "') = ?", strings[1]);
@@ -136,10 +125,10 @@ public class SLogItemApi {
 
         long rowCount = sqlQueryBuilder.findCount();
 
-        List<SLog2Item> slogs = sqlQueryBuilder.findList2Entity(SLog2Item.class);
+        List<SRoleLog> slogs = sqlQueryBuilder.findList2Entity(SRoleLog.class);
 
         List<JSONObject> list = slogs.stream()
-                .map(SLog::toJSONObject)
+                .map(SRoleLog::toJSONObject)
                 .peek(jsonObject -> {
                     jsonObject.put("createTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("createTime")));
                     jsonObject.put("other", jsonObject.getString("other"));
@@ -147,6 +136,5 @@ public class SLogItemApi {
                 .toList();
         return RunResult.ok().fluentPut("data", list).fluentPut("rowCount", rowCount);
     }
-
 
 }

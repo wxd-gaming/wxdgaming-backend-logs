@@ -10,7 +10,7 @@ import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
 import wxdgaming.backends.entity.system.User;
 import wxdgaming.backends.mudole.role.RoleService;
-import wxdgaming.backends.mudole.slog.SLogService;
+import wxdgaming.backends.mudole.srolelog.SLogService;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
@@ -80,6 +80,34 @@ public class RoleApi {
                 }
             }
         });
+        return RunResult.ok();
+    }
+
+    @HttpRequest(authority = 2)
+    public RunResult lv(HttpContext httpContext,
+                        @ThreadParam GameContext gameContext,
+                        @Param(path = "roleId") long roleId,
+                        @Param(path = "lv") int lv) {
+        gameContext.submit(new Event(5000, 10000) {
+            @Override public void onEvent() throws Exception {
+                RoleRecord entity = gameContext.getRoleRecord(roleId);
+                if (entity == null) {
+                    gameContext.recordError("设置角色等级找不到角色 " + roleId, String.valueOf(lv));
+                } else {
+                    entity.setLv(lv);
+                }
+            }
+        });
+        return RunResult.ok();
+    }
+
+    @HttpRequest(authority = 2)
+    public RunResult lvList(HttpContext httpContext,
+                            @ThreadParam GameContext gameContext,
+                            @Param(path = "data") List<JSONObject> datas) {
+        for (JSONObject data : datas) {
+            lv(httpContext, gameContext, data.getLongValue("roleId"), data.getIntValue("lv"));
+        }
         return RunResult.ok();
     }
 

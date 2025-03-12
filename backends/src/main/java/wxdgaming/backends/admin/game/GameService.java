@@ -7,7 +7,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.entity.games.GameTableScan;
 import wxdgaming.backends.entity.games.logs.RecordBase;
-import wxdgaming.backends.entity.games.logs.SLog;
+import wxdgaming.backends.entity.games.logs.SRoleLog;
+import wxdgaming.backends.entity.games.logs.SServerLog;
 import wxdgaming.backends.entity.system.Game;
 import wxdgaming.backends.entity.system.GlobalData;
 import wxdgaming.boot2.core.ann.Start;
@@ -15,6 +16,7 @@ import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.reflect.ReflectContext;
 import wxdgaming.boot2.core.shutdown;
 import wxdgaming.boot2.core.timer.MyClock;
+import wxdgaming.boot2.starter.batis.Entity;
 import wxdgaming.boot2.starter.batis.TableMapping;
 import wxdgaming.boot2.starter.batis.ann.DbTable;
 import wxdgaming.boot2.starter.batis.sql.SqlConfig;
@@ -121,18 +123,26 @@ public class GameService {
                     );
                 });
 
-        for (Map.Entry<String, String> entry : gameContext.getGame().getTableMapping().entrySet()) {
+        for (Map.Entry<String, String> entry : gameContext.getGame().getRoleTableMapping().entrySet()) {
             String tableName = entry.getKey();
             String tableComment = entry.getValue();
-            TableMapping tableMapping = gameContext.getDataHelper().tableMapping(SLog.class);
+            TableMapping tableMapping = gameContext.getDataHelper().tableMapping(SRoleLog.class);
             checkSLogTable(gameContext, gameContext.getDataHelper(), dbTableMap, tableStructMap, tableMapping, true, tableName, tableComment);
         }
+
+        for (Map.Entry<String, String> entry : gameContext.getGame().getServerTableMapping().entrySet()) {
+            String tableName = entry.getKey();
+            String tableComment = entry.getValue();
+            TableMapping tableMapping = gameContext.getDataHelper().tableMapping(SServerLog.class);
+            gameContext.getDataHelper().checkTable(tableStructMap, tableMapping, tableName, tableComment);
+        }
+
     }
 
-    public void checkSLogTable(GameContext gameContext, PgsqlDataHelper dataHelper, String tableName, String tableComment) {
+    public void checkSLogTable(GameContext gameContext, PgsqlDataHelper dataHelper, Class<? extends Entity> tableClass, String tableName, String tableComment) {
         Map<String, String> dbTableMap = dataHelper.findTableMap();
         Map<String, LinkedHashMap<String, JSONObject>> tableStructMap = dataHelper.findTableStructMap();
-        TableMapping tableMapping = dataHelper.tableMapping(SLog.class);
+        TableMapping tableMapping = dataHelper.tableMapping(tableClass);
         checkSLogTable(gameContext, dataHelper, dbTableMap, tableStructMap, tableMapping, true, tableName, tableComment);
     }
 

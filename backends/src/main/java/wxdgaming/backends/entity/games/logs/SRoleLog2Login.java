@@ -15,7 +15,7 @@ import wxdgaming.boot2.starter.batis.ann.DbTable;
 @Getter
 @Setter
 @DbTable(tableName = "record_role_login")
-public class SLog2Login extends SLog {
+public class SRoleLog2Login extends SRoleLog {
 
     public enum LogEnum {
         /** 登录 */

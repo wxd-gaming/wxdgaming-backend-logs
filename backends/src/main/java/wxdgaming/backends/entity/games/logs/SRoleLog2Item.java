@@ -15,7 +15,7 @@ import wxdgaming.boot2.starter.batis.ann.DbTable;
 @Getter
 @Setter
 @DbTable(tableName = "record_role_item")
-public class SLog2Item extends SLog {
+public class SRoleLog2Item extends SRoleLog {
 
     public enum ChangeTypeEnum {
         /** 获取 */
@@ -34,7 +34,9 @@ public class SLog2Item extends SLog {
     @DbColumn(index = true)
     private boolean itemBind;
     @DbColumn(index = true)
-    private int itemCount;
+    private long itemCount;
+    @DbColumn(index = true)
+    private long change;
     @DbColumn(index = true, columnType = ColumnType.String, length = 64)
     private String itemType;
     @DbColumn(index = true, columnType = ColumnType.String, length = 64)

@@ -4,7 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
-import wxdgaming.backends.entity.games.logs.SLog;
+import wxdgaming.backends.entity.games.logs.SRoleLog;
 import wxdgaming.boot2.core.format.HexId;
 import wxdgaming.boot2.core.util.RandomUtils;
 import wxdgaming.boot2.starter.batis.sql.SqlConfig;
@@ -50,8 +50,8 @@ public class PgsqlLogFindTest {
     @Test
     public void selectList() {
         long nanoTime = System.nanoTime();
-        List<SLog> pgsqlLogTests = dataHelper.findListBySql(
-                SLog.class,
+        List<SRoleLog> pgsqlLogTests = dataHelper.findListBySql(
+                SRoleLog.class,
                 "select * from log_item where roleid = ? and json_extract_path_text(other,'itemId') = ?",
                 String.valueOf(RandomUtils.random(1, 1000)),
                 String.valueOf(RandomUtils.random(1, 100))

@@ -17,7 +17,7 @@ import wxdgaming.boot2.starter.batis.ann.DbColumn;
  **/
 @Getter
 @Setter
-public class SLog extends RecordBase implements EntityName {
+public class SRoleLog extends RecordBase implements EntityName {
 
     @JSONField(ordinal = -1)
     @DbColumn(index = true, columnType = ColumnType.String, length = 128)

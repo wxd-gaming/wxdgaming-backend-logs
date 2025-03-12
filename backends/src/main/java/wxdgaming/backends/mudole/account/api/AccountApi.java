@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
-import wxdgaming.backends.mudole.slog.SLogService;
+import wxdgaming.backends.mudole.srolelog.SLogService;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;

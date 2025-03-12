@@ -72,7 +72,7 @@ public class LoginPushTest extends RoleApiTest {
                     .fluentPut("gameId", gameId)
                     .fluentPut("token", logToken)
                     .fluentPut("data", sLogs);
-            Response<PostText> join = post("log/login/pushList", push.toJSONString()).join();
+            Response<PostText> join = post("log/role/login/pushList", push.toJSONString()).join();
             RunResult runResult = join.bodyRunResult();
             if (join.responseCode() != 200 || runResult.code() != 1) {
                 System.out.println(join.bodyString());
@@ -110,7 +110,7 @@ public class LoginPushTest extends RoleApiTest {
         jsonObject.put("gameId", gameId);
         jsonObject.put("token", logToken);
         jsonObject.put("data", data);
-        CompletableFuture<Response<PostText>> post = post("log/login/push", jsonObject.toJSONString());
+        CompletableFuture<Response<PostText>> post = post("log/role/login/push", jsonObject.toJSONString());
         Response<PostText> join = post.join();
         RunResult runResult = join.bodyRunResult();
         if (join.responseCode() != 200 || runResult.code() != 1) {
