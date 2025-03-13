@@ -158,6 +158,12 @@ public class GameApiTest {
     }
 
     @Test
+    public void addGame() throws Exception {
+        JSONObject jsonObject = MapOf.newJSONObject("gameName", "超变传奇");
+        post("game/add", jsonObject.toString()).get().bodyString();
+    }
+
+    @Test
     public void pushGame() throws Exception {
         Game game = new Game();
         game.setName("超变传世");
@@ -166,7 +172,7 @@ public class GameApiTest {
         game.setUrl("url");
         game.setCreateTime(MyClock.time2Milli(LocalDateTime.now().plusDays(-125)));
 
-        LinkedHashMap<String, String> tableMapping = game.getTableMapping();
+        LinkedHashMap<String, String> tableMapping = game.getRoleTableMapping();
         tableMapping.put("log_lv", "升级日志");
 
         post("game/push", game);

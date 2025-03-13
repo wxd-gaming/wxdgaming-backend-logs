@@ -6,7 +6,6 @@ import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
-import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
 import wxdgaming.backends.entity.system.User;
 import wxdgaming.backends.mudole.role.RoleService;
@@ -57,27 +56,17 @@ public class RoleApi {
         log.info("role - {}", record.toJsonString());
         gameContext.submit(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
-                AccountRecord accountRecord = gameContext.getAccountRecord(record.getAccount());
-                if (accountRecord == null) {
-                    gameContext.recordError("角色记录 找不到账号 " + record.getAccount(), record.toJsonString());
-                } else {
-                    RoleRecord entity = gameContext.getRoleRecord(record.getUid());
-                    if (entity == null) {
-                        record.checkDataKey();
-                        gameContext.getRoleRecordJdbcCache().put(record.getUid(), record);
-                    } else {
-                        entity.setCurSid(record.getCurSid());
-                        entity.setRoleName(record.getRoleName());
-                        entity.setJob(record.getJob());
-                        entity.setSex(record.getSex());
-                        entity.setLv(record.getLv());
-                        entity.getOther().clear();
-                        entity.getOther().putAll(record.getOther());
-                    }
-                    if (!accountRecord.getRoleList().contains(record.getUid())) {
-                        accountRecord.getRoleList().add(record.getUid());
-                    }
-                }
+                RoleRecord entity = gameContext.roleGetOrCreate(record.getAccount(), record.getUid());
+
+                entity.setCreateSid(record.getCreateSid());
+                entity.setCurSid(record.getCurSid());
+                entity.setRoleName(record.getRoleName());
+                entity.setJob(record.getJob());
+                entity.setSex(record.getSex());
+                entity.setLv(record.getLv());
+                entity.getOther().clear();
+                entity.getOther().putAll(record.getOther());
+
             }
         });
         return RunResult.ok();
@@ -86,11 +75,12 @@ public class RoleApi {
     @HttpRequest(authority = 2)
     public RunResult lv(HttpContext httpContext,
                         @ThreadParam GameContext gameContext,
+                        @Param(path = "account") String account,
                         @Param(path = "roleId") long roleId,
                         @Param(path = "lv") int lv) {
         gameContext.submit(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
-                RoleRecord entity = gameContext.getRoleRecord(roleId);
+                RoleRecord entity = gameContext.roleGetOrCreate(account, roleId);
                 if (entity == null) {
                     gameContext.recordError("设置角色等级找不到角色 " + roleId, String.valueOf(lv));
                 } else {
@@ -106,7 +96,7 @@ public class RoleApi {
                             @ThreadParam GameContext gameContext,
                             @Param(path = "data") List<JSONObject> datas) {
         for (JSONObject data : datas) {
-            lv(httpContext, gameContext, data.getLongValue("roleId"), data.getIntValue("lv"));
+            lv(httpContext, gameContext, data.getString("account"), data.getLongValue("roleId"), data.getIntValue("lv"));
         }
         return RunResult.ok();
     }
@@ -122,11 +112,12 @@ public class RoleApi {
     @HttpRequest(authority = 2)
     public RunResult delete(HttpContext httpContext,
                             @ThreadParam GameContext gameContext,
+                            @Param(path = "account") String account,
                             @Param(path = "roleId") long roleId) {
 
         User user = ThreadContext.context("user");
         log.info("{}", user);
-        RoleRecord entity = gameContext.getRoleRecord(roleId);
+        RoleRecord entity = gameContext.roleGetOrCreate(account, roleId);
         if (entity != null) {
             entity.setDel(1);
             return RunResult.ok();

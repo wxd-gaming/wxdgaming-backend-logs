@@ -15,6 +15,7 @@ import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.Event;
 import wxdgaming.boot2.core.threading.ExecutorWith;
 import wxdgaming.boot2.core.timer.MyClock;
+import wxdgaming.boot2.core.util.NumberUtil;
 import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
@@ -88,9 +89,7 @@ public class SServerLogApi {
                           @Param(path = "logType") String logType,
                           @Param(path = "pageIndex") int pageIndex,
                           @Param(path = "pageSize") int pageSize,
-                          @Param(path = "account", required = false) String account,
-                          @Param(path = "roleId", required = false) String roleId,
-                          @Param(path = "roleName", required = false) String roleName,
+                          @Param(path = "sid", required = false) Integer sid,
                           @Param(path = "dataJson", required = false) String dataJson) {
 
         GameContext gameContext = gameService.gameContext(gameId);
@@ -105,11 +104,11 @@ public class SServerLogApi {
         PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
         SqlQueryBuilder sqlQueryBuilder = pgsqlDataHelper.queryBuilder();
 
-        sqlQueryBuilder
-                .setTableName(logType)
-                .pushWhereByValueNotNull("account=?", account)
-                .pushWhereByValueNotNull("roleid=?", roleId)
-                .pushWhereByValueNotNull("rolename=?", roleName);
+        sqlQueryBuilder.setTableName(logType);
+
+        if (sid != null) {
+            sqlQueryBuilder.pushWhereByValueNotNull("sid=?", NumberUtil.parseInt(sid, 0));
+        }
 
         if (StringUtils.isNotBlank(dataJson)) {
             String[] split = dataJson.split(",");

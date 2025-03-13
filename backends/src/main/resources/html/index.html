@@ -158,9 +158,14 @@
                         }
                     }
 
-                    let tableMapping = datum.tableMapping;
-                    for (const key in tableMapping) {
-                        appendA += `<a class="J_menuItem" href="/log/role/s-role-log.html?gameId=${datum.uid}&logType=${key}">${datum.name}-${tableMapping[key]}</a>`;
+                    let serverTableMapping = datum.serverTableMapping;
+                    for (const key in serverTableMapping) {
+                        appendA += `<a class="J_menuItem" href="/log/server/s-server-log.html?gameId=${datum.uid}&logType=${key}">${datum.name}-${serverTableMapping[key]}</a>`;
+                    }
+
+                    let roleTableMapping = datum.roleTableMapping;
+                    for (const key in roleTableMapping) {
+                        appendA += `<a class="J_menuItem" href="/log/role/s-role-log.html?gameId=${datum.uid}&logType=${key}">${datum.name}-${roleTableMapping[key]}</a>`;
                     }
 
                     let appendLi = `

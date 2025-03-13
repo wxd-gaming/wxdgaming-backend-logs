@@ -25,9 +25,9 @@ http:
     readTimeout: 3000                   #读取超时时间
 
 logbus:
-  portUrl: http://127.0.0.1:19000/
+  portUrl: http://127.0.0.1:19000
   appId: 1
-  appToken: ddddd
-  logToken: ddddd
+  appToken: h307ys9rF7c9
+  logToken: 6cxCOK9twW40JEg6oBHOX5u1rHhrs61c
   batch: true
   batchThread: 10

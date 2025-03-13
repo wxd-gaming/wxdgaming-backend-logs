@@ -71,17 +71,6 @@ public class SRoleLogItemApi {
                     gameContext.recordError("表结构 " + record.tableName() + " 重复日志记录 " + record.getUid(), record.toJsonString());
                 } else {
                     record.checkDataKey();
-                    AccountRecord accountRecord = gameContext.getAccountRecord(record.getAccount());
-                    if (accountRecord == null) {
-                        gameContext.recordError("道具记录 找不到账号 " + record.getAccount(), record.toJsonString());
-                        return;
-                    }
-
-                    RoleRecord roleRecord = gameContext.getRoleRecord(record.getRoleId());
-                    if (roleRecord == null) {
-                        gameContext.recordError("道具记录 找不到角色 " + record.getRoleId(), record.toJsonString());
-                        return;
-                    }
 
                     gameContext.getLogKeyCache().put(logKey, true);
                     gameContext.getDataHelper().getDataBatch().insert(record);

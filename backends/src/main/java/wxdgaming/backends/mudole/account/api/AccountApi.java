@@ -49,22 +49,10 @@ public class AccountApi {
         gameContext.submit(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
                 String account = data.getString("account");
-                AccountRecord entity = gameContext.getAccountRecord(account);
-                if (entity == null) {
-                    entity = new AccountRecord();
-                    Long uid = data.getLong("uid");
-                    entity.setUid(uid);
-                    if (entity.getUid() == 0) {
-                        entity.setUid(gameContext.getAccountHexId().newId());
-                    }
-                    entity.setAccount(account);
-                    long createTime = data.getLong("createTime");
-                    entity.setCreateTime(createTime);
-                    JSONObject other = data.getJSONObject("other");
-                    entity.getOther().putAll(other);
-                    entity.checkDataKey();
-                    gameContext.getAccountRecordJdbcCache().put(entity.getAccount(), entity);
-                }
+                long createTime = data.getLongValue("createTime");
+                AccountRecord entity = gameContext.accountGetOrCreate(account, createTime);
+                JSONObject other = data.getJSONObject("other");
+                entity.getOther().putAll(other);
             }
         });
         return RunResult.ok();

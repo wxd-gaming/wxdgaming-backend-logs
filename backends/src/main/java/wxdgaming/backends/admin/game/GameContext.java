@@ -8,10 +8,11 @@ import wxdgaming.backends.entity.games.logs.RoleRecord;
 import wxdgaming.backends.entity.games.logs.ServerRecord;
 import wxdgaming.backends.entity.system.Game;
 import wxdgaming.boot2.core.cache.Cache;
-import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.format.HexId;
 import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.threading.ThreadContext;
+import wxdgaming.boot2.core.util.AssertUtil;
+import wxdgaming.boot2.core.util.ObjectLockUtil;
 import wxdgaming.boot2.starter.batis.sql.JdbcCache;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 
@@ -130,18 +131,56 @@ public class GameContext {
         return logTypeHexIdMap.computeIfAbsent(logType, k -> new HexId(gameId)).newId();
     }
 
-    public AccountRecord getAccountRecord(String account) {
-        if (StringUtils.isBlank(account)) {
-            return null;
-        }
-        return accountRecordJdbcCache.getIfPresent(account);
+    public AccountRecord accountGetOrCreate(String account) {
+        return accountGetOrCreate(account, System.currentTimeMillis());
     }
 
-    public RoleRecord getRoleRecord(long roleId) {
-        if (roleId == 0) {
-            return null;
+    public AccountRecord accountGetOrCreate(String account, long createTime) {
+        AssertUtil.assertNullEmpty(account, "account is blank");
+        ObjectLockUtil.lock(account);
+        try {
+            AccountRecord ifPresent = accountRecordJdbcCache.getIfPresent(account);
+            if (ifPresent == null) {
+                ifPresent = new AccountRecord();
+                ifPresent.setUid(accountHexId.newId());
+                ifPresent.setAccount(account);
+                ifPresent.setCreateTime(createTime);
+                ifPresent.checkDataKey();
+                accountRecordJdbcCache.put(account, ifPresent);
+            }
+            return ifPresent;
+        } finally {
+            ObjectLockUtil.unlock(account);
         }
-        return roleRecordJdbcCache.getIfPresent(roleId);
+    }
+
+    public RoleRecord roleGetOrCreate(String account, long roleId) {
+        return roleGetOrCreate(account, roleId, System.currentTimeMillis());
+    }
+
+    public RoleRecord roleGetOrCreate(String account, long roleId, long createTime) {
+        AssertUtil.assertTrue(roleId > 0, "account is blank");
+        AssertUtil.assertNullEmpty(account, "account is blank");
+        ObjectLockUtil.lock(account);
+        try {
+            RoleRecord ifPresent = roleRecordJdbcCache.getIfPresent(roleId);
+            if (ifPresent == null) {
+                ifPresent = new RoleRecord();
+                ifPresent.setUid(roleId);
+                ifPresent.setAccount(account);
+                ifPresent.setCreateTime(createTime);
+
+                ifPresent.checkDataKey();
+                roleRecordJdbcCache.put(roleId, ifPresent);
+                AccountRecord accountRecord = accountGetOrCreate(account);
+                if (!accountRecord.getRoleList().contains(roleId)) {
+                    accountRecord.getRoleList().add(roleId);
+                }
+            }
+            return ifPresent;
+        } finally {
+            ObjectLockUtil.unlock(account);
+        }
     }
 
     public void recordError(String errorMessage, String data) {

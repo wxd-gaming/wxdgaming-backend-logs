@@ -157,9 +157,9 @@ public class GameService {
         dataHelper.checkTable(tableStructMap, tableMapping, tableName, tableComment);
         if (checkPartition) {
             /*TODO 处理分区表 */
-            LocalDateTime localDate = LocalDateTime.now().plusDays(-120);
+            LocalDateTime localDate = LocalDateTime.now().plusDays(-2);
             StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < 125; i++) {
+            for (int i = 0; i < 5; i++) {
                 /*创建表分区*/
                 String from = MyClock.formatDate("yyyyMMdd", localDate.plusDays(i));
                 String to = MyClock.formatDate("yyyyMMdd", localDate.plusDays(i + 1));

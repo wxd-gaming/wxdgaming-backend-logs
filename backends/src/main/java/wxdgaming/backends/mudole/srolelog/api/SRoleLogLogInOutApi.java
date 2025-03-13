@@ -70,23 +70,15 @@ public class SRoleLogLogInOutApi {
                     gameContext.recordError("表结构 " + record.tableName() + " 重复日志记录 " + record.getUid(), record.toJsonString());
                 } else {
 
-
                     SRoleLog2Login.LogEnum logEnum = record.getLogEnum();
                     if (logEnum == null) {
                         gameContext.recordError("登录记录 logEnum 参数异常", record.toJsonString());
                         return;
                     }
-                    AccountRecord accountRecord = gameContext.getAccountRecord(record.getAccount());
-                    if (accountRecord == null) {
-                        gameContext.recordError("登录记录 找不到账号 " + record.getAccount(), record.toJsonString());
-                        return;
-                    }
 
-                    RoleRecord roleRecord = gameContext.getRoleRecord(record.getRoleId());
-                    if (roleRecord == null) {
-                        gameContext.recordError("登录记录 找不到角色 " + record.getRoleId(), record.toJsonString());
-                        return;
-                    }
+                    AccountRecord accountRecord = gameContext.accountGetOrCreate(record.getAccount());
+                    RoleRecord roleRecord = gameContext.roleGetOrCreate(record.getAccount(), record.getRoleId());
+
                     record.checkDataKey();
                     gameContext.getLogKeyCache().put(logKey, true);
                     gameContext.getDataHelper().dataBatch().insert(record);

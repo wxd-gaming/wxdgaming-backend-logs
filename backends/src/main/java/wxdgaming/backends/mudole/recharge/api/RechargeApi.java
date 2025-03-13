@@ -57,29 +57,23 @@ public class RechargeApi {
                 if (!containsKey) {
                     gameContext.getLogKeyCache().put(logKey, true);
                     gameContext.getDataHelper().dataBatch().insert(record);
-                    String account = record.getAccount();
-                    AccountRecord accountRecord = gameContext.getAccountRecord(account);
-                    if (accountRecord != null) {
+                    {
+                        String account = record.getAccount();
+                        AccountRecord accountRecord = gameContext.accountGetOrCreate(account);
                         accountRecord.getRechargeAmount().addAndGet(record.getAmount());
                         accountRecord.getRechargeCount().incrementAndGet();
                         if (accountRecord.getRechargeFirstTime() == 0) {
                             accountRecord.setRechargeFirstTime(record.getCreateTime());
                         }
                         accountRecord.setRechargeLastTime(record.getCreateTime());
-                    } else {
-                        gameContext.recordError("充值记录 找不到账号 " + record.getAccount(), record.toJsonString());
                     }
-                    RoleRecord roleRecord = gameContext.getRoleRecord(record.getRoleId());
-                    if (roleRecord != null) {
-                        roleRecord.getRechargeAmount().addAndGet(record.getAmount());
-                        roleRecord.getRechargeCount().incrementAndGet();
-                        if (roleRecord.getRechargeFirstTime() == 0) {
-                            roleRecord.setRechargeFirstTime(record.getCreateTime());
-                        }
-                        roleRecord.setRechargeLastTime(record.getCreateTime());
-                    } else {
-                        gameContext.recordError("充值记录 找不到对应的角色 " + record.getRoleId(), record.toJsonString());
+                    RoleRecord roleRecord = gameContext.roleGetOrCreate(record.getAccount(), record.getRoleId());
+                    roleRecord.getRechargeAmount().addAndGet(record.getAmount());
+                    roleRecord.getRechargeCount().incrementAndGet();
+                    if (roleRecord.getRechargeFirstTime() == 0) {
+                        roleRecord.setRechargeFirstTime(record.getCreateTime());
                     }
+                    roleRecord.setRechargeLastTime(record.getCreateTime());
                 } else {
                     gameContext.recordError("重复充值记录 " + record.getUid(), record.toJsonString());
                 }

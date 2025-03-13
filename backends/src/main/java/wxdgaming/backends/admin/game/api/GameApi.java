@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.admin.AdminService;
 import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
+import wxdgaming.backends.entity.games.logs.SRoleLog;
+import wxdgaming.backends.entity.games.logs.SServerLog;
 import wxdgaming.backends.entity.system.Game;
 import wxdgaming.backends.entity.system.User;
 import wxdgaming.boot2.core.ann.Body;
@@ -91,7 +93,8 @@ public class GameApi {
             Thread.ofPlatform().start(() -> gameService.addGameCache(game));
         } else {
             Game queryEntity = gameContext.getGame();
-            queryEntity.getTableMapping().putAll(game.getTableMapping());
+            queryEntity.getRoleTableMapping().putAll(game.getRoleTableMapping());
+            queryEntity.getServerTableMapping().putAll(game.getServerTableMapping());
             queryEntity.setAppToken(game.getAppToken());
             queryEntity.setRechargeToken(game.getRechargeToken());
             queryEntity.setLogToken(game.getLogToken());
@@ -173,35 +176,38 @@ public class GameApi {
         return RunResult.ok().fluentPut("data", list).fluentPut("routings", routings).fluentPut("admin", user.isRoot() || user.isAdmin());
     }
 
-    @HttpRequest(authority = 9, comment = "添加日志表")
-    public RunResult addLogType(HttpContext session, @ThreadParam() User user, JSONObject data) {
-        Integer gameId = data.getInteger("gameId");
-        String token = data.getString("token");
-        RunResult runResult = gameService.checkAppToken(gameId, token);
-        if (runResult != null) return runResult;
-
-        GameContext gameContext = gameService.gameContext(gameId);
-
+    @HttpRequest(authority = 1, comment = "添加日志表")
+    public RunResult addRoleLogType(HttpContext session, @ThreadParam GameContext gameContext, @Body JSONObject data) {
         Game game = gameContext.getGame();
-
-        if (!game.getTableMapping().containsKey(data.getString("logType"))) {
-            gameService.checkSRoleLogTable(gameContext, gameContext.getDataHelper(), data.getString("logType"), data.getString("logComment"));
-            game.getTableMapping().put(data.getString("logType"), data.getString("logComment"));
+        if (!game.getRoleTableMapping().containsKey(data.getString("logType"))) {
+            gameService.checkSLogTable(gameContext, gameContext.getDataHelper(), SRoleLog.class, data.getString("logType"), data.getString("logComment"));
+            game.getRoleTableMapping().put(data.getString("logType"), data.getString("logComment"));
             this.pgsqlService.update(game);
         }
         return RunResult.ok();
     }
 
-    @HttpRequest(authority = 9, comment = "日志列表")
-    public RunResult listLogType(HttpContext session, @ThreadParam() User user, JSONObject data) {
-        Integer gameId = data.getInteger("gameId");
-        String token = data.getString("token");
-        RunResult runResult = gameService.checkAppToken(gameId, token);
-        if (runResult != null) return runResult;
+    @HttpRequest(authority = 1, comment = "日志列表")
+    public RunResult roleLogTypeList(HttpContext session, @ThreadParam GameContext gameContext) {
+        Game game = gameContext.getGame();
+        return RunResult.ok().data(game.getRoleTableMapping());
+    }
 
-        Game game = gameService.gameContext(gameId).getGame();
+    @HttpRequest(authority = 1, comment = "添加日志表")
+    public RunResult addServerLogType(HttpContext session, @ThreadParam GameContext gameContext, @Body JSONObject data) {
+        Game game = gameContext.getGame();
+        if (!game.getServerTableMapping().containsKey(data.getString("logType"))) {
+            gameService.checkSLogTable(gameContext, gameContext.getDataHelper(), SServerLog.class, data.getString("logType"), data.getString("logComment"));
+            game.getServerTableMapping().put(data.getString("logType"), data.getString("logComment"));
+            this.pgsqlService.update(game);
+        }
+        return RunResult.ok();
+    }
 
-        return RunResult.ok().data(game.getTableMapping());
+    @HttpRequest(authority = 1, comment = "日志列表")
+    public RunResult serverLogTypeList(HttpContext session, @ThreadParam GameContext gameContext) {
+        Game game = gameContext.getGame();
+        return RunResult.ok().data(game.getServerTableMapping());
     }
 
 
