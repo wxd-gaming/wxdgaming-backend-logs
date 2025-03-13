@@ -52,7 +52,7 @@ public class SRoleLogLogInOutApi {
         for (SRoleLog2Login record : recordList) {
             push(gameContext, record);
         }
-        return RunResult.ok();
+        return RunResult.OK;
     }
 
     /** 登录日志的批量提交 */
@@ -83,13 +83,14 @@ public class SRoleLogLogInOutApi {
                     gameContext.getLogKeyCache().put(logKey, true);
                     gameContext.getDataHelper().dataBatch().insert(record);
 
-                    if (logEnum == SRoleLog2Login.LogEnum.LOGIN && !roleRecord.isOnline()) {
+                    if (logEnum == SRoleLog2Login.LogEnum.LOGIN) {
                         roleRecord.setLastJoinTime(record.getCreateTime());
                         roleRecord.setLastJoinSid(record.getSid());
-                        roleRecord.setOnline(true);
-                    } else if (logEnum == SRoleLog2Login.LogEnum.LOGOUT && roleRecord.isOnline()) {
+                        roleRecord.setOnlineUpdateTime(record.getCreateTime());
+                        accountRecord.setOnlineUpdateTime(record.getCreateTime());
+                    } else if (logEnum == SRoleLog2Login.LogEnum.LOGOUT) {
                         roleRecord.setLastExitTime(record.getCreateTime());
-                        roleRecord.setOnline(false);
+                        roleRecord.setOnlineUpdateTime(0);
                         OnlineTimeRecord onlineTimeRecord = new OnlineTimeRecord();
                         onlineTimeRecord.setCreateTime(MyClock.millis());/* 产生记录的时间 */
                         onlineTimeRecord.setUid(gameContext.newId("OnlineTimeRecord"));
@@ -116,7 +117,36 @@ public class SRoleLogLogInOutApi {
                 }
             }
         });
-        return RunResult.ok();
+        return RunResult.OK;
+    }
+
+    @HttpRequest(authority = 2)
+    @ExecutorWith(useVirtualThread = true)
+    public RunResult online(HttpContext httpSession,
+                            @ThreadParam GameContext gameContext,
+                            @Param(path = "account") String account,
+                            @Param(path = "roleId") long roleId,
+                            @Param(path = "time") long time) {
+
+        AccountRecord accountRecord = gameContext.accountGetOrCreate(account);
+        RoleRecord roleRecord = gameContext.roleGetOrCreate(account, roleId);
+        roleRecord.setOnlineUpdateTime(Math.max(roleRecord.getOnlineUpdateTime(), time));
+        accountRecord.setOnlineUpdateTime(Math.max(accountRecord.getOnlineUpdateTime(), time));
+
+        return RunResult.OK;
+    }
+
+    @HttpRequest(authority = 2)
+    @ExecutorWith(useVirtualThread = true)
+    public RunResult onlineList(HttpContext httpSession,
+                                @ThreadParam GameContext gameContext,
+                                @Param(path = "data") List<JSONObject> data) {
+
+        for (JSONObject datum : data) {
+            online(httpSession, gameContext, datum.getString("account"), datum.getLongValue("roleId"), datum.getLongValue("time"));
+        }
+
+        return RunResult.OK;
     }
 
     @HttpRequest(authority = 9)

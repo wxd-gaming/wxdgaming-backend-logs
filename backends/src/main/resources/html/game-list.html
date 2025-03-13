@@ -81,9 +81,9 @@
             <td tips="true" style="width: 120px;">${row.name}</td>
             <td tips="true" style="width: 120px;">${row.icon}</td>
             <td tips="true" style="width: 120px;">${row.createTime}</td>
-            <td tips="true" style="width: 140px;" onclick="wxd.copy('app密钥: ${row.appToken}')">${row.appToken}</td>
-            <td tips="true" style="width: 140px;" onclick="wxd.copy('充值密钥: ${row.rechargeToken}')">${row.rechargeToken}</td>
-            <td tips="true" style="width: 140px;" onclick="wxd.copy('日志密钥: ${row.logToken}')">${row.logToken}</td>
+            <td tips="true" style="width: 140px;" ondblclick="wxd.copy('appToken: ${row.appToken}');wxd.message.notice('复制成功')">${row.appToken}</td>
+            <td tips="true" style="width: 140px;" ondblclick="wxd.copy('rechargeToken: ${row.rechargeToken}');wxd.message.notice('复制成功')">${row.rechargeToken}</td>
+            <td tips="true" style="width: 140px;" ondblclick="wxd.copy('logToken: ${row.logToken}');wxd.message.notice('复制成功')">${row.logToken}</td>
             <td tips="true" style="width: 120px;">${row.desc}</td>
     </tr>
 `;

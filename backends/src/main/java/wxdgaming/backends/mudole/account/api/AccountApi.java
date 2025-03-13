@@ -55,7 +55,7 @@ public class AccountApi {
                 entity.getOther().putAll(other);
             }
         });
-        return RunResult.ok();
+        return RunResult.OK;
     }
 
     @HttpRequest(authority = 2)
@@ -64,7 +64,7 @@ public class AccountApi {
         for (JSONObject record : recordList) {
             push(gameContext, record);
         }
-        return RunResult.ok();
+        return RunResult.OK;
     }
 
     /** 列表查询不要走缓存，否则会特别耗内存 */

@@ -168,6 +168,7 @@ public class GameApi {
                 return;
             }
             pathString = "/" + pathString.substring(indexOf + 5);
+            pathString = pathString.replace("\\", "/");
             if ((user.isRoot() || user.getAuthorizationRouting().contains(pathString))) {
                 routings.add(pathString);
             }

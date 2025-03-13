@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Singleton;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import wxdgaming.boot2.core.BootConfig;
 import wxdgaming.boot2.core.ann.Start;
 import wxdgaming.boot2.core.ann.Value;
 import wxdgaming.boot2.core.chatset.StringUtils;
@@ -83,7 +84,7 @@ public class LogBus {
                         }
                     }
                 },
-                10_000,
+                3_000,
                 33,
                 TimeUnit.MILLISECONDS
         );
@@ -168,12 +169,12 @@ public class LogBus {
         push(account, "log/role/lvList", record);
     }
 
-    public void pushLogin(long uid, long createTime, int sid, String account, long roleId, String roleName, int lv, JSONObject other) {
+    public void pushLogin(String account, long roleId, String roleName, int lv, JSONObject other) {
         JSONObject jsonObject = MapOf.newJSONObject()
                 .fluentPut("logEnum", "LOGIN")
-                .fluentPut("uid", uid)/*指定一个唯一id，这样可以避免因为网络重复提交导致出现重复数据*/
-                .fluentPut("createTime", createTime)
-                .fluentPut("sid", sid)
+                .fluentPut("uid", hexId.newId())/*指定一个唯一id，这样可以避免因为网络重复提交导致出现重复数据*/
+                .fluentPut("createTime", System.currentTimeMillis())
+                .fluentPut("sid", BootConfig.getIns().sid())
                 .fluentPut("account", account)
                 .fluentPut("roleId", roleId)
                 .fluentPut("roleName", roleName)
@@ -182,12 +183,21 @@ public class LogBus {
         push(account, "log/role/login/pushList", jsonObject);
     }
 
-    public void pushLogout(long uid, long createTime, int sid, String account, long roleId, String roleName, int lv, JSONObject other) {
+    /** 同步在线状态 建议每分钟一次 */
+    public void online(String account, long roleId) {
+        JSONObject jsonObject = MapOf.newJSONObject()
+                .fluentPut("account", account)
+                .fluentPut("roleId", roleId)
+                .fluentPut("time", System.currentTimeMillis());
+        push(account, "log/role/login/onlineList", jsonObject);
+    }
+
+    public void pushLogout(String account, long roleId, String roleName, int lv, JSONObject other) {
         JSONObject jsonObject = MapOf.newJSONObject()
                 .fluentPut("logEnum", "LOGOUT")
-                .fluentPut("uid", uid)/*指定一个唯一id，这样可以避免因为网络重复提交导致出现重复数据*/
-                .fluentPut("createTime", createTime)
-                .fluentPut("sid", sid)
+                .fluentPut("uid", hexId.newId())/*指定一个唯一id，这样可以避免因为网络重复提交导致出现重复数据*/
+                .fluentPut("createTime", System.currentTimeMillis())
+                .fluentPut("sid", BootConfig.getIns().sid())
                 .fluentPut("account", account)
                 .fluentPut("roleId", roleId)
                 .fluentPut("roleName", roleName)
@@ -196,14 +206,13 @@ public class LogBus {
         push(account, "log/role/login/pushList", jsonObject);
     }
 
-    public void pushRecharge(long uid, long createTime,
-                             int sid, String account, long roleId, String roleName, int lv,
+    public void pushRecharge(String account, long roleId, String roleName, int lv,
                              String channel, long amount, String spOrder, String cpOrder,
                              JSONObject other) {
         JSONObject jsonObject = MapOf.newJSONObject()
-                .fluentPut("uid", uid)/*指定一个唯一id，这样可以避免因为网络重复提交导致出现重复数据*/
-                .fluentPut("createTime", createTime)
-                .fluentPut("sid", sid)
+                .fluentPut("uid", hexId.newId())/*指定一个唯一id，这样可以避免因为网络重复提交导致出现重复数据*/
+                .fluentPut("createTime", System.currentTimeMillis())
+                .fluentPut("sid", BootConfig.getIns().sid())
                 .fluentPut("account", account)
                 .fluentPut("roleId", roleId)
                 .fluentPut("roleName", roleName)
@@ -219,24 +228,21 @@ public class LogBus {
     /**
      * 根据角色相关的通用的日志
      *
-     * @param logType    日志类型
-     * @param uid        日志唯一id
-     * @param createTime 日志时间
-     * @param sid        日志产生的区服
-     * @param account    玩家账号
-     * @param roleId     玩家的id
-     * @param roleName   玩家名字
-     * @param lv         玩家等级
-     * @param other      附加的信息
+     * @param logType  日志类型
+     * @param account  玩家账号
+     * @param roleId   玩家的id
+     * @param roleName 玩家名字
+     * @param lv       玩家等级
+     * @param other    附加的信息
      * @author: wxd-gaming(無心道, 15388152619)
      * @version: 2025-03-13 09:03
      */
-    public void pushRoleLog(String logType, long uid, long createTime, int sid, String account, long roleId, String roleName, int lv, JSONObject other) {
+    public void pushRoleLog(String logType, String account, long roleId, String roleName, int lv, JSONObject other) {
         JSONObject jsonObject = MapOf.newJSONObject()
                 .fluentPut("logType", logType)
-                .fluentPut("uid", uid)/*指定一个唯一id，这样可以避免因为网络重复提交导致出现重复数据*/
-                .fluentPut("createTime", createTime)
-                .fluentPut("sid", sid)
+                .fluentPut("uid", hexId.newId())/*指定一个唯一id，这样可以避免因为网络重复提交导致出现重复数据*/
+                .fluentPut("createTime", System.currentTimeMillis())
+                .fluentPut("sid", BootConfig.getIns().sid())
                 .fluentPut("account", account)
                 .fluentPut("roleId", roleId)
                 .fluentPut("roleName", roleName)

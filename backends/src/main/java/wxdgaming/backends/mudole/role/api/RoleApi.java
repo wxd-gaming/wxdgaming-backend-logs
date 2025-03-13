@@ -69,7 +69,7 @@ public class RoleApi {
 
             }
         });
-        return RunResult.ok();
+        return RunResult.OK;
     }
 
     @HttpRequest(authority = 2)
@@ -88,7 +88,7 @@ public class RoleApi {
                 }
             }
         });
-        return RunResult.ok();
+        return RunResult.OK;
     }
 
     @HttpRequest(authority = 2)
@@ -98,7 +98,7 @@ public class RoleApi {
         for (JSONObject data : datas) {
             lv(httpContext, gameContext, data.getString("account"), data.getLongValue("roleId"), data.getIntValue("lv"));
         }
-        return RunResult.ok();
+        return RunResult.OK;
     }
 
     @HttpRequest(authority = 2)
@@ -106,7 +106,7 @@ public class RoleApi {
         for (RoleRecord record : recordList) {
             push(gameContext, record);
         }
-        return RunResult.ok();
+        return RunResult.OK;
     }
 
     @HttpRequest(authority = 2)
@@ -120,7 +120,7 @@ public class RoleApi {
         RoleRecord entity = gameContext.roleGetOrCreate(account, roleId);
         if (entity != null) {
             entity.setDel(1);
-            return RunResult.ok();
+            return RunResult.OK;
         }
         return RunResult.error("角色不存在");
     }

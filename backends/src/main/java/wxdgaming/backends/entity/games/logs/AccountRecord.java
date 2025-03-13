@@ -50,10 +50,13 @@ public class AccountRecord extends RecordBase {
     private long rechargeLastTime = 0;
 
     /** 累计在线时长 */
-    @JSONField(ordinal = 44)
+    @JSONField(ordinal = 40)
     @DbColumn(index = true)
     private long totalOnlineTime;
-
+    /** 在线状态更新时间 时间戳5分钟以内 */
+    @JSONField(ordinal = 44)
+    @DbColumn(index = true)
+    private long onlineUpdateTime;
     @JSONField(ordinal = 99)
     @DbColumn(columnType = ColumnType.Json)
     private final JSONObject other = MapOf.newJSONObject();

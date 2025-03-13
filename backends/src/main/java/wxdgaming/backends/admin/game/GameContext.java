@@ -131,6 +131,15 @@ public class GameContext {
         return logTypeHexIdMap.computeIfAbsent(logType, k -> new HexId(gameId)).newId();
     }
 
+    public ServerRecord serverGetOrCreate(int sid) {
+        return serverRecordMap.computeIfAbsent(sid, k -> {
+            ServerRecord serverRecord = new ServerRecord();
+            serverRecord.setUid(sid);
+            dataHelper.insert(serverRecord);
+            return serverRecord;
+        });
+    }
+
     public AccountRecord accountGetOrCreate(String account) {
         return accountGetOrCreate(account, System.currentTimeMillis());
     }

@@ -10,6 +10,8 @@ import wxdgaming.boot2.starter.batis.EntityIntegerUID;
 import wxdgaming.boot2.starter.batis.ann.DbColumn;
 import wxdgaming.boot2.starter.batis.ann.DbTable;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  * 区服记录
  *
@@ -77,10 +79,6 @@ public class ServerRecord extends EntityIntegerUID {
     @JSONField(ordinal = 26)
     @DbColumn(index = true)
     private String status;
-    /** 注册账户 */
-    @JSONField(ordinal = 28)
-    @DbColumn()
-    private int registerUserCount;
     /** 注册角色 */
     @JSONField(ordinal = 29)
     @DbColumn()
@@ -96,7 +94,11 @@ public class ServerRecord extends EntityIntegerUID {
     /** 充值金额 */
     @JSONField(ordinal = 32)
     @DbColumn()
-    private long rechargeCount;
+    private AtomicLong rechargeCount = new AtomicLong();
+    /** 充值金额 */
+    @JSONField(ordinal = 32)
+    @DbColumn()
+    private AtomicLong rechargeAmount = new AtomicLong();
     @JSONField(ordinal = 99)
     @DbColumn(columnType = ColumnType.Json)
     private final JSONObject other = MapOf.newJSONObject();

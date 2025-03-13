@@ -9,6 +9,7 @@ import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.RechargeRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
+import wxdgaming.backends.entity.games.logs.ServerRecord;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
@@ -74,12 +75,17 @@ public class RechargeApi {
                         roleRecord.setRechargeFirstTime(record.getCreateTime());
                     }
                     roleRecord.setRechargeLastTime(record.getCreateTime());
+
+                    ServerRecord serverRecord = gameContext.serverGetOrCreate(record.getSid());
+                    serverRecord.getRechargeCount().incrementAndGet();
+                    serverRecord.getRechargeAmount().addAndGet(record.getAmount());
+
                 } else {
                     gameContext.recordError("重复充值记录 " + record.getUid(), record.toJsonString());
                 }
             }
         });
-        return RunResult.ok();
+        return RunResult.OK;
     }
 
     @HttpRequest(authority = 2)
@@ -88,7 +94,7 @@ public class RechargeApi {
         for (RechargeRecord record : recordList) {
             push(gameContext, record);
         }
-        return RunResult.ok();
+        return RunResult.OK;
     }
 
     @HttpRequest

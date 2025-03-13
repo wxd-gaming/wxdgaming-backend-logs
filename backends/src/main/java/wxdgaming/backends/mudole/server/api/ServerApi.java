@@ -13,7 +13,6 @@ import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.Event;
-import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
@@ -43,49 +42,42 @@ public class ServerApi {
 
     @HttpRequest(authority = 2)
     public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") ServerRecord record) {
-        if (record.getUid() == 0) {
-            gameContext.recordError("sid为空", record.toJsonString());
-        } else {
-            ServerRecord serverRecord = gameContext.getServerRecordMap().get(record.getUid());
-            if (serverRecord == null) {
-                gameContext.getServerRecordMap().put(record.getUid(), record);
-                gameContext.getDataHelper().getDataBatch().insert(record);
-            } else {
-                serverRecord.setMainSid(record.getMainSid());
-                serverRecord.setName(record.getName());
-                serverRecord.setShowName(record.getShowName());
-                serverRecord.setOpenTime(record.getOpenTime());
-                serverRecord.setMaintainTime(record.getMaintainTime());
-                serverRecord.setWlan(record.getWlan());
-                serverRecord.setLan(record.getLan());
-                serverRecord.setPort(record.getPort());
-                serverRecord.setWebPort(record.getWebPort());
-                serverRecord.setStatus(record.getStatus());
-                serverRecord.setOrdinal(record.getOrdinal());
-                serverRecord.setRegisterUserCount(record.getRegisterUserCount());
-                serverRecord.setRegisterRoleCount(record.getRegisterRoleCount());
-                serverRecord.setOnlineRoleCount(record.getOnlineRoleCount());
-                serverRecord.setActiveRoleCount(record.getActiveRoleCount());
-                serverRecord.setRechargeCount(record.getRechargeCount());
-                serverRecord.getOther().clear();
-                serverRecord.getOther().putAll(record.getOther());
-                serverRecord.setUpdateTime(System.currentTimeMillis());
-                gameContext.getDataHelper().getDataBatch().update(record);
+        gameContext.submit(new Event(5000, 10000) {
+            @Override public void onEvent() throws Exception {
+                if (record.getUid() == 0) {
+                    gameContext.recordError("sid为空", record.toJsonString());
+                } else {
+                    ServerRecord serverRecord = gameContext.serverGetOrCreate(record.getUid());
+                    serverRecord.setMainSid(record.getMainSid());
+                    serverRecord.setName(record.getName());
+                    serverRecord.setShowName(record.getShowName());
+                    serverRecord.setOpenTime(record.getOpenTime());
+                    serverRecord.setMaintainTime(record.getMaintainTime());
+                    serverRecord.setWlan(record.getWlan());
+                    serverRecord.setLan(record.getLan());
+                    serverRecord.setPort(record.getPort());
+                    serverRecord.setWebPort(record.getWebPort());
+                    serverRecord.setStatus(record.getStatus());
+                    serverRecord.setOrdinal(record.getOrdinal());
+                    serverRecord.setRegisterRoleCount(record.getRegisterRoleCount());
+                    serverRecord.setActiveRoleCount(record.getActiveRoleCount());
+                    serverRecord.setOnlineRoleCount(record.getOnlineRoleCount());
+                    serverRecord.getOther().putAll(record.getOther());
+                    serverRecord.setUpdateTime(System.currentTimeMillis());
+                    gameContext.getDataHelper().getDataBatch().update(record);
+                }
             }
-        }
-        return RunResult.ok();
+        });
+        return RunResult.OK;
     }
 
     @HttpRequest(authority = 2)
     public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<ServerRecord> recordList) {
-        gameContext.submit(new Event(5000, 10000) {
-            @Override public void onEvent() throws Exception {
-                for (ServerRecord record : recordList) {
-                    push(gameContext, record);
-                }
-            }
-        });
-        return RunResult.ok();
+
+        for (ServerRecord record : recordList) {
+            push(gameContext, record);
+        }
+        return RunResult.OK;
     }
 
     @HttpRequest(authority = 9)
@@ -118,7 +110,7 @@ public class ServerApi {
         sqlQueryBuilder.pushWhereByValueNotNull("wlan=?", wlan);
         sqlQueryBuilder.pushWhereByValueNotNull("lan=?", lan);
 
-        sqlQueryBuilder.setOrderBy("sid desc");
+        sqlQueryBuilder.setOrderBy("uid desc");
         if (pageIndex > 0) {
             sqlQueryBuilder.setSkip((pageIndex - 1) * pageSize);
         }

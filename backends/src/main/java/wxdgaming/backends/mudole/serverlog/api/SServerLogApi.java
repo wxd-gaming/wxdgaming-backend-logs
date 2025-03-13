@@ -69,7 +69,7 @@ public class SServerLogApi {
                 }
             }
         });
-        return RunResult.ok();
+        return RunResult.OK;
     }
 
     @HttpRequest(authority = 2)
@@ -78,7 +78,7 @@ public class SServerLogApi {
         for (SServerLog record : recordList) {
             push(gameContext, record);
         }
-        return RunResult.ok();
+        return RunResult.OK;
     }
 
 

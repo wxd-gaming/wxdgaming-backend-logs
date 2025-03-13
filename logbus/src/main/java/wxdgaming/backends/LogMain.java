@@ -18,7 +18,11 @@ public class LogMain {
     }
 
     public static RunApplication launch() {
-        JvmUtil.setProperty("boot.config", "log-boot.yml");
+        return launch("log-boot.yml");
+    }
+
+    public static RunApplication launch(String configName) {
+        JvmUtil.setProperty("boot.config", configName);
         return WxdApplication.run(
                 CoreScan.class,
                 LogMain.class

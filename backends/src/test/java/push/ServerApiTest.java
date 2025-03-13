@@ -3,9 +3,7 @@ package push;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import wxdgaming.backends.entity.games.logs.ServerRecord;
-import wxdgaming.boot2.core.chatset.StringUtils;
-import wxdgaming.boot2.core.util.RandomUtils;
+import wxdgaming.boot2.core.collection.MapOf;
 import wxdgaming.boot2.starter.net.httpclient.PostText;
 import wxdgaming.boot2.starter.net.httpclient.Response;
 
@@ -37,25 +35,19 @@ public class ServerApiTest extends GameApiTest {
     public void pushServer(String logToken, int count) throws Exception {
         List<CompletableFuture<Response<PostText>>> futures = new ArrayList<>();
         for (int i = 1; i <= count; i++) {
-            ServerRecord record = new ServerRecord();
-            record.setUid(i);
-            record.setMainSid(0);
-            record.setName("测试服");
-            record.setShowName(StringUtils.randomString(4));
-            record.setOpenTime("2025-01-24 14:02");
-            record.setMaintainTime("2025-01-24 14:02");
-            record.setWlan("wxd-gaming");
-            record.setLan("192.168.137.10");
-            record.setPort(19000);
-            record.setWebPort(19001);
-            record.setStatus("online");
-            record.setRegisterUserCount(RandomUtils.random(1, 1000));
-            record.setRegisterRoleCount(RandomUtils.random(1, 1000));
-            record.setOnlineRoleCount(RandomUtils.random(1, 1000));
-            record.setActiveRoleCount(RandomUtils.random(1, 1000));
-            record.setRechargeCount(RandomUtils.random(1, 1000));
-            record.setUpdateTime(System.currentTimeMillis());
-            record.getOther().fluentPut("version", "v1.0.1");
+            JSONObject record = new JSONObject();
+            record.fluentPut("uid", i);
+            record.fluentPut("mainSid", 0);
+            record.fluentPut("name", "测试服-" + i);
+            record.fluentPut("showName", "测试服-" + i);
+            record.fluentPut("openTime", "2025-01-24 14:02");
+            record.fluentPut("maintainTime", "2025-01-24 14:02");
+            record.fluentPut("wlan", "wxd-gaming");
+            record.fluentPut("lan", "192.168.137.10");
+            record.fluentPut("port", 19000);
+            record.fluentPut("webPort", 19001);
+            record.fluentPut("status", "online");
+            record.fluentPut("other", MapOf.newJSONObject("version", "v1.0.1"));
 
             JSONObject push = new JSONObject()
                     .fluentPut("gameId", gameId)
@@ -63,7 +55,7 @@ public class ServerApiTest extends GameApiTest {
                     .fluentPut("data", record);
 
 
-            CompletableFuture<Response<PostText>> post = post("log/server/push", push.toJSONString());
+            CompletableFuture<Response<PostText>> post = post("server/push", push.toJSONString());
             futures.add(post);
         }
 

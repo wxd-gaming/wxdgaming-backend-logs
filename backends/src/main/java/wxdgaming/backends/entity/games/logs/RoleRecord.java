@@ -83,15 +83,16 @@ public class RoleRecord extends RecordBase {
     @JSONField(ordinal = 42)
     @DbColumn(index = true)
     private long lastExitTime;
-    @JSONField(ordinal = 43)
-    @DbColumn(index = true)
-    private boolean online;
-    /** 累计在线时长 */
+    /** 在线状态更新时间 时间戳5分钟以内 */
     @JSONField(ordinal = 44)
+    @DbColumn(index = true)
+    private long onlineUpdateTime;
+    /** 累计在线时长 */
+    @JSONField(ordinal = 45)
     @DbColumn(index = true)
     private long totalOnlineTime;
     /** 最后一次在线时长 */
-    @JSONField(ordinal = 44)
+    @JSONField(ordinal = 46)
     @DbColumn(index = true)
     private long lastOnlineTime;
 

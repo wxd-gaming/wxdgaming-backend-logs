@@ -53,14 +53,17 @@ public class SRoleLogItemApi {
         for (SRoleLog2Item record : recordList) {
             push(gameContext, record);
         }
-        return RunResult.ok();
+        return RunResult.OK;
     }
 
     /** 登录日志的批量提交 */
     @HttpRequest(authority = 2)
     public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") SRoleLog2Item record) {
+        log.info("item log: {}", record.toJsonString());
         gameContext.submit(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
+                AccountRecord accountRecord = gameContext.accountGetOrCreate(record.getAccount());
+                RoleRecord roleRecord = gameContext.roleGetOrCreate(record.getAccount(), record.getRoleId());
                 record.setLogType(record.tableName());
                 if (record.getUid() == 0)
                     record.setUid(gameContext.newId(record.tableName()));
@@ -77,7 +80,7 @@ public class SRoleLogItemApi {
                 }
             }
         });
-        return RunResult.ok();
+        return RunResult.OK;
     }
 
     @HttpRequest(authority = 9)
