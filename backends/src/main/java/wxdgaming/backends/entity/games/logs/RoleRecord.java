@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Getter;
 import lombok.Setter;
+import wxdgaming.backends.BackendsStart;
 import wxdgaming.boot2.core.collection.MapOf;
 import wxdgaming.boot2.starter.batis.ColumnType;
 import wxdgaming.boot2.starter.batis.ann.DbColumn;
@@ -99,4 +100,9 @@ public class RoleRecord extends RecordBase {
     @JSONField(ordinal = 99)
     @DbColumn(columnType = ColumnType.Json)
     private final JSONObject other = MapOf.newJSONObject();
+
+    public boolean online() {
+        return getOnlineUpdateTime() > 0 && Math.abs(System.currentTimeMillis() - getOnlineUpdateTime()) < BackendsStart.ONLINE_TIME_DIFF;
+    }
+
 }

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import wxdgaming.backends.BackendsStart;
 import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
@@ -87,10 +88,6 @@ public class AccountApi {
                 .pushWhereByValueNotNull("account=?", account)
         ;
 
-        if (StringUtils.isNotBlank(online)) {
-            queryBuilder.pushWhereByValueNotNull("online=?", "1".equals(online));
-        }
-
         if (StringUtils.isNotBlank(rechargeAmount)) {
             queryBuilder.pushWhereByValueNotNull("rechargeamount>=?", NumberUtil.parseLong(rechargeAmount, 0L));
         }
@@ -107,6 +104,13 @@ public class AccountApi {
         List<AccountRecord> records = queryBuilder.findList2Entity(AccountRecord.class);
 
         List<JSONObject> list = records.stream()
+                .filter(accountRecord -> {
+                    if (StringUtils.isNotBlank(online)) {
+                        return online.equals("1") == accountRecord.online();
+                    } else {
+                        return true;
+                    }
+                })
                 .map(accountRecord -> {
                     AccountRecord accountRecordFind = gameContext.getAccountRecordJdbcCache().find(accountRecord.getAccount());
                     if (accountRecordFind != null) {
@@ -117,6 +121,7 @@ public class AccountApi {
                     jsonObject.put("roleCount", String.valueOf(accountRecord.getRoleList().size()));
                     jsonObject.put("rechargeFirstTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", accountRecord.getRechargeFirstTime()));
                     jsonObject.put("rechargeLastTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", accountRecord.getRechargeLastTime()));
+                    jsonObject.put("online", accountRecord.online());
                     jsonObject.put("totalOnlineTime", new TimeFormat().addTime(jsonObject.getLong("totalOnlineTime") * 100).toString(TimeFormat.FormatInfo.All));
                     jsonObject.put("other", jsonObject.getString("other"));
                     return jsonObject;

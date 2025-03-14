@@ -157,9 +157,6 @@ public class RoleApi {
         if (StringUtils.isNotBlank(createSid)) {
             queryBuilder.pushWhereByValueNotNull("createsid=?", NumberUtil.parseInt(createSid, 0));
         }
-        if (StringUtils.isNotBlank(online)) {
-            queryBuilder.pushWhereByValueNotNull("online=?", "1".equals(online));
-        }
 
         if (StringUtils.isNotBlank(rechargeAmount)) {
             queryBuilder.pushWhereByValueNotNull("rechargeamount>=?", NumberUtil.parseLong(rechargeAmount, 0L));
@@ -174,9 +171,16 @@ public class RoleApi {
         queryBuilder.limit((pageIndex - 1) * pageSize, pageSize, 10, 1000);
 
         long rowCount = queryBuilder.findCount();
-        List<RoleRecord> accountRecords = queryBuilder.findList2Entity(RoleRecord.class);
+        List<RoleRecord> roleRecords = queryBuilder.findList2Entity(RoleRecord.class);
 
-        List<JSONObject> list = accountRecords.stream()
+        List<JSONObject> list = roleRecords.stream()
+                .filter(record -> {
+                    if (StringUtils.isNotBlank(online)) {
+                        return online.equals("1") == record.online();
+                    } else {
+                        return true;
+                    }
+                })
                 .map(roleRecord -> {
                     RoleRecord roleRecordCache = gameContext.getRoleRecordJdbcCache().find(roleRecord.getUid());
                     if (roleRecordCache != null) {
@@ -188,6 +192,7 @@ public class RoleApi {
                     jsonObject.put("rechargeLastTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", roleRecord.getRechargeLastTime()));
                     jsonObject.put("lastJoinTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", roleRecord.getLastJoinTime()));
                     jsonObject.put("lastExitTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", roleRecord.getLastExitTime()));
+                    jsonObject.put("online", roleRecord.online());
                     jsonObject.put("totalOnlineTime", new TimeFormat().addTime(jsonObject.getLong("totalOnlineTime") * 100).toString(TimeFormat.FormatInfo.All));
                     jsonObject.put("lastOnlineTime", new TimeFormat().addTime(jsonObject.getLong("lastOnlineTime") * 100).toString(TimeFormat.FormatInfo.All));
                     jsonObject.put("other", jsonObject.getString("other"));

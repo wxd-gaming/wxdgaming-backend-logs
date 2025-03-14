@@ -83,7 +83,7 @@ public class LogBusTest {
             /*充值日志*/
             logBus.pushRecharge(
                     account, roleId, account, 2,
-                    "huawei", 600/*单位分*/, "1001", "1002",
+                    "huawei", 600/*单位分*/, StringUtils.randomString(18), StringUtils.randomString(18),
                     MapOf.newJSONObject("comment", "首充奖励")
             );
 

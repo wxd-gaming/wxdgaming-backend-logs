@@ -2,6 +2,7 @@ package wxdgaming.backends.admin.game;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import wxdgaming.backends.BackendsStart;
 import wxdgaming.backends.entity.games.ErrorRecord;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
@@ -213,6 +214,64 @@ public class GameContext {
 
     public void submit(Runnable runnable) {
         ExecutorUtil.getInstance().getVirtualExecutor().submit("queue-game-" + gameId, runnable);
+    }
+
+    public long registerAccountNum(int dayKey) {
+        Long registerAccountNum = dataHelper.executeScalar("SELECT \"count\"(DISTINCT ll.account) FROM record_account as ll WHERE ll.daykey = ?;", Long.class, dayKey);
+        return registerAccountNum == null ? 0L : registerAccountNum;
+    }
+
+    public long loginAccountNum(int dayKey) {
+        Long loginAccountNum = dataHelper.executeScalar("SELECT \"count\"(DISTINCT account) FROM record_role_login WHERE daykey=?", Long.class, dayKey);
+        return loginAccountNum == null ? 0L : loginAccountNum;
+    }
+
+    public long rechargeAmountNum(int dayKey) {
+        Long rechargeAmountNum = dataHelper.executeScalar(
+                """
+                        SELECT
+                            "sum" ( amount )\s
+                        FROM
+                            record_recharge rr
+                            RIGHT JOIN ( SELECT "min" ( uid ) AS "uid" FROM record_recharge WHERE daykey = ? GROUP BY sporder ) rrt ON rr.uid = rrt.uid
+                        """,
+                Long.class,
+                dayKey
+        );
+        return rechargeAmountNum == null ? 0L : rechargeAmountNum;
+    }
+
+    /** 充值账号数 */
+    public long rechargeAccountNum(int dayKey) {
+        Long rechargeAccountNum = dataHelper.executeScalar("SELECT \"count\"(DISTINCT account) FROM record_recharge WHERE daykey=?", Long.class, dayKey);
+        return rechargeAccountNum == null ? 0L : rechargeAccountNum;
+    }
+
+    public long registerAccountRechargeNum(int dayKey) {
+        /*今天注册就充值的账号数量*/
+        Long registerAccountRechargeNum = dataHelper.executeScalar(
+                """
+                        SELECT
+                            "count" ( DISTINCT rr.account )\s
+                        FROM
+                            record_recharge AS rr
+                            RIGHT JOIN (SELECT account FROM record_account as ll WHERE ll.daykey = ? GROUP BY account) as ra ON ra.account = rr.account
+                        """,
+                Long.class,
+                dayKey
+        );
+        return registerAccountRechargeNum == null ? 0L : registerAccountRechargeNum;
+    }
+
+    public long rechargeOrderNum(int dayKey) {
+        Long rechargeOrderNum = dataHelper.executeScalar("SELECT \"count\"(DISTINCT sporder) FROM record_recharge WHERE daykey=?", Long.class, dayKey);
+        return rechargeOrderNum == null ? 0L : rechargeOrderNum;
+    }
+
+    public long onlineAccount() {
+        return getAccountRecordJdbcCache().values().stream()
+                .filter(AccountRecord::online)
+                .count();
     }
 
 }

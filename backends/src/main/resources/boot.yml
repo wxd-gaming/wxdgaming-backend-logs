@@ -14,7 +14,7 @@ executor:
     maxSize: 200                       #虚拟线程池
     maxQueueSize: 1500000              #队列超过就会打印异常
   scheduled:
-    coreSize: 1
+    coreSize: 2
     maxSize: 2
     maxQueueSize: 50000
 http:
@@ -27,9 +27,6 @@ http:
     connectionRequestTimeout: 1000      #从连接池获取连接超时
     keepAliveTimeout: 30000             #连接有效时间
     readTimeout: 3000                   #读取超时时间
-  server:
-    showRequest: true
-    showResponse: true
 socket:
   server:
     debug: false
@@ -49,6 +46,9 @@ socket:
     readTimeout: 0
     recvByteBufM: 12                                          #接收缓冲区大小 单位MB
     writeByteBufM: 12                                         #发送缓冲区大小 单位MB
+    http:
+      showRequest: true
+      showResponse: true
 db:
   pgsql:
     debug: true                                                 #调试模式将会显示sql语句

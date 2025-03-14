@@ -74,56 +74,31 @@ public class StatService {
                             gameStat.setUid(dayKey);
                         }
                         {
-                            Long registerAccountNum = pgsqlDataHelper.executeScalar("SELECT \"count\"(DISTINCT ll.account) FROM record_account as ll WHERE ll.daykey = ?;", Long.class, dayKey);
-                            registerAccountNum = Objects.returnNonNull(registerAccountNum, 0L);
+                            long registerAccountNum = gameContext.registerAccountNum(dayKey);
                             gameStat.setRegisterAccountNum(registerAccountNum);
                         }
                         {
                             /*今日登录的账号数*/
-                            Long loginAccountNum = pgsqlDataHelper.executeScalar("SELECT \"count\"(DISTINCT account) FROM record_role_login WHERE daykey=?", Long.class, dayKey);
-                            loginAccountNum = Objects.returnNonNull(loginAccountNum, 0L);
+                            long loginAccountNum = gameContext.loginAccountNum(dayKey);
                             gameStat.setLoginAccountNum(loginAccountNum);
                         }
                         {
-                            Long rechargeAmountNum = pgsqlDataHelper.executeScalar(
-                                    """
-                                            SELECT
-                                            	"sum" ( amount )\s
-                                            FROM
-                                            	record_recharge rr
-                                            	RIGHT JOIN ( SELECT "min" ( uid ) AS "uid" FROM record_recharge WHERE daykey = ? GROUP BY sporder ) rrt ON rr.uid = rrt.uid
-                                            """,
-                                    Long.class,
-                                    dayKey
-                            );
-                            rechargeAmountNum = Objects.returnNonNull(rechargeAmountNum, 0L);
+                            long rechargeAmountNum = gameContext.rechargeAmountNum(dayKey);
                             gameStat.setRechargeAmountNum(rechargeAmountNum);
                         }
                         {
                             /*今日充值的账号数*/
-                            Long rechargeAccountNum = pgsqlDataHelper.executeScalar("SELECT \"count\"(DISTINCT account) FROM record_recharge WHERE daykey=?", Long.class, dayKey);
-                            rechargeAccountNum = Objects.returnNonNull(rechargeAccountNum, 0L);
+                            long rechargeAccountNum = gameContext.rechargeAccountNum(dayKey);
                             gameStat.setRechargeAccountNum(rechargeAccountNum);
                         }
                         {
                             /*今天注册就充值的账号数量*/
-                            Long registerAccountRechargeNum = pgsqlDataHelper.executeScalar(
-                                    """
-                                            SELECT
-                                            	"count" ( DISTINCT rr.account )\s
-                                            FROM
-                                            	record_recharge AS rr
-                                            	RIGHT JOIN (SELECT account FROM record_account as ll WHERE ll.daykey = ? GROUP BY account) as ra ON ra.account = rr.account
-                                            """,
-                                    Long.class,
-                                    dayKey
-                            );
-                            registerAccountRechargeNum = Objects.returnNonNull(registerAccountRechargeNum, 0L);
+                            long registerAccountRechargeNum = gameContext.registerAccountRechargeNum(dayKey);
                             gameStat.setRegisterAccountRechargeNum(registerAccountRechargeNum);
                         }
                         {
-                            Long rechargeOrderNum = pgsqlDataHelper.executeScalar("SELECT \"count\"(DISTINCT sporder) FROM record_recharge WHERE daykey=?", Long.class, dayKey);
-                            rechargeOrderNum = Objects.returnNonNull(rechargeOrderNum, 0L);
+                            /*今日订单数*/
+                            long rechargeOrderNum = gameContext.rechargeOrderNum(dayKey);
                             gameStat.setRechargeOrderNum(rechargeOrderNum);
                         }
                         {
@@ -189,7 +164,7 @@ public class StatService {
                             /*TODO 已经大于当前时间，说明是明天了，不在处理*/
                             break;
                         }
-                        int registerDayKey = (statLocalDateTime.getYear() * 10000 + statLocalDateTime.getMonthValue() * 100 + statLocalDateTime.getDayOfMonth());
+                        int registerDayKey = MyClock.dayInt(statLocalDateTime);
                         log.info("{} 账号留存 {} 统计开始", game.getName(), registerDayKey);
                         AccountStat accountStat = pgsqlDataHelper.findByKey(AccountStat.class, registerDayKey);
                         if (accountStat == null) {
@@ -211,7 +186,7 @@ public class StatService {
                                 accountStat.getDayStatNumMap().put(String.valueOf(j + 1), "-");
                             } else {
 
-                                int loginDayKey = (loginLocalDateTime.getYear() * 10000 + loginLocalDateTime.getMonthValue() * 100 + loginLocalDateTime.getDayOfMonth());
+                                int loginDayKey = MyClock.dayInt(loginLocalDateTime);
                                 Long loginNum = pgsqlDataHelper.executeScalar(
                                         "SELECT \"count\"(DISTINCT ll.account) FROM record_role_login as ll WHERE ll.account in(SELECT ra.account FROM record_account as ra WHERE ra.daykey= ?) AND ll.daykey=?;",
                                         Long.class,
@@ -237,9 +212,7 @@ public class StatService {
     @Scheduled("0 *")
     public void onlineStat() {
         LocalDateTime localDateTime = LocalDateTime.now();
-        int dayKey = (localDateTime.getYear() * 10000 + localDateTime.getMonthValue() * 100 + localDateTime.getDayOfMonth());
-
-        long millis = TimeUnit.MINUTES.toMillis(3);
+        int dayKey = MyClock.dayInt(localDateTime);
 
         Collection<GameContext> values = gameService.getGameContextHashMap().values();
         for (GameContext gameContext : values) {
@@ -254,7 +227,7 @@ public class StatService {
                 }
 
                 long accountOnlineCount = accountRecords.stream()
-                        .filter(accountRecord -> Math.abs(System.currentTimeMillis() - accountRecord.getOnlineUpdateTime()) < millis)
+                        .filter(AccountRecord::online)
                         .count();
                 onlineStat.update(localDateTime.getHour(), (int) accountOnlineCount);
 
@@ -273,7 +246,7 @@ public class StatService {
 
                     long roleOnlineCount = roleRecords.stream()
                             .filter(roleRecord -> roleRecord.getCurSid() == serverRecord.getUid())
-                            .filter(roleRecord -> Math.abs(System.currentTimeMillis() - roleRecord.getOnlineUpdateTime()) < millis)
+                            .filter(RoleRecord::online)
                             .map(RoleRecord::getAccount)
                             .distinct()
                             .count();

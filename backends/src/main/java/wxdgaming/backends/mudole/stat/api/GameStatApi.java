@@ -53,7 +53,7 @@ public class GameStatApi {
         PgsqlDataHelper pgsqlDataHelper = gameService.gameContext(gameId).getDataHelper();
         SqlQueryBuilder queryBuilder = pgsqlDataHelper.queryBuilder();
         queryBuilder.sqlByEntity(GameStat.class);
-        queryBuilder.setOrderBy("uid desc");
+
         if (StringUtils.isNotBlank(day)) {
             queryBuilder.pushWhereByValueNotNull("uid=?", Integer.parseInt(day));
         }
@@ -65,6 +65,9 @@ public class GameStatApi {
         if (StringUtils.isNotBlank(maxDay)) {
             queryBuilder.pushWhereByValueNotNull("uid>?", Integer.parseInt(maxDay));
         }
+
+        queryBuilder.setOrderBy("uid desc");
+
         long rowCount = queryBuilder.findCount();
 
 

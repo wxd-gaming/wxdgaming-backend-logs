@@ -3,6 +3,8 @@ package wxdgaming.backends.admin.filter;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import wxdgaming.backends.admin.game.GameContext;
+import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.admin.login.LoginService;
 import wxdgaming.backends.entity.system.User;
 import wxdgaming.boot2.core.io.Objects;
@@ -28,11 +30,13 @@ import java.util.HashMap;
 public class Authority_9_ByUser_Filter extends HttpFilter {
 
     final LoginService loginService;
+    final GameService gameService;
     final HttpListenerFactory httpListenerFactory;
 
     @Inject
-    public Authority_9_ByUser_Filter(LoginService loginService, HttpListenerFactory httpListenerFactory) {
+    public Authority_9_ByUser_Filter(LoginService loginService, GameService gameService, HttpListenerFactory httpListenerFactory) {
         this.loginService = loginService;
+        this.gameService = gameService;
         this.httpListenerFactory = httpListenerFactory;
     }
 
@@ -72,6 +76,10 @@ public class Authority_9_ByUser_Filter extends HttpFilter {
 
         if (!user.checkAuthorRouting(url)) {
             return RunResult.error("权限不足");
+        }
+        if (gameId > 0) {
+            GameContext gameContext = gameService.gameContext(gameId);
+            ThreadContext.putContent(gameContext);
         }
         return null;
     }
