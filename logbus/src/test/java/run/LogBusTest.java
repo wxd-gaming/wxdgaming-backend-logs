@@ -80,12 +80,14 @@ public class LogBusTest {
 
             logBus.pushRoleLv(account, roleId, 2);
 
-            /*充值日志*/
-            logBus.pushRecharge(
-                    account, roleId, account, 2,
-                    "huawei", 600/*单位分*/, StringUtils.randomString(18), StringUtils.randomString(18),
-                    MapOf.newJSONObject("comment", "首充奖励")
-            );
+            if (RandomUtils.randomBoolean(3500)) {/*35%概率会充值*/
+                /*充值日志*/
+                logBus.pushRecharge(
+                        account, roleId, account, 2,
+                        "huawei", 600/*单位分*/, StringUtils.randomString(18), StringUtils.randomString(18),
+                        MapOf.newJSONObject("comment", "首充奖励")
+                );
+            }
 
             /*3星通关副本*/
             logBus.pushRoleLog(

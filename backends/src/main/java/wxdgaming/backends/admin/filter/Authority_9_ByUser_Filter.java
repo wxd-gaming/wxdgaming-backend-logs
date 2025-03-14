@@ -52,34 +52,37 @@ public class Authority_9_ByUser_Filter extends HttpFilter {
         if (runResult.code() != 1) {
             return runResult;
         }
-        User user = ThreadContext.context("user");
-        if (user.isRoot()) return null;
-
         int gameId = httpContext.getRequest().getReqParams().getIntValue("gameId");
-        if (gameId > 0) {
-            if (!user.checkAuthorGame(gameId)) {
+        try {
+            User user = ThreadContext.context("user");
+            if (user.isRoot()) return null;
+
+            if (gameId > 0) {
+                if (!user.checkAuthorGame(gameId)) {
+                    return RunResult.error("权限不足");
+                }
+            }
+            HashMap<String, HttpMapping> httpMappingMap = httpListenerFactory.getHttpListenerContent().getHttpMappingMap();
+            HttpMapping httpMapping = httpMappingMap.get(url);
+            if (httpMapping == null)
+                return RunResult.error("权限不足");
+
+            if (httpMapping.path().startsWith("/log/") || httpMapping.path().startsWith("log/")) {
+                return null;
+            }
+
+            if (httpMapping.httpRequest().authority().length == 0) {
+                return null;
+            }
+
+            if (!user.checkAuthorRouting(url)) {
                 return RunResult.error("权限不足");
             }
-        }
-        HashMap<String, HttpMapping> httpMappingMap = httpListenerFactory.getHttpListenerContent().getHttpMappingMap();
-        HttpMapping httpMapping = httpMappingMap.get(url);
-        if (httpMapping == null)
-            return RunResult.error("权限不足");
-
-        if (httpMapping.path().startsWith("/log/") || httpMapping.path().startsWith("log/")) {
-            return null;
-        }
-
-        if (httpMapping.httpRequest().authority().length == 0) {
-            return null;
-        }
-
-        if (!user.checkAuthorRouting(url)) {
-            return RunResult.error("权限不足");
-        }
-        if (gameId > 0) {
-            GameContext gameContext = gameService.gameContext(gameId);
-            ThreadContext.putContent(gameContext);
+        } finally {
+            if (gameId > 0) {
+                GameContext gameContext = gameService.gameContext(gameId);
+                ThreadContext.putContent(gameContext);
+            }
         }
         return null;
     }

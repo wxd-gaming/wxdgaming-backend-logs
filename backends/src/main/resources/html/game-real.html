@@ -7,6 +7,7 @@
     <title>添加用户</title>
 
     <script charset="utf-8" type="text/javascript" src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script charset="utf-8" type="text/javascript" src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/Chart.js/3.7.1/chart.js"></script>
     <script charset="utf-8" type="text/javascript" src="/js/com.wxd.js"></script>
 
     <link rel="stylesheet" type="text/css" href="/style/com.wxd.css"/>
@@ -22,12 +23,65 @@
 
         table {width: 100%;height: 100%;}
 
-        th {text-align: center;}
+        th {text-align: right;width: 120px;}
 
-        td {text-align: left;}
+        td {text-align: center;}
     </style>
 
     <script>
+
+        const bgs = ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)', 'rgba(75, 192, 192, 0.2)',
+            'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)'];
+
+        function newChartLine(ctx, datas) {
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '20', '23'],
+                    datasets: [{
+                        label: '# 每小时在线',
+                        data: datas,
+                        backgroundColor: bgs,
+                        borderColor: bgs,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true, // 启用响应式布局
+                    maintainAspectRatio: false, // 禁用保持宽高比
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function newChartBar(ctx, datas) {
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['活跃', '在线', '注册', '注册付费', '订单', '付费人数'],
+                    datasets: [{
+                        label: '实时大屏',
+                        data: datas,
+                        backgroundColor: bgs,
+                        borderColor: bgs,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true, // 启用响应式布局
+                    maintainAspectRatio: false, // 禁用保持宽高比
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        }
 
         function getRealData() {
             let postQuery = new wxd.Map().loadSearch();
@@ -41,32 +95,43 @@
                 let appendTable = `
     <table>
         <tr>
-            <th>活跃:</th>
-            <td>${responseText.loginAccountNum}</td>
-            <th>在线:</th>
-            <td>${responseText.onlineUser}</td>
-        </tr>
-        <tr>
-            <th>注册:</th>
-            <td>${responseText.registerAccountNum}</td>
-            <th title="今日注册就充值的账号数">注册充值:</th>
-            <td>${responseText.registerAccountRechargeNum}</td>
-        </tr>
-        <tr>
-            <th title="">充值订单:</th>
-            <td>${responseText.rechargeOrderNum}</td>
-            <th>充值金额:</th>
+            <th title="">充值金额:</th>
             <td>${responseText.rechargeAmountNum}</td>
+            <th title="今日充值金额 / 今日活跃账号数">ARPU:</th>
+            <td>${responseText.arpu}</td>
         </tr>
         <tr>
-            <th title="今日充值的账号数">充值账号:</th>
-            <td>${responseText.rechargeAccountNum}</td>
-            <th>&nbsp;</th>
-            <td>&nbsp;</td>
+            <th title="今日注册充值账号数 / 今日注册的账号数">付费率:</th>
+            <td>${responseText.fufeilv}</td>
+            <th title="今日充值金额 / 今日充值的账号数">ARPPU:</th>
+            <td>${responseText.arppu}</td>
+        </tr>
+        <tr style="height: 50%;width: 100%;">
+            <td colspan="4">
+                <canvas id="count"></canvas>
+            </td>
+        </tr>
+        <tr style="height: 30%;width: 100%;">
+            <td colspan="4">
+                <canvas id="onlineHour"></canvas>
+            </td>
         </tr>
     </table>
             `;
                 $("#tableDom").html(appendTable);
+
+                newChartBar($('#count'),
+                    [
+                        responseText.loginAccountNum,
+                        responseText.onlineUser,
+                        responseText.registerAccountNum,
+                        responseText.registerAccountRechargeNum,
+                        responseText.rechargeOrderNum,
+                        responseText.rechargeAccountNum
+                    ]
+                );
+                let datas = responseText.onlineHour;//[800, 900, 300, 50, 200, 300, 300, 300, 300, 600, 300, 700];
+                newChartLine($('#onlineHour'), datas);
             }, null, false);
 
         }
@@ -82,7 +147,7 @@
 
 </head>
 <body>
-<div id="tableDom" style="position: absolute;right: 15px;bottom: 35px;left: 50%;top: 50%;transform: translate(-50%,-50%);width: 80%;padding: 20px;">
+<div id="tableDom" style="position: absolute;right: 15px;bottom: 35px;left: 50%;top: 50%;transform: translate(-50%,-50%);width: 80%;height:80%;padding: 20px;">
 </div>
 </body>
 </html>
