@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏统计</title>
+
+    <script charset="utf-8" type="text/javascript" src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script charset="utf-8" type="text/javascript" src="/js/com.wxd.js"></script>
+    <script charset="utf-8" type="text/javascript" src="/pageview.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/style/com.wxd.css"/>
+    <link rel="stylesheet" type="text/css" href="/style/table.css"/>
+
+    <style>
+        html, body {display: block;width: 100%;height: 100%;overflow: hidden;overflow-x: auto;background: rgb(255, 255, 255);}
+
+        html, body, div, table, tr, td {margin: 0;border: 0;box-sizing: border-box;}
+
+        a:link {color: #0866b4;}
+
+        a:visited { color: #0866b4;}
+
+        label {padding-left: 5px;padding-right: 5px;}
+
+        input {margin-top: 5px;border: slategrey 1px solid;border-radius: 5px;height: 22px;}
+
+        input[type=text] {width: 160px;}
+
+        .tableDom table thead th, .tableDom table tbody td {text-align: center;}
+    </style>
+
+    <script>
+
+        function search() {
+            wxd.loading();
+            let urlQuery = new wxd.Map().loadSearch();
+            urlQuery.put("day", $("#day").val());
+            urlQuery.put("minDay", $("#minDay").val());
+            urlQuery.put("maxDay", $("#maxDay").val());
+            pageView.remoteGetData(urlQuery);
+        }
+
+        function createRow(index, row) {
+            let tr = `
+    <tr>
+        <td tips="true" style="width: 50px;">${index}</td>
+        <td tips="true" style="width: 80px;">${row.uid}</td>
+`;
+            for (let i = 0; i < 24; i++) {
+                let onlineMapElement = row.onlineMap[i];
+                if (wxd.isNull(onlineMapElement)) {
+                    onlineMapElement = 0;
+                }
+                tr += `<td tips="true" style="width: 70px;">${onlineMapElement}</td>`;
+            }
+            tr += "</tr>";
+            return tr;
+        }
+
+
+        $(() => {
+            pageView = new PageView("/stat/online/list", search, createRow);
+            search();
+        });
+
+    </script>
+
+</head>
+
+<body>
+<div style="padding-left: 10px; padding-top: 8px; text-align: left;vertical-align: center;">
+    <input type="button" value="搜索" onclick="search();">
+    <br>
+    <input id="day" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="日期"/>
+    <input id="minDay" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="小于这个日期"/>
+    <input id="maxDay" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="大于这个日期"/>
+</div>
+<div class="tableDom" style="position: absolute;left: 10px;top: 80px;right: 15px;bottom: 35px;">
+    <table>
+        <thead>
+        <tr>
+            <th style="width: 50px;">序号</th>
+            <th style="width: 80px;">日期</th>
+            <th style="width: 70px;">00点</th>
+            <th style="width: 70px;">01点</th>
+            <th style="width: 70px;">02点</th>
+            <th style="width: 70px;">03点</th>
+            <th style="width: 70px;">04点</th>
+            <th style="width: 70px;">05点</th>
+            <th style="width: 70px;">06点</th>
+            <th style="width: 70px;">07点</th>
+            <th style="width: 70px;">08点</th>
+            <th style="width: 70px;">09点</th>
+            <th style="width: 70px;">10点</th>
+            <th style="width: 70px;">11点</th>
+            <th style="width: 70px;">12点</th>
+            <th style="width: 70px;">13点</th>
+            <th style="width: 70px;">14点</th>
+            <th style="width: 70px;">15点</th>
+            <th style="width: 70px;">16点</th>
+            <th style="width: 70px;">17点</th>
+            <th style="width: 70px;">18点</th>
+            <th style="width: 70px;">19点</th>
+            <th style="width: 70px;">20点</th>
+            <th style="width: 70px;">21点</th>
+            <th style="width: 70px;">22点</th>
+            <th style="width: 70px;">23点</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

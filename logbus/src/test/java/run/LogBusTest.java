@@ -7,6 +7,7 @@ import wxdgaming.boot2.core.RunApplication;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.collection.MapOf;
 import wxdgaming.boot2.core.threading.ExecutorUtil;
+import wxdgaming.boot2.core.threading.TimerJob;
 import wxdgaming.boot2.core.util.RandomUtils;
 
 import java.util.concurrent.TimeUnit;
@@ -46,12 +47,12 @@ public class LogBusTest {
             String account = StringUtils.randomString(6);
             /*创建账号*/
             logBus.registerAccount(account, MapOf.newJSONObject("os", "xiaomi"));
-
+            int sid = RandomUtils.random(1, 20);
             long roleId = logBus.getHexId().newId();
             /*推送角色信息*/
             logBus.pushRole(
                     account, System.currentTimeMillis(),
-                    1, 1,
+                    sid, sid,
                     roleId, account,
                     "战士", "女", 1,
                     MapOf.newJSONObject("os", "xiaomi")
@@ -60,7 +61,7 @@ public class LogBusTest {
             logBus.pushLogin(account, roleId, account, 1, MapOf.newJSONObject("os", "xiaomi"));
 
             /*同步在线状态*/
-            ExecutorUtil.getInstance().getLogicExecutor().scheduleAtFixedDelay(
+            TimerJob timerJob = ExecutorUtil.getInstance().getLogicExecutor().scheduleAtFixedDelay(
                     () -> logBus.online(account, roleId),
                     10,
                     10,
@@ -69,7 +70,10 @@ public class LogBusTest {
 
             /*2分钟之后下线*/
             ExecutorUtil.getInstance().getLogicExecutor().schedule(
-                    () -> logBus.pushLogout(account, roleId, account, 1, MapOf.newJSONObject("os", "xiaomi")),
+                    () -> {
+                        timerJob.cancel();
+                        logBus.pushLogout(account, roleId, account, 1, MapOf.newJSONObject("os", "xiaomi"));
+                    },
                     RandomUtils.random(2, 5),
                     TimeUnit.MINUTES
             );

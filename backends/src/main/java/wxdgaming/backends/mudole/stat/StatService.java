@@ -7,6 +7,11 @@ import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.games.AccountStat;
 import wxdgaming.backends.entity.games.GameStat;
+import wxdgaming.backends.entity.games.OnlineStat;
+import wxdgaming.backends.entity.games.ServerOnlineStat;
+import wxdgaming.backends.entity.games.logs.AccountRecord;
+import wxdgaming.backends.entity.games.logs.RoleRecord;
+import wxdgaming.backends.entity.games.logs.ServerRecord;
 import wxdgaming.backends.entity.system.Game;
 import wxdgaming.boot2.core.io.Objects;
 import wxdgaming.boot2.core.threading.Event;
@@ -15,6 +20,7 @@ import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.scheduled.ann.Scheduled;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -57,7 +63,7 @@ public class StatService {
                     for (int i = 0; i < days; i++) {
                         final int day = i;
                         LocalDateTime statLocalDateTime = MyClock.localDateTime(statTime.get()).plusDays(day);
-                        if (MyClock.time2Milli(statLocalDateTime) > MyClock.millis()) {
+                        if (MyClock.time2Milli(statLocalDateTime) > MyClock.dayOfEndMillis()) {
                             /*TODO 已经大于当前时间，说明是明天了，不在处理*/
                             break;
                         }
@@ -179,7 +185,7 @@ public class StatService {
                     for (int i = 0; i < days; i++) {
                         final int day = i;
                         LocalDateTime statLocalDateTime = MyClock.localDateTime(statTime.get()).plusDays(day);
-                        if (MyClock.time2Milli(statLocalDateTime) > MyClock.millis()) {
+                        if (MyClock.time2Milli(statLocalDateTime) > MyClock.dayOfEndMillis()) {
                             /*TODO 已经大于当前时间，说明是明天了，不在处理*/
                             break;
                         }
@@ -227,5 +233,56 @@ public class StatService {
         }
     }
 
+    /** 每分钟 */
+    @Scheduled("0 *")
+    public void onlineStat() {
+        LocalDateTime localDateTime = LocalDateTime.now();
+        int dayKey = (localDateTime.getYear() * 10000 + localDateTime.getMonthValue() * 100 + localDateTime.getDayOfMonth());
+
+        long millis = TimeUnit.MINUTES.toMillis(3);
+
+        Collection<GameContext> values = gameService.getGameContextHashMap().values();
+        for (GameContext gameContext : values) {
+            PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
+            Collection<AccountRecord> accountRecords = gameContext.getAccountRecordJdbcCache().values();
+            Collection<RoleRecord> roleRecords = gameContext.getRoleRecordJdbcCache().values();
+            {
+                OnlineStat onlineStat = pgsqlDataHelper.findByKey(OnlineStat.class, dayKey);
+                if (onlineStat == null) {
+                    onlineStat = new OnlineStat();
+                    onlineStat.setUid(dayKey);
+                }
+
+                long accountOnlineCount = accountRecords.stream()
+                        .filter(accountRecord -> Math.abs(System.currentTimeMillis() - accountRecord.getOnlineUpdateTime()) < millis)
+                        .count();
+                onlineStat.update(localDateTime.getHour(), (int) accountOnlineCount);
+
+                pgsqlDataHelper.getDataBatch().save(onlineStat);
+            }
+            {
+                ArrayList<ServerRecord> sidList = new ArrayList<>(gameContext.getServerRecordMap().values());
+                for (ServerRecord serverRecord : sidList) {
+                    if (serverRecord.getMainSid() != 0) continue;/*合服之后不处理*/
+                    ServerOnlineStat onlineStat = pgsqlDataHelper.findByKey(ServerOnlineStat.class, dayKey, serverRecord.getUid());
+                    if (onlineStat == null) {
+                        onlineStat = new ServerOnlineStat();
+                        onlineStat.setUid(dayKey);
+                        onlineStat.setSid(serverRecord.getUid());
+                    }
+
+                    long roleOnlineCount = roleRecords.stream()
+                            .filter(roleRecord -> roleRecord.getCurSid() == serverRecord.getUid())
+                            .filter(roleRecord -> Math.abs(System.currentTimeMillis() - roleRecord.getOnlineUpdateTime()) < millis)
+                            .map(RoleRecord::getAccount)
+                            .distinct()
+                            .count();
+
+                    onlineStat.update(localDateTime.getHour(), (int) roleOnlineCount);
+                    pgsqlDataHelper.getDataBatch().save(onlineStat);
+                }
+            }
+        }
+    }
 
 }

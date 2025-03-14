@@ -53,19 +53,20 @@
             let tr = `
     <tr>
             <td style="width: 120px;">
-                <a href="javascript:void(0);" onclick="operate(${row.sid}, 'update');return false;" title="拷贝版本文件更新服务器">备服</a>
-                <a href="javascript:void(0);" onclick="operate(${row.sid}, 'restart');return false;" title="把当前服务器停服后再启动">重启</a>
-                <a href="javascript:void(0);" onclick="operate(${row.sid}, 'stop');return false;" title="把当前服务器停止运行">停止</a>
+                <a href="javascript:void(0);" onclick="operate(${row.uid}, 'update');return false;" title="拷贝版本文件更新服务器">备服</a>
+                <a href="javascript:void(0);" onclick="operate(${row.uid}, 'restart');return false;" title="把当前服务器停服后再启动">重启</a>
+                <a href="javascript:void(0);" onclick="operate(${row.uid}, 'stop');return false;" title="把当前服务器停止运行">停止</a>
             </td>
-            <td tips="true" style="width: 80px;">${row.sid}</td>
+            <td tips="true" style="width: 80px;">${row.uid}</td>
             <td tips="true" style="width: 80px;">${row.mainSid}</td>
             <td tips="true" style="width: 140px;">${row.name}</td>
             <td tips="true" style="width: 140px;">${row.showName}</td>
             <td tips="true" style="width: 130px;">${row.openTime}</td>
-            <td tips="true" style="width: 80px;">${row.registerUserCount}</td>
+            <td tips="true" style="width: 80px;">${row.registerRoleCount}</td>
             <td tips="true" style="width: 80px;">${row.onlineRoleCount}</td>
             <td tips="true" style="width: 80px;">${row.activeRoleCount}</td>
             <td tips="true" style="width: 120px;">${row.rechargeCount}</td>
+            <td tips="true" style="width: 120px;">${row.rechargeAmount}</td>
             <td tips="true" style="width: 120px;">${row.wlan}</td>
             <td tips="true" style="width: 120px;">${row.lan}</td>
             <td tips="true" style="width: 62px;">${row.port}</td>
@@ -106,10 +107,11 @@
             <th style="width: 140px;">名字</th>
             <th style="width: 140px;">显示名字</th>
             <th style="width: 130px;">开服时间</th>
-            <th style="width: 80px;">注册</th>
+            <th style="width: 80px;">角色数</th>
             <th style="width: 80px;">在线</th>
             <th style="width: 80px;">活跃</th>
-            <th style="width: 120px;">充值</th>
+            <th style="width: 120px;">充值订单</th>
+            <th style="width: 120px;">充值金额</th>
             <th style="width: 120px;">外网IP</th>
             <th style="width: 120px;">内网IP</th>
             <th style="width: 62px;">端口</th>

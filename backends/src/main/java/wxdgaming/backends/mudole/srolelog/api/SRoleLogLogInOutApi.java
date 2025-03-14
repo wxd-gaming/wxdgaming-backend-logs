@@ -83,14 +83,21 @@ public class SRoleLogLogInOutApi {
                     gameContext.getLogKeyCache().put(logKey, true);
                     gameContext.getDataHelper().dataBatch().insert(record);
 
+                    roleRecord.setCurSid(record.getSid());
+                    roleRecord.setRoleName(record.getRoleName());
+                    roleRecord.setLv(record.getLv());
+                    roleRecord.getOther().putAll(record.getOther());
+
                     if (logEnum == SRoleLog2Login.LogEnum.LOGIN) {
                         roleRecord.setLastJoinTime(record.getCreateTime());
                         roleRecord.setLastJoinSid(record.getSid());
                         roleRecord.setOnlineUpdateTime(record.getCreateTime());
                         accountRecord.setOnlineUpdateTime(record.getCreateTime());
+
                     } else if (logEnum == SRoleLog2Login.LogEnum.LOGOUT) {
                         roleRecord.setLastExitTime(record.getCreateTime());
                         roleRecord.setOnlineUpdateTime(0);
+                        accountRecord.setOnlineUpdateTime(0);
                         OnlineTimeRecord onlineTimeRecord = new OnlineTimeRecord();
                         onlineTimeRecord.setCreateTime(MyClock.millis());/* 产生记录的时间 */
                         onlineTimeRecord.setUid(gameContext.newId("OnlineTimeRecord"));
