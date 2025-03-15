@@ -15,6 +15,7 @@ import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.Event;
 import wxdgaming.boot2.core.threading.ExecutorWith;
 import wxdgaming.boot2.core.timer.MyClock;
+import wxdgaming.boot2.core.util.NumberUtil;
 import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
@@ -88,6 +89,8 @@ public class SRoleLogApi {
                           @Param(path = "logType") String logType,
                           @Param(path = "pageIndex") int pageIndex,
                           @Param(path = "pageSize") int pageSize,
+                          @Param(path = "minDay", required = false) String minDay,
+                          @Param(path = "maxDay", required = false) String maxDay,
                           @Param(path = "account", required = false) String account,
                           @Param(path = "roleId", required = false) String roleId,
                           @Param(path = "roleName", required = false) String roleName,
@@ -103,29 +106,37 @@ public class SRoleLogApi {
             return RunResult.error("log type error");
         }
         PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
-        SqlQueryBuilder sqlQueryBuilder = pgsqlDataHelper.queryBuilder();
+        SqlQueryBuilder queryBuilder = pgsqlDataHelper.queryBuilder();
 
-        sqlQueryBuilder
+        queryBuilder
                 .setTableName(logType)
                 .pushWhereByValueNotNull("account=?", account)
                 .pushWhereByValueNotNull("roleid=?", roleId)
                 .pushWhereByValueNotNull("rolename=?", roleName);
 
+        if (StringUtils.isNotBlank(minDay)) {
+            queryBuilder.pushWhereByValueNotNull("daykey>=?", NumberUtil.retainNumber(minDay));
+        }
+
+        if (StringUtils.isNotBlank(maxDay)) {
+            queryBuilder.pushWhereByValueNotNull("daykey<=?", NumberUtil.retainNumber(maxDay));
+        }
+
         if (StringUtils.isNotBlank(dataJson)) {
             String[] split = dataJson.split(",");
             for (String s : split) {
                 String[] strings = s.split("=");
-                sqlQueryBuilder.pushWhere("json_extract_path_text(other,'" + strings[0] + "') = ?", strings[1]);
+                queryBuilder.pushWhere("json_extract_path_text(other,'" + strings[0] + "') = ?", strings[1]);
             }
         }
 
-        sqlQueryBuilder.setOrderBy("createtime desc");
+        queryBuilder.setOrderBy("createtime desc");
 
-        sqlQueryBuilder.limit((pageIndex - 1) * pageSize, pageSize, 10, 1000);
+        queryBuilder.limit((pageIndex - 1) * pageSize, pageSize, 10, 1000);
 
-        long rowCount = sqlQueryBuilder.findCount();
+        long rowCount = queryBuilder.findCount();
 
-        List<SRoleLog> slogs = sqlQueryBuilder.findList2Entity(SRoleLog.class);
+        List<SRoleLog> slogs = queryBuilder.findList2Entity(SRoleLog.class);
 
         List<JSONObject> list = slogs.stream()
                 .map(SRoleLog::toJSONObject)

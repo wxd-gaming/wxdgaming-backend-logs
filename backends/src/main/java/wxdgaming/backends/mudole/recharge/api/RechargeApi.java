@@ -13,6 +13,7 @@ import wxdgaming.backends.entity.games.logs.ServerRecord;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
+import wxdgaming.boot2.core.io.Objects;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.Event;
 import wxdgaming.boot2.core.threading.ExecutorWith;
@@ -97,11 +98,57 @@ public class RechargeApi {
         return RunResult.OK;
     }
 
+    @HttpRequest(authority = 9)
+    public RunResult group(HttpContext httpContext,
+                           @ThreadParam GameContext gameContext,
+                           @Param(path = "minDay", required = false) String minDay,
+                           @Param(path = "maxDay", required = false) String maxDay) {
+
+        PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
+        Object[] args = Objects.ZERO_ARRAY;
+        String sql = "SELECT rr.amount, \"count\" (rr.amount) FROM record_recharge as rr";
+        String sqlWhere = "";
+        if (StringUtils.isNotBlank(minDay)) {
+            sqlWhere += "daykey >= ?";
+            String string = StringUtils.retainNumbers(minDay);
+            int anInt = NumberUtil.parseInt(string, 0);
+            args = Objects.merge(args, anInt);
+        }
+
+
+        if (StringUtils.isNotBlank(maxDay)) {
+            if (StringUtils.isNotBlank(sqlWhere)) {
+                sqlWhere += " AND ";
+            }
+            sqlWhere += "daykey <= ?";
+            String string = StringUtils.retainNumbers(maxDay);
+            int anInt = NumberUtil.parseInt(string, 0);
+            args = Objects.merge(args, anInt);
+        }
+        if (StringUtils.isNotBlank(sqlWhere)) {
+            sql += " WHERE " + sqlWhere;
+        }
+        sql += " GROUP BY rr.amount ORDER BY rr.amount";
+
+        List<JSONObject> jsonObjects = pgsqlDataHelper.queryList(sql, args);
+        Object[] objectsTitle = new Object[jsonObjects.size()];
+        Object[] objectsValue = new Object[jsonObjects.size()];
+
+        for (int i = 0; i < jsonObjects.size(); i++) {
+            JSONObject jsonObject = jsonObjects.get(i);
+            objectsTitle[i] = jsonObject.getIntValue("amount") / 100;
+            objectsValue[i] = jsonObject.getIntValue("count");
+        }
+        return RunResult.ok().data(new Object[]{objectsTitle, objectsValue});
+    }
+
     @HttpRequest
     public RunResult list(HttpContext httpContext,
-                          @Param(path = "gameId") int gameId,
+                          @ThreadParam GameContext gameContext,
                           @Param(path = "pageIndex") int pageIndex,
                           @Param(path = "pageSize") int pageSize,
+                          @Param(path = "minDay", required = false) String minDay,
+                          @Param(path = "maxDay", required = false) String maxDay,
                           @Param(path = "account", required = false) String account,
                           @Param(path = "roleId", required = false) String roleId,
                           @Param(path = "roleName", required = false) String roleName,
@@ -110,7 +157,7 @@ public class RechargeApi {
                           @Param(path = "spOrder", required = false) String spOrder,
                           @Param(path = "cpOrder", required = false) String cpOrder) {
 
-        PgsqlDataHelper pgsqlDataHelper = gameService.gameContext(gameId).getDataHelper();
+        PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
         SqlQueryBuilder queryBuilder = pgsqlDataHelper.queryBuilder();
         queryBuilder.sqlByEntity(RechargeRecord.class);
         queryBuilder.pushWhereByValueNotNull("account = ?", account);
@@ -123,6 +170,14 @@ public class RechargeApi {
         }
         if (StringUtils.isNotBlank(createSid)) {
             queryBuilder.pushWhereByValueNotNull("createsid=?", NumberUtil.parseInt(createSid, 0));
+        }
+
+        if (StringUtils.isNotBlank(minDay)) {
+            queryBuilder.pushWhereByValueNotNull("daykey>=?", NumberUtil.retainNumber(minDay));
+        }
+
+        if (StringUtils.isNotBlank(maxDay)) {
+            queryBuilder.pushWhereByValueNotNull("daykey<=?", NumberUtil.retainNumber(maxDay));
         }
 
         queryBuilder.setOrderBy("createtime desc");

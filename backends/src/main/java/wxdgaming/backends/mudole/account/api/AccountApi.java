@@ -74,6 +74,8 @@ public class AccountApi {
                           @Param(path = "gameId") int gameId,
                           @Param(path = "pageIndex") int pageIndex,
                           @Param(path = "pageSize") int pageSize,
+                          @Param(path = "minDay", required = false) String minDay,
+                          @Param(path = "maxDay", required = false) String maxDay,
                           @Param(path = "account", required = false) String account,
                           @Param(path = "online", required = false) String online,
                           @Param(path = "rechargeAmount", required = false) String rechargeAmount,
@@ -96,6 +98,13 @@ public class AccountApi {
             queryBuilder.pushWhereByValueNotNull("rechargecount>=?", NumberUtil.parseInt(rechargeCount, 0));
         }
 
+        if (StringUtils.isNotBlank(minDay)) {
+            queryBuilder.pushWhereByValueNotNull("daykey>=?", NumberUtil.retainNumber(minDay));
+        }
+
+        if (StringUtils.isNotBlank(maxDay)) {
+            queryBuilder.pushWhereByValueNotNull("daykey<=?", NumberUtil.retainNumber(maxDay));
+        }
         queryBuilder.setOrderBy("createtime desc");
 
         queryBuilder.limit((pageIndex - 1) * pageSize, pageSize, 10, 1000);

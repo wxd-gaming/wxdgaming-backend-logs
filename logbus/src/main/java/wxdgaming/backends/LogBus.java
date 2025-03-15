@@ -252,9 +252,6 @@ public class LogBus {
     }
 
     /**
-     * @param uid         日志唯一id
-     * @param createTime  日志时间
-     * @param sid         当前区服
      * @param account     账号
      * @param roleId      角色id
      * @param roleName    角色名称
@@ -272,17 +269,16 @@ public class LogBus {
      * @author: wxd-gaming(無心道, 15388152619)
      * @version: 2025-03-12 20:38
      */
-    public void pushRoleItem(long uid, long createTime, int sid,
-                             String account, long roleId, String roleName, int lv,
+    public void pushRoleItem(String account, long roleId, String roleName, int lv,
                              ChangeTypeEnum changeType,
                              int itemId, String itemName, boolean itemBind, long itemCount, long change,
                              String itemType, String itemSubType,
                              String source, String comment,
                              JSONObject other) {
         JSONObject jsonObject = MapOf.newJSONObject()
-                .fluentPut("uid", uid)/*指定一个唯一id，这样可以避免因为网络重复提交导致出现重复数据*/
-                .fluentPut("createTime", createTime)
-                .fluentPut("sid", sid)
+                .fluentPut("uid", hexId.newId())/*指定一个唯一id，这样可以避免因为网络重复提交导致出现重复数据*/
+                .fluentPut("createTime", System.currentTimeMillis())
+                .fluentPut("sid", BootConfig.getIns().sid())
                 .fluentPut("account", account)
                 .fluentPut("roleId", roleId)
                 .fluentPut("roleName", roleName)

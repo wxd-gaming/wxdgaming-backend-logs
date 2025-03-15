@@ -46,7 +46,7 @@ public class StatService {
     public void gameStat() {
         Collection<GameContext> values = gameService.getGameContextHashMap().values();
         final long dayOfStartMillis = MyClock.dayOfStartMillis();
-        int days = 50;
+        final int days = 3;
         LocalDateTime localDateTime = LocalDateTime.now().plusDays(-days);
         long startTime = MyClock.time2Milli(localDateTime);
         for (GameContext gameContext : values) {
@@ -60,14 +60,14 @@ public class StatService {
             Event event = new Event(TimeUnit.HOURS.toMillis(2), TimeUnit.HOURS.toMillis(2)) {
                 @Override public void onEvent() throws Exception {
                     /*统计留存开始时间*/
-                    for (int i = 0; i < days; i++) {
+                    for (int i = 0; i <= days; i++) {
                         final int day = i;
                         LocalDateTime statLocalDateTime = MyClock.localDateTime(statTime.get()).plusDays(day);
-                        if (MyClock.time2Milli(statLocalDateTime) > MyClock.dayOfEndMillis()) {
+                        if (MyClock.dayOfStartMillis(statLocalDateTime, 0) > MyClock.dayOfEndMillis()) {
                             /*TODO 已经大于当前时间，说明是明天了，不在处理*/
                             break;
                         }
-                        int dayKey = (statLocalDateTime.getYear() * 10000 + statLocalDateTime.getMonthValue() * 100 + statLocalDateTime.getDayOfMonth());
+                        int dayKey = MyClock.dayInt(statLocalDateTime);
                         GameStat gameStat = pgsqlDataHelper.findByKey(GameStat.class, dayKey);
                         if (gameStat == null) {
                             gameStat = new GameStat();
@@ -157,10 +157,10 @@ public class StatService {
             Event event = new Event(TimeUnit.HOURS.toMillis(2), TimeUnit.HOURS.toMillis(2)) {
                 @Override public void onEvent() throws Exception {
                     /*统计留存开始时间*/
-                    for (int i = 0; i < days; i++) {
+                    for (int i = 0; i <= days; i++) {
                         final int day = i;
                         LocalDateTime statLocalDateTime = MyClock.localDateTime(statTime.get()).plusDays(day);
-                        if (MyClock.time2Milli(statLocalDateTime) > MyClock.dayOfEndMillis()) {
+                        if (MyClock.dayOfStartMillis(statLocalDateTime, 0) > MyClock.dayOfEndMillis()) {
                             /*TODO 已经大于当前时间，说明是明天了，不在处理*/
                             break;
                         }

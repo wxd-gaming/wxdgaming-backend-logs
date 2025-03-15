@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>添加用户</title>
+
+    <script charset="utf-8" type="text/javascript" src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script charset="utf-8" type="text/javascript" src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/Chart.js/3.7.1/chart.js"></script>
+    <script charset="utf-8" type="text/javascript" src="/js/com.wxd.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/style/com.wxd.css"/>
+
+    <style>
+        html, body {
+            display: block;width: 100%;height: 100%;overflow: hidden;background: rgb(255, 255, 255);
+            font-size: 14px;
+        }
+
+        #tableDom { display: block;border: 0;box-sizing: border-box;background-color: #fffefe;transform-box: revert; box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.55); /* 修改阴影效果 */border-radius: 5px 5px;overflow: auto;padding-right: 10px; /*预留给滚动条的*/padding-bottom: 8px;}
+
+        input {margin-left: 10px;width: 120px;border: #4c4c4c 1px solid;height: 28px;line-height: 28px;}
+
+        button {margin-top: 5px;color: rgb(255, 253, 253); background-color: rgb(241, 52, 10); border: none;padding: 8px 15px;}
+
+    </style>
+
+    <script>
+
+        const bgs = ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)', 'rgba(75, 192, 192, 0.2)',
+            'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)'];
+
+
+        function newChartBar(ctx, title, labels, datas) {
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: title,
+                        data: datas,
+                        backgroundColor: bgs,
+                        borderColor: bgs,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true, // 启用响应式布局
+                    maintainAspectRatio: false, // 禁用保持宽高比
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function search() {
+            let postQuery = new wxd.Map().loadSearch();
+            postQuery.put("minDay", $("#minDay").val());
+            postQuery.put("maxDay", $("#maxDay").val());
+            wxd.netty.post("/log/recharge/group", postQuery.toString(), function (responseText) {
+
+                if (responseText.code !== 1) {
+                    wxd.message.alert(responseText.msg);
+                    return;
+                }
+                let rechargeGroup = responseText.data;//[800, 900, 300, 50, 200, 300, 300, 300, 300, 600, 300, 700];
+                let length = rechargeGroup[0].length;
+
+                $("#chartDom").css("width", (length * 30) + "px");
+                $("#chartDom").css("min-width", "100%");
+                $("#chartDom").html("<canvas id=\"rechargeGroup\"></canvas>");
+                newChartBar($('#rechargeGroup'), "充值挡位分布", rechargeGroup[0], rechargeGroup[1]);
+
+            }, null, false);
+
+        }
+
+    </script>
+
+</head>
+<body>
+<div id="tableDom" style="position: absolute;right: 15px;bottom: 35px;left: 50%;top: 50%;transform: translate(-50%,-50%);width: 90%;height:80%;padding: 20px;">
+    <div style="height: 40px; width: 100%">
+        <button class="submit" type="button" onclick="search();">搜索</button>
+        <label for="minDay">范围日期-开始日期: </label><input id="minDay" type="date"/>
+        <label for="maxDay">范围日期-结束日期: </label><input id="maxDay" type="date"/>
+    </div>
+    <div id="chartDom" style="height: calc(100% - 40px); overflow: auto;min-width: 100%;">
+
+    </div>
+</div>
+</body>
+</html>

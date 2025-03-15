@@ -44,25 +44,38 @@ public class SRoleLogOnlineTimeApi {
                           @Param(path = "gameId") int gameId,
                           @Param(path = "pageIndex") int pageIndex,
                           @Param(path = "pageSize") int pageSize,
+                          @Param(path = "minDay", required = false) String minDay,
+                          @Param(path = "maxDay", required = false) String maxDay,
                           @Param(path = "account", required = false) String account,
                           @Param(path = "roleId", required = false) String roleId,
                           @Param(path = "roleName", required = false) String roleName) {
+
         GameContext gameContext = gameService.gameContext(gameId);
         PgsqlDataHelper dataHelper = gameContext.getDataHelper();
-        SqlQueryBuilder sqlQueryBuilder = dataHelper.queryBuilder();
+        SqlQueryBuilder queryBuilder = dataHelper.queryBuilder();
 
-        sqlQueryBuilder.sqlByEntity(OnlineTimeRecord.class);
+        queryBuilder.sqlByEntity(OnlineTimeRecord.class);
 
-        sqlQueryBuilder.pushWhereByValueNotNull("account=?", account);
+        queryBuilder.pushWhereByValueNotNull("account=?", account);
         if (StringUtils.isNotBlank(roleId)) {
-            sqlQueryBuilder.pushWhereByValueNotNull("roleid=?", NumberUtil.parseLong(roleId, 0L));
+            queryBuilder.pushWhereByValueNotNull("roleid=?", NumberUtil.parseLong(roleId, 0L));
         }
-        sqlQueryBuilder.pushWhereByValueNotNull("rolename=?", roleName);
+        queryBuilder.pushWhereByValueNotNull("rolename=?", roleName);
 
-        sqlQueryBuilder.setOrderBy("createtime desc");
+        if (StringUtils.isNotBlank(minDay)) {
+            queryBuilder.pushWhereByValueNotNull("daykey>=?", NumberUtil.retainNumber(minDay));
+        }
 
-        long count = sqlQueryBuilder.findCount();
-        List<OnlineTimeRecord> list2Entity = sqlQueryBuilder.findList2Entity(OnlineTimeRecord.class);
+        if (StringUtils.isNotBlank(maxDay)) {
+            queryBuilder.pushWhereByValueNotNull("daykey<=?", NumberUtil.retainNumber(maxDay));
+        }
+        queryBuilder.setOrderBy("createtime desc");
+
+        queryBuilder.limit((pageIndex - 1) * pageSize, pageSize, 10, 1000);
+
+
+        long count = queryBuilder.findCount();
+        List<OnlineTimeRecord> list2Entity = queryBuilder.findList2Entity(OnlineTimeRecord.class);
         List<JSONObject> list = list2Entity.stream()
                 .map(onlineTimeRecord -> {
                     JSONObject jsonObject = onlineTimeRecord.toJSONObject();

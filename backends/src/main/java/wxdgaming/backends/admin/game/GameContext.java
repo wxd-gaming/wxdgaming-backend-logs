@@ -1,8 +1,8 @@
 package wxdgaming.backends.admin.game;
 
+import com.alibaba.fastjson.JSONObject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import wxdgaming.backends.BackendsStart;
 import wxdgaming.backends.entity.games.ErrorRecord;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
@@ -272,6 +272,23 @@ public class GameContext {
         return getAccountRecordJdbcCache().values().stream()
                 .filter(AccountRecord::online)
                 .count();
+    }
+
+    public Object[] queryRechargeGroup(int dayKey) {
+        String sql = "SELECT rr.amount,\"count\"(rr.amount) FROM record_recharge as rr WHERE daykey=? GROUP BY daykey,rr.amount ORDER BY rr.daykey DESC,rr.amount";
+        List<JSONObject> jsonObjects = dataHelper.queryList(sql, dayKey);
+        Object[] objectsTitle = new Object[jsonObjects.size()];
+        Object[] objectsValue = new Object[jsonObjects.size()];
+
+        for (int i = 0; i < jsonObjects.size(); i++) {
+            JSONObject jsonObject = jsonObjects.get(i);
+            objectsTitle[i] = jsonObject.getIntValue("amount") / 100;
+            objectsValue[i] = jsonObject.getIntValue("count");
+        }
+
+        return new Object[]{
+                objectsTitle, objectsValue
+        };
     }
 
 }

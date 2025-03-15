@@ -9,6 +9,7 @@ import wxdgaming.backends.entity.games.AccountStat;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.lang.RunResult;
+import wxdgaming.boot2.core.util.NumberUtil;
 import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
@@ -40,31 +41,21 @@ public class AccountStatApi {
     public RunResult list(HttpContext httpContext, @Param(path = "gameId") int gameId,
                           @Param(path = "pageIndex") int pageIndex,
                           @Param(path = "pageSize") int pageSize,
-                          @Param(path = "day", required = false) String day,
                           @Param(path = "minDay", required = false) String minDay,
                           @Param(path = "maxDay", required = false) String maxDay) {
         PgsqlDataHelper pgsqlDataHelper = gameService.gameContext(gameId).getDataHelper();
 
-        if ((StringUtils.isNotBlank(day) && StringUtils.isNotBlank(minDay))
-            || (StringUtils.isNotBlank(day) && StringUtils.isNotBlank(maxDay))
-            || (StringUtils.isNotBlank(minDay) && StringUtils.isNotBlank(maxDay))) {
-            return RunResult.error("日期参数只能有一个选项");
-        }
 
         SqlQueryBuilder queryBuilder = pgsqlDataHelper.queryBuilder();
         queryBuilder.sqlByEntity(AccountStat.class);
         queryBuilder.setOrderBy("uid desc");
 
-        if (StringUtils.isNotBlank(day)) {
-            queryBuilder.pushWhereByValueNotNull("uid=?", Integer.parseInt(day));
-        }
-
         if (StringUtils.isNotBlank(minDay)) {
-            queryBuilder.pushWhereByValueNotNull("uid<?", Integer.parseInt(minDay));
+            queryBuilder.pushWhereByValueNotNull("uid>=?", NumberUtil.retainNumber(minDay));
         }
 
         if (StringUtils.isNotBlank(maxDay)) {
-            queryBuilder.pushWhereByValueNotNull("uid>?", Integer.parseInt(maxDay));
+            queryBuilder.pushWhereByValueNotNull("uid<=?", NumberUtil.retainNumber(maxDay));
         }
         long rowCount = queryBuilder.findCount();
 

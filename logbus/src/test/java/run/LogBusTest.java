@@ -44,7 +44,7 @@ public class LogBusTest {
             logBus.push("", "server/pushList", record);
         }
 
-        for (int i = 0; i < 80; i++) {
+        for (int i = 0; i < 180; i++) {
             String account = StringUtils.randomString(6);
             /*创建账号*/
             logBus.registerAccount(account, MapOf.newJSONObject("os", "xiaomi"));
@@ -85,8 +85,8 @@ public class LogBusTest {
 
             logBus.pushRoleLv(account, roleId, 2);
 
-            if (RandomUtils.randomBoolean(3500)) {/*35%概率会充值*/
-                List<Integer> integers = List.of(600, 1200, 6400, 9800, 12800, 64800);
+            if (RandomUtils.randomBoolean(5500)) {/*35%概率会充值*/
+                List<Integer> integers = List.of(600, 1200, 6400, 9800, 12800, 25600, 48800, 64800);
                 /*充值日志*/
                 logBus.pushRecharge(
                         account, roleId, account, 2,
@@ -102,6 +102,19 @@ public class LogBusTest {
                     MapOf.newJSONObject("copyId", RandomUtils.random(1001, 1102))
                             .fluentPut("star", RandomUtils.random(1, 3))
             );
+
+            /*上线奖励*/
+            int random = RandomUtils.random(100, 1000);
+            logBus.pushRoleItem(
+                    account, roleId, account, 2,
+                    RandomUtils.random(LogBus.ChangeTypeEnum.values()),
+                    RandomUtils.random(1000, 1010), "货币", false,
+                    random + 200,
+                    random,
+                    "货币", "货币", "上线奖励", "上线奖励",
+                    MapOf.newJSONObject()
+            );
+
         }
     }
 

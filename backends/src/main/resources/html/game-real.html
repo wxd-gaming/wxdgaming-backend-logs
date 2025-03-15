@@ -58,13 +58,13 @@
             });
         }
 
-        function newChartBar(ctx, datas) {
+        function newChartBar(ctx, title, labels, datas) {
             return new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['活跃', '在线', '注册', '注册付费', '订单', '付费人数'],
+                    labels: labels,
                     datasets: [{
-                        label: '实时大屏',
+                        label: title,
                         data: datas,
                         backgroundColor: bgs,
                         borderColor: bgs,
@@ -106,12 +106,17 @@
             <th title="今日充值金额 / 今日充值的账号数">ARPPU:</th>
             <td>${responseText.arppu}</td>
         </tr>
-        <tr style="height: 50%;width: 100%;">
+        <tr style="height: 34%;width: 100%;">
             <td colspan="4">
                 <canvas id="count"></canvas>
             </td>
         </tr>
-        <tr style="height: 30%;width: 100%;">
+        <tr style="height: 22%;width: 100%;">
+            <td colspan="4">
+                <canvas id="rechargeGroup"></canvas>
+            </td>
+        </tr>
+        <tr style="height: 22%;width: 100%;">
             <td colspan="4">
                 <canvas id="onlineHour"></canvas>
             </td>
@@ -121,6 +126,8 @@
                 $("#tableDom").html(appendTable);
 
                 newChartBar($('#count'),
+                    '实时大屏',
+                    ['活跃', '在线', '注册', '注册付费', '订单', '付费人数'],
                     [
                         responseText.loginAccountNum,
                         responseText.onlineUser,
@@ -129,14 +136,21 @@
                         responseText.rechargeOrderNum,
                         responseText.rechargeAccountNum
                     ]
-                );
-                let datas = responseText.onlineHour;//[800, 900, 300, 50, 200, 300, 300, 300, 300, 600, 300, 700];
-                newChartLine($('#onlineHour'), datas);
+                )
+                ;
+
+                let rechargeGroup = responseText.rechargeGroup;//[800, 900, 300, 50, 200, 300, 300, 300, 300, 600, 300, 700];
+                newChartBar($('#rechargeGroup'), "充值挡位分布", rechargeGroup[0], rechargeGroup[1]);
+
+                let onlineHour = responseText.onlineHour;//[800, 900, 300, 50, 200, 300, 300, 300, 300, 600, 300, 700];
+                newChartLine($('#onlineHour'), onlineHour);
+                wxd.loading_close();
             }, null, false);
 
         }
 
         $(() => {
+            wxd.loading();
             getRealData();
             setInterval(() => {
                 getRealData();

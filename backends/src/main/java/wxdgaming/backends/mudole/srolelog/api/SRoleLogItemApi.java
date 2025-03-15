@@ -14,6 +14,7 @@ import wxdgaming.backends.mudole.srolelog.SLogService;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
+import wxdgaming.boot2.core.io.Objects;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.Event;
 import wxdgaming.boot2.core.threading.ExecutorWith;
@@ -84,11 +85,70 @@ public class SRoleLogItemApi {
     }
 
     @HttpRequest(authority = 9)
+    public RunResult group(HttpContext httpContext,
+                           @ThreadParam GameContext gameContext,
+                           @Param(path = "minDay", required = false) String minDay,
+                           @Param(path = "maxDay", required = false) String maxDay) {
+
+        PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
+        Object[] args = Objects.ZERO_ARRAY;
+
+
+        String sqlWhere = "";
+        if (StringUtils.isNotBlank(minDay)) {
+            sqlWhere += "daykey >= ?";
+            String string = StringUtils.retainNumbers(minDay);
+            int anInt = NumberUtil.parseInt(string, 0);
+            args = Objects.merge(args, anInt);
+        }
+
+        if (StringUtils.isNotBlank(maxDay)) {
+            if (StringUtils.isNotBlank(sqlWhere)) {
+                sqlWhere += " AND ";
+            }
+            sqlWhere += "daykey <= ?";
+            String string = StringUtils.retainNumbers(maxDay);
+            int anInt = NumberUtil.parseInt(string, 0);
+            args = Objects.merge(args, anInt);
+        }
+
+        if (StringUtils.isNotBlank(sqlWhere)) {
+            sqlWhere = " WHERE " + sqlWhere;
+        }
+
+        String sql = """
+                SELECT
+                ri.itemid,
+                "min"(ri.itemname),
+                "sum"(ri.change)
+                FROM
+                record_role_item AS ri
+                %s
+                GROUP BY ri.itemid
+                ORDER BY ri.itemid
+                """.formatted(sqlWhere);
+
+
+        List<JSONObject> jsonObjects = pgsqlDataHelper.queryList(sql, args);
+        Object[] objectsTitle = new Object[jsonObjects.size()];
+        Object[] objectsValue = new Object[jsonObjects.size()];
+
+        for (int i = 0; i < jsonObjects.size(); i++) {
+            JSONObject jsonObject = jsonObjects.get(i);
+            objectsTitle[i] = "%s(%s)".formatted(jsonObject.getString("min"), jsonObject.getString("itemid"));
+            objectsValue[i] = jsonObject.getIntValue("sum");
+        }
+        return RunResult.ok().data(new Object[]{objectsTitle, objectsValue});
+    }
+
+    @HttpRequest(authority = 9)
     @ExecutorWith(useVirtualThread = true)
     public RunResult list(HttpContext httpSession,
                           @Param(path = "gameId") int gameId,
                           @Param(path = "pageIndex") int pageIndex,
                           @Param(path = "pageSize") int pageSize,
+                          @Param(path = "minDay", required = false) String minDay,
+                          @Param(path = "maxDay", required = false) String maxDay,
                           @Param(path = "account", required = false) String account,
                           @Param(path = "roleId", required = false) String roleId,
                           @Param(path = "roleName", required = false) String roleName,
@@ -103,32 +163,41 @@ public class SRoleLogItemApi {
         }
 
         PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
-        SqlQueryBuilder sqlQueryBuilder = pgsqlDataHelper.queryBuilder();
+        SqlQueryBuilder queryBuilder = pgsqlDataHelper.queryBuilder();
 
-        sqlQueryBuilder.sqlByEntity(SRoleLog2Item.class)
+        queryBuilder.sqlByEntity(SRoleLog2Item.class)
                 .pushWhereByValueNotNull("account=?", account)
                 .pushWhereByValueNotNull("roleid=?", roleId)
                 .pushWhereByValueNotNull("rolename=?", roleName);
 
-        if (StringUtils.isNotBlank(itemId)) {
-            sqlQueryBuilder.pushWhereByValueNotNull("itemid=?", NumberUtil.parseInt(itemId, 0));
+        if (StringUtils.isNotBlank(minDay)) {
+            queryBuilder.pushWhereByValueNotNull("daykey>=?", NumberUtil.retainNumber(minDay));
         }
-        sqlQueryBuilder.pushWhereByValueNotNull("itemname=?", itemName);
+
+        if (StringUtils.isNotBlank(maxDay)) {
+            queryBuilder.pushWhereByValueNotNull("daykey<=?", NumberUtil.retainNumber(maxDay));
+        }
+
+        if (StringUtils.isNotBlank(itemId)) {
+            queryBuilder.pushWhereByValueNotNull("itemid=?", NumberUtil.parseInt(itemId, 0));
+        }
+
+        queryBuilder.pushWhereByValueNotNull("itemname=?", itemName);
         if (StringUtils.isNotBlank(otherJson)) {
             String[] split = otherJson.split(",");
             for (String s : split) {
                 String[] strings = s.split("=");
-                sqlQueryBuilder.pushWhere("json_extract_path_text(other,'" + strings[0] + "') = ?", strings[1]);
+                queryBuilder.pushWhere("json_extract_path_text(other,'" + strings[0] + "') = ?", strings[1]);
             }
         }
 
-        sqlQueryBuilder.setOrderBy("createtime desc");
+        queryBuilder.setOrderBy("createtime desc");
 
-        sqlQueryBuilder.limit((pageIndex - 1) * pageSize, pageSize, 10, 1000);
+        queryBuilder.limit((pageIndex - 1) * pageSize, pageSize, 10, 1000);
 
-        long rowCount = sqlQueryBuilder.findCount();
+        long rowCount = queryBuilder.findCount();
 
-        List<SRoleLog2Item> slogs = sqlQueryBuilder.findList2Entity(SRoleLog2Item.class);
+        List<SRoleLog2Item> slogs = queryBuilder.findList2Entity(SRoleLog2Item.class);
 
         List<JSONObject> list = slogs.stream()
                 .map(SRoleLog::toJSONObject)

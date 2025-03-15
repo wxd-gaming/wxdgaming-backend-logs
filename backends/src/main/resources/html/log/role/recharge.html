@@ -41,6 +41,8 @@
             urlQuery.put("roleId", $("#roleId").val());
             urlQuery.put("roleName", $("#roleName").val());
             urlQuery.put("dataJson", $("#dataJson").val());
+            urlQuery.put("minDay", $("#minDay").val());
+            urlQuery.put("maxDay", $("#maxDay").val());
             pageView.remoteGetData(urlQuery);
         }
 
@@ -83,8 +85,8 @@
     <input id="roleName" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="玩家名字"/>
     <input id="dataJson" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="a=b"/>
     <br>
-    <input id="dateStart" type="date" value="" style="" onkeydown="if (event.keyCode===13)search();" title="开始时间"/>
-    <input id="dateEnd" type="date" value="" style="" onkeydown="if (event.keyCode===13)search();" title="结束时间"/>
+    <label for="minDay">范围日期-开始日期: </label><input id="minDay" type="date"/>
+    <label for="maxDay">范围日期-结束日期: </label><input id="maxDay" type="date"/>
 </div>
 <div class="tableDom" style="position: absolute;left: 10px;top: 100px;right: 15px;bottom: 35px;">
     <table>

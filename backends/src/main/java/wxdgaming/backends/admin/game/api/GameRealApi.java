@@ -80,8 +80,11 @@ public class GameRealApi {
             int num = array.getOrDefault(i, 0);
             onlineHour.add(num);
         }
-
         runResult.fluentPut("onlineHour", onlineHour);
+
+        Object[] objects = gameContext.queryRechargeGroup(dayInt);
+        runResult.fluentPut("rechargeGroup", objects);
+
         return runResult;
     }
 

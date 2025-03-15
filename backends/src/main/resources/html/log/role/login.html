@@ -25,9 +25,9 @@
 
         label {padding-left: 5px;padding-right: 5px;}
 
-        input {margin-top: 5px;border: slategrey 1px solid;border-radius: 5px;height: 22px;}
+        input {margin-top: 5px;margin-left: 10px;width: 160px;border: #4c4c4c 1px solid;height: 22px;line-height: 22px;border-radius: 5px;}
 
-        input[type=text] {width: 160px;}
+       button {margin-top: 5px;color: rgb(255, 253, 253); background-color: rgb(241, 52, 10); border: none;padding: 8px 15px;}
     </style>
 
     <script>
@@ -40,6 +40,8 @@
             urlQuery.put("account", $("#account").val());
             urlQuery.put("roleId", $("#roleId").val());
             urlQuery.put("roleName", $("#roleName").val());
+            urlQuery.put("minDay", $("#minDay").val());
+            urlQuery.put("maxDay", $("#maxDay").val());
             pageView.remoteGetData(urlQuery);
         }
 
@@ -70,11 +72,14 @@
 
 <body>
 <div style="padding-left: 10px; padding-top: 8px; text-align: left;vertical-align: center;">
-    <input type="button" value="搜索" onclick="search();">
+    <button class="submit" type="button" onclick="search();">搜索</button>
     <br>
     <input id="account" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="账号"/>
     <input id="roleId" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="角色id"/>
     <input id="roleName" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="角色名字"/>
+    <br>
+    <label for="minDay">范围日期-开始日期: </label><input id="minDay" type="date"/>
+    <label for="maxDay">范围日期-结束日期: </label><input id="maxDay" type="date"/>
 </div>
 <div class="tableDom" style="position: absolute;left: 10px;top: 80px;right: 15px;bottom: 35px;">
     <table>
