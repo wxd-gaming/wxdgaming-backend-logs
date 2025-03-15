@@ -10,6 +10,7 @@ import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.threading.TimerJob;
 import wxdgaming.boot2.core.util.RandomUtils;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -43,12 +44,14 @@ public class LogBusTest {
             logBus.push("", "server/pushList", record);
         }
 
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 80; i++) {
             String account = StringUtils.randomString(6);
             /*创建账号*/
             logBus.registerAccount(account, MapOf.newJSONObject("os", "xiaomi"));
+
             int sid = RandomUtils.random(1, 20);
             long roleId = logBus.getHexId().newId();
+
             /*推送角色信息*/
             logBus.pushRole(
                     account, System.currentTimeMillis(),
@@ -57,6 +60,8 @@ public class LogBusTest {
                     "战士", "女", 1,
                     MapOf.newJSONObject("os", "xiaomi")
             );
+
+            if (RandomUtils.randomBoolean(3000)) continue;
 
             logBus.pushLogin(account, roleId, account, 1, MapOf.newJSONObject("os", "xiaomi"));
 
@@ -81,10 +86,11 @@ public class LogBusTest {
             logBus.pushRoleLv(account, roleId, 2);
 
             if (RandomUtils.randomBoolean(3500)) {/*35%概率会充值*/
+                List<Integer> integers = List.of(600, 1200, 6400, 9800, 12800, 64800);
                 /*充值日志*/
                 logBus.pushRecharge(
                         account, roleId, account, 2,
-                        "huawei", 600/*单位分*/, StringUtils.randomString(18), StringUtils.randomString(18),
+                        "huawei", RandomUtils.randomItem(integers)/*单位分*/, StringUtils.randomString(18), StringUtils.randomString(18),
                         MapOf.newJSONObject("comment", "首充奖励")
                 );
             }
