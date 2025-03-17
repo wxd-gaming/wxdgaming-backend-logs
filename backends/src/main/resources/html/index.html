@@ -189,14 +189,14 @@
                         `;
                     $("#side-menu").append(appendLi);
                 }
-                wxd.loading_close();
             },
             () => {
                 wxd.message.alert(responseText.msg, "Error", "确认", () => {
                     window.top.location.href = "/login.html";
                 });
             },
-            false
+            false,
+            30_000
         );
     }
 

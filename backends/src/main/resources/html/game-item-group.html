@@ -20,6 +20,8 @@
 
         #tableDom { display: block;border: 0;box-sizing: border-box;background-color: #fffefe;transform-box: revert; box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.55); /* 修改阴影效果 */border-radius: 5px 5px;overflow: auto;padding-right: 10px; /*预留给滚动条的*/padding-bottom: 8px;}
 
+        label {margin: 0 0 0 15px;}
+
         input {margin-top: 5px;margin-left: 10px;width: 160px;border: #4c4c4c 1px solid;height: 22px;line-height: 22px;border-radius: 5px;}
 
         button {margin-top: 5px;color: rgb(255, 253, 253); background-color: rgb(241, 52, 10); border: none;padding: 8px 15px;}
@@ -58,9 +60,16 @@
         }
 
         function search() {
+            let changeType = $('#changeType').val();
+            if (wxd.isNull(changeType)) {
+                wxd.message.notice("请选择道具变更的原因");
+                return;
+            }
             let postQuery = new wxd.Map().loadSearch();
             postQuery.put("minDay", $("#minDay").val());
             postQuery.put("maxDay", $("#maxDay").val());
+            postQuery.put("changeType", changeType);
+            wxd.loading();
             wxd.netty.post("log/role/item/group", postQuery.toString(), function (responseText) {
 
                 if (responseText.code !== 1) {
@@ -76,8 +85,7 @@
                 $("#chartDom").html("<canvas id=\"rechargeGroup\"></canvas>");
                 newChartBar($('#rechargeGroup'), "道具分布", rechargeGroup[0], rechargeGroup[1]);
 
-            }, null, false);
-
+            }, null, true, 30_000);
         }
 
     </script>
@@ -87,6 +95,11 @@
 <div id="tableDom" style="position: absolute;right: 15px;bottom: 35px;left: 50%;top: 50%;transform: translate(-50%,-50%);width: 90%;height:80%;padding: 20px;">
     <div style="height: 40px; width: 100%">
         <button class="submit" type="button" onclick="search();">搜索</button>
+        <label for="changeType">道具变更的原因: </label>
+        <select id="changeType">
+            <option value="GET">产生</option>
+            <option value="COST">消耗</option>
+        </select>
         <label for="minDay">范围日期-开始日期: </label><input id="minDay" type="date"/>
         <label for="maxDay">范围日期-结束日期: </label><input id="maxDay" type="date"/>
     </div>

@@ -40,8 +40,7 @@
                 },
                 (errorMsg) => {
                     window.parent.parentNotice("异常：" + errorMsg);
-                },
-                false
+                }
             );
         }
 
@@ -79,13 +78,10 @@
                             </li>
 `);
                     }
-                    wxd.loading_close();
                 },
                 (errorMsg) => {
-                    wxd.loading_close();
                     wxd.message.alert("异常：" + errorMsg);
-                },
-                false
+                }
             );
         });
     </script>

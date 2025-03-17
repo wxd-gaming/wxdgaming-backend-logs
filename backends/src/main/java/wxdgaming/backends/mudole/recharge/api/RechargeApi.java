@@ -131,13 +131,16 @@ public class RechargeApi {
         sql += " GROUP BY rr.amount ORDER BY rr.amount";
 
         List<JSONObject> jsonObjects = pgsqlDataHelper.queryList(sql, args);
+
+        jsonObjects.sort((o1, o2) -> Long.compare(o2.getLongValue("count"), o1.getLongValue("count")));
+
         Object[] objectsTitle = new Object[jsonObjects.size()];
         Object[] objectsValue = new Object[jsonObjects.size()];
 
         for (int i = 0; i < jsonObjects.size(); i++) {
             JSONObject jsonObject = jsonObjects.get(i);
             objectsTitle[i] = jsonObject.getIntValue("amount") / 100;
-            objectsValue[i] = jsonObject.getIntValue("count");
+            objectsValue[i] = jsonObject.getLongValue("count");
         }
         return RunResult.ok().data(new Object[]{objectsTitle, objectsValue});
     }

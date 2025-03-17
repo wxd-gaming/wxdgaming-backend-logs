@@ -63,7 +63,8 @@ public class GameContext {
         this.logKeyCache = Cache.<String, Boolean>builder()
                 .cacheName("logKeyCache")
                 .hashArea(100)
-                .heartTime(24, TimeUnit.HOURS)
+                .delay(2, TimeUnit.DAYS)
+                .heartTime(2, TimeUnit.DAYS)
                 .expireAfterWrite(2, TimeUnit.DAYS)
                 .build();
         this.accountRecordJdbcCache = new JdbcCache<>(dataHelper, 10, 60) {
@@ -275,8 +276,13 @@ public class GameContext {
     }
 
     public Object[] queryRechargeGroup(int dayKey) {
+
         String sql = "SELECT rr.amount,\"count\"(rr.amount) FROM record_recharge as rr WHERE daykey=? GROUP BY daykey,rr.amount ORDER BY rr.daykey DESC,rr.amount";
+
         List<JSONObject> jsonObjects = dataHelper.queryList(sql, dayKey);
+
+        jsonObjects.sort((o1, o2) -> Long.compare(o2.getLongValue("count"), o1.getLongValue("count")));
+
         Object[] objectsTitle = new Object[jsonObjects.size()];
         Object[] objectsValue = new Object[jsonObjects.size()];
 

@@ -113,7 +113,9 @@
         </tr>
         <tr style="height: 22%;width: 100%;">
             <td colspan="4">
-                <canvas id="rechargeGroup"></canvas>
+                <div id="rechargeGroupBox" style="min-width: 100%;height: 100%;">
+                    <canvas id="rechargeGroup"></canvas>
+                </div>
             </td>
         </tr>
         <tr style="height: 22%;width: 100%;">
@@ -127,7 +129,14 @@
 
                 newChartBar($('#count'),
                     '实时大屏',
-                    ['活跃', '在线', '注册', '注册付费', '订单', '付费人数'],
+                    [
+                        '活跃(' + responseText.loginAccountNum + ')',
+                        '在线(' + responseText.onlineUser + ')',
+                        '注册(' + responseText.registerAccountNum + ')',
+                        '注册付费(' + responseText.registerAccountRechargeNum + ')',
+                        '订单(' + responseText.rechargeOrderNum + ')',
+                        '付费人数(' + responseText.rechargeAccountNum + ')'
+                    ],
                     [
                         responseText.loginAccountNum,
                         responseText.onlineUser,
@@ -136,16 +145,16 @@
                         responseText.rechargeOrderNum,
                         responseText.rechargeAccountNum
                     ]
-                )
-                ;
+                );
 
                 let rechargeGroup = responseText.rechargeGroup;//[800, 900, 300, 50, 200, 300, 300, 300, 300, 600, 300, 700];
+                $("#rechargeGroupBox").css("width", (rechargeGroup[0].length * 30) + "px");
+                $("#rechargeGroupBox").css("min-width", "100%");
                 newChartBar($('#rechargeGroup'), "充值挡位分布", rechargeGroup[0], rechargeGroup[1]);
 
                 let onlineHour = responseText.onlineHour;//[800, 900, 300, 50, 200, 300, 300, 300, 300, 600, 300, 700];
                 newChartLine($('#onlineHour'), onlineHour);
-                wxd.loading_close();
-            }, null, false);
+            }, null, true, 30_000);
 
         }
 

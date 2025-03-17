@@ -15,12 +15,6 @@ class PageView {
         this.search = search;
         this.rowFunction = rowFunction;
 
-        /*读取本地存储，根据个人爱好查看数据*/
-        let ps = localStorage.getItem(this.pathname + "-page-max");
-        if (!wxd.isNull(ps)) {
-            $('#page_size').val(ps);
-        }
-
         let html = `
 <div style="position: absolute;left: 2px;right: 2px;bottom: 5px;padding: 2px;border-radius: 0px;overflow: auto;text-align: center;">
     <div>
@@ -49,7 +43,15 @@ class PageView {
     </div>
 </div>
         `;
+
         $(document.body).append(html);
+
+        /*读取本地存储，根据个人爱好查看数据*/
+        let ps = localStorage.getItem(this.pathname + "-page-max");
+        if (!wxd.isNull(ps)) {
+            $('#page_size').val(ps);
+        }
+
     }
 
     remoteGetData(postQuery) {
@@ -68,10 +70,10 @@ class PageView {
                 this.showData();
             },
             (errorMsg) => {
-                wxd.loading_close();
                 wxd.message.alert("异常：" + errorMsg);
             },
-            false
+            true,
+            30_000
         );
     }
 
@@ -120,7 +122,6 @@ class PageView {
             $("tbody:first").append(this.rowFunction(skip + index + 1, this.items[index]));
         }, 10, limit)
         wxd.message.tips_init_bind(); //初始化
-        wxd.loading_close();
     }
 
 }

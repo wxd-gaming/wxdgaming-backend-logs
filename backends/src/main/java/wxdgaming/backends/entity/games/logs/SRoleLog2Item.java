@@ -19,7 +19,7 @@ public class SRoleLog2Item extends SRoleLog {
 
     public enum ChangeTypeEnum {
         /** 获取 */
-        Get,
+        GET,
         /** 消耗 */
         COST
     }

@@ -50,10 +50,9 @@
                     );
                 },
                 (errorMsg) => {
-                    wxd.loading_close();
                     wxd.message.alert("异常：" + errorMsg);
                 },
-                false
+                true, 30_000
             );
         }
 

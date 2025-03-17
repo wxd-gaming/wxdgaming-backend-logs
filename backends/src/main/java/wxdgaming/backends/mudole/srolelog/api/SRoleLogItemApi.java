@@ -87,15 +87,20 @@ public class SRoleLogItemApi {
     @HttpRequest(authority = 9)
     public RunResult group(HttpContext httpContext,
                            @ThreadParam GameContext gameContext,
+                           @Param(path = "changeType") String changeType,
                            @Param(path = "minDay", required = false) String minDay,
                            @Param(path = "maxDay", required = false) String maxDay) {
 
         PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
         Object[] args = Objects.ZERO_ARRAY;
 
-
         String sqlWhere = "";
+
+        sqlWhere += "changeType = ?";
+        args = Objects.merge(args, changeType);
+
         if (StringUtils.isNotBlank(minDay)) {
+            sqlWhere += " AND ";
             sqlWhere += "daykey >= ?";
             String string = StringUtils.retainNumbers(minDay);
             int anInt = NumberUtil.parseInt(string, 0);
@@ -103,17 +108,11 @@ public class SRoleLogItemApi {
         }
 
         if (StringUtils.isNotBlank(maxDay)) {
-            if (StringUtils.isNotBlank(sqlWhere)) {
-                sqlWhere += " AND ";
-            }
+            sqlWhere += " AND ";
             sqlWhere += "daykey <= ?";
             String string = StringUtils.retainNumbers(maxDay);
             int anInt = NumberUtil.parseInt(string, 0);
             args = Objects.merge(args, anInt);
-        }
-
-        if (StringUtils.isNotBlank(sqlWhere)) {
-            sqlWhere = " WHERE " + sqlWhere;
         }
 
         String sql = """
@@ -123,20 +122,22 @@ public class SRoleLogItemApi {
                 "sum"(ri.change)
                 FROM
                 record_role_item AS ri
-                %s
+                WHERE %s
                 GROUP BY ri.itemid
                 ORDER BY ri.itemid
                 """.formatted(sqlWhere);
 
-
         List<JSONObject> jsonObjects = pgsqlDataHelper.queryList(sql, args);
+
+        jsonObjects.sort((o1, o2) -> Long.compare(o2.getLongValue("sum"), o1.getLongValue("sum")));
+
         Object[] objectsTitle = new Object[jsonObjects.size()];
         Object[] objectsValue = new Object[jsonObjects.size()];
 
         for (int i = 0; i < jsonObjects.size(); i++) {
             JSONObject jsonObject = jsonObjects.get(i);
             objectsTitle[i] = "%s(%s)".formatted(jsonObject.getString("min"), jsonObject.getString("itemid"));
-            objectsValue[i] = jsonObject.getIntValue("sum");
+            objectsValue[i] = jsonObject.getLongValue("sum");
         }
         return RunResult.ok().data(new Object[]{objectsTitle, objectsValue});
     }

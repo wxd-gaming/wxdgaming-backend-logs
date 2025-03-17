@@ -20,6 +20,8 @@
 
         #tableDom { display: block;border: 0;box-sizing: border-box;background-color: #fffefe;transform-box: revert; box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.55); /* 修改阴影效果 */border-radius: 5px 5px;overflow: auto;padding-right: 10px; /*预留给滚动条的*/padding-bottom: 8px;}
 
+        label {margin: 0 10px;}
+
         input {margin-left: 10px;width: 120px;border: #4c4c4c 1px solid;height: 28px;line-height: 28px;}
 
         button {margin-top: 5px;color: rgb(255, 253, 253); background-color: rgb(241, 52, 10); border: none;padding: 8px 15px;}
@@ -58,6 +60,7 @@
         }
 
         function search() {
+            wxd.loading();
             let postQuery = new wxd.Map().loadSearch();
             postQuery.put("minDay", $("#minDay").val());
             postQuery.put("maxDay", $("#maxDay").val());
@@ -74,8 +77,7 @@
                 $("#chartDom").css("min-width", "100%");
                 $("#chartDom").html("<canvas id=\"rechargeGroup\"></canvas>");
                 newChartBar($('#rechargeGroup'), "充值挡位分布", rechargeGroup[0], rechargeGroup[1]);
-
-            }, null, false);
+            }, null, true, 30_000);
 
         }
 
