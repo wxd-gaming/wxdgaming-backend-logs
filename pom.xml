@@ -16,7 +16,6 @@
 
     <modules>
         <module>backends</module>
-        <module>logbus</module>
     </modules>
 
     <properties>
