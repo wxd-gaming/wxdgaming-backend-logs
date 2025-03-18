@@ -41,7 +41,7 @@
             urlQuery.put("account", $("#account").val());
             urlQuery.put("roleId", $("#roleId").val());
             urlQuery.put("roleName", $("#roleName").val());
-            urlQuery.put("dataJson", $("#dataJson").val());
+            urlQuery.put("other", $("#other").val());
             pageView.remoteGetData(urlQuery);
         }
 
@@ -77,7 +77,7 @@
     <input id="account" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="账号"/>
     <input id="roleId" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="玩家ID"/>
     <input id="roleName" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="玩家名字"/>
-    <input id="dataJson" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="a=b"/>
+    <input id="other" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="a=b"/>
 </div>
 <div class="tableDom" style="position: absolute;left: 10px;top: 100px;right: 15px;bottom: 35px;">
     <table>

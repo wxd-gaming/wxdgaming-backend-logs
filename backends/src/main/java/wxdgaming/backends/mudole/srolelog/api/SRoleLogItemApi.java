@@ -89,7 +89,8 @@ public class SRoleLogItemApi {
                            @ThreadParam GameContext gameContext,
                            @Param(path = "changeType") String changeType,
                            @Param(path = "minDay", required = false) String minDay,
-                           @Param(path = "maxDay", required = false) String maxDay) {
+                           @Param(path = "maxDay", required = false) String maxDay,
+                           @Param(path = "other", required = false) String other) {
 
         PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
         Object[] args = Objects.ZERO_ARRAY;
@@ -113,6 +114,16 @@ public class SRoleLogItemApi {
             String string = StringUtils.retainNumbers(maxDay);
             int anInt = NumberUtil.parseInt(string, 0);
             args = Objects.merge(args, anInt);
+        }
+
+        if (StringUtils.isNotBlank(other)) {
+            String[] split = other.split(",");
+            for (String s : split) {
+                String[] strings = s.split("=");
+                sqlWhere += " AND ";
+                sqlWhere += "json_extract_path_text(other,'" + strings[0] + "') = ?";
+                args = Objects.merge(args, strings[1]);
+            }
         }
 
         String sql = """
@@ -155,7 +166,7 @@ public class SRoleLogItemApi {
                           @Param(path = "roleName", required = false) String roleName,
                           @Param(path = "itemId", required = false) String itemId,
                           @Param(path = "itemName", required = false) String itemName,
-                          @Param(path = "otherJson", required = false) String otherJson) {
+                          @Param(path = "other", required = false) String other) {
 
         GameContext gameContext = gameService.gameContext(gameId);
 
@@ -184,8 +195,9 @@ public class SRoleLogItemApi {
         }
 
         queryBuilder.pushWhereByValueNotNull("itemname=?", itemName);
-        if (StringUtils.isNotBlank(otherJson)) {
-            String[] split = otherJson.split(",");
+
+        if (StringUtils.isNotBlank(other)) {
+            String[] split = other.split(",");
             for (String s : split) {
                 String[] strings = s.split("=");
                 queryBuilder.pushWhere("json_extract_path_text(other,'" + strings[0] + "') = ?", strings[1]);

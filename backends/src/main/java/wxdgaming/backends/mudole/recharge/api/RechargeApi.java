@@ -102,7 +102,8 @@ public class RechargeApi {
     public RunResult group(HttpContext httpContext,
                            @ThreadParam GameContext gameContext,
                            @Param(path = "minDay", required = false) String minDay,
-                           @Param(path = "maxDay", required = false) String maxDay) {
+                           @Param(path = "maxDay", required = false) String maxDay,
+                           @Param(path = "other", required = false) String other) {
 
         PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
         Object[] args = Objects.ZERO_ARRAY;
@@ -115,7 +116,6 @@ public class RechargeApi {
             args = Objects.merge(args, anInt);
         }
 
-
         if (StringUtils.isNotBlank(maxDay)) {
             if (StringUtils.isNotBlank(sqlWhere)) {
                 sqlWhere += " AND ";
@@ -125,9 +125,23 @@ public class RechargeApi {
             int anInt = NumberUtil.parseInt(string, 0);
             args = Objects.merge(args, anInt);
         }
+
+        if (StringUtils.isNotBlank(other)) {
+            String[] split = other.split(",");
+            for (String s : split) {
+                String[] strings = s.split("=");
+                if (StringUtils.isNotBlank(sqlWhere)) {
+                    sqlWhere += " AND ";
+                }
+                sqlWhere += "json_extract_path_text(other,'" + strings[0] + "') = ?";
+                args = Objects.merge(args, strings[1]);
+            }
+        }
+
         if (StringUtils.isNotBlank(sqlWhere)) {
             sql += " WHERE " + sqlWhere;
         }
+
         sql += " GROUP BY rr.amount ORDER BY rr.amount";
 
         List<JSONObject> jsonObjects = pgsqlDataHelper.queryList(sql, args);
@@ -158,7 +172,8 @@ public class RechargeApi {
                           @Param(path = "curSid", required = false) String curSid,
                           @Param(path = "createSid", required = false) String createSid,
                           @Param(path = "spOrder", required = false) String spOrder,
-                          @Param(path = "cpOrder", required = false) String cpOrder) {
+                          @Param(path = "cpOrder", required = false) String cpOrder,
+                          @Param(path = "other", required = false) String other) {
 
         PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
         SqlQueryBuilder queryBuilder = pgsqlDataHelper.queryBuilder();
@@ -182,7 +197,13 @@ public class RechargeApi {
         if (StringUtils.isNotBlank(maxDay)) {
             queryBuilder.pushWhereByValueNotNull("daykey<=?", NumberUtil.retainNumber(maxDay));
         }
-
+        if (StringUtils.isNotBlank(other)) {
+            String[] split = other.split(",");
+            for (String s : split) {
+                String[] strings = s.split("=");
+                queryBuilder.pushWhere("json_extract_path_text(other,'" + strings[0] + "') = ?", strings[1]);
+            }
+        }
         queryBuilder.setOrderBy("createtime desc");
 
         queryBuilder.limit((pageIndex - 1) * pageSize, pageSize, 10, 1000);

@@ -25,9 +25,9 @@
 
         label {padding-left: 5px;padding-right: 5px;}
 
-        input {margin-top: 5px; margin-right: 5px; border: slategrey 1px solid;border-radius: 5px;height: 22px;width: 180px;}
+        input {margin-top: 5px;margin-left: 10px;width: 160px;border: #4c4c4c 1px solid;height: 22px;line-height: 22px;border-radius: 5px;}
 
-        input[type=text], input[type=date], input[type=password] {width: 160px;}
+        button {margin-top: 5px;color: rgb(255, 253, 253); background-color: rgb(241, 52, 10); border: none;padding: 8px 15px;}
     </style>
 
     <script>
@@ -40,7 +40,7 @@
             urlQuery.put("account", $("#account").val());
             urlQuery.put("roleId", $("#roleId").val());
             urlQuery.put("roleName", $("#roleName").val());
-            urlQuery.put("dataJson", $("#dataJson").val());
+            urlQuery.put("other", $("#other").val());
             urlQuery.put("minDay", $("#minDay").val());
             urlQuery.put("maxDay", $("#maxDay").val());
             pageView.remoteGetData(urlQuery);
@@ -61,7 +61,7 @@
         <td tips="true" style="width: 240px;" ondblclick="wxd.copy('${row.spOrder}');wxd.message.notice('复制成功')">${row.spOrder}</td>
         <td tips="true" style="width: 240px;"ondblclick="wxd.copy('${row.spOrder}');wxd.message.notice('复制成功')">${row.cpOrder}</td>
         <td tips="true" style="width: 120px;">${row.amount}</td>
-        <td tips="true" style="width: 180px;">${row.other}</td>
+        <td tips="true" style="width: 300px;">${row.other}</td>
     </tr>
 `;
             return tr;
@@ -77,16 +77,15 @@
 </head>
 
 <body>
-<div style="text-align: left;padding-left: 10px;padding-top: 10px;">
+<div style="text-align: left;padding-left: 10px;">
     <button type="button" onclick="search();">搜索</button>
+    <label for="minDay">范围日期-开始日期: </label><input id="minDay" type="date"/>
+    <label for="maxDay">范围日期-结束日期: </label><input id="maxDay" type="date"/>
     <br>
     <input id="account" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="账号"/>
     <input id="roleId" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="玩家ID"/>
     <input id="roleName" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="玩家名字"/>
-    <input id="dataJson" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="a=b"/>
-    <br>
-    <label for="minDay">范围日期-开始日期: </label><input id="minDay" type="date"/>
-    <label for="maxDay">范围日期-结束日期: </label><input id="maxDay" type="date"/>
+    <input id="other" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="a=b"/>
 </div>
 <div class="tableDom" style="position: absolute;left: 10px;top: 100px;right: 15px;bottom: 35px;">
     <table>
@@ -102,7 +101,7 @@
             <th style="width: 240px;" title="平台订单号">sp-order</th>
             <th style="width: 240px;" title="研发订单号">cp-order</th>
             <th style="width: 120px;">金额（单位分）</th>
-            <th style="width: 180px;">记录</th>
+            <th style="width: 300px;">记录</th>
         </tr>
         </thead>
         <tbody>

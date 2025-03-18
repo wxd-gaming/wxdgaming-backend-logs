@@ -27,7 +27,7 @@
 
         input {margin-top: 5px;margin-left: 10px;width: 160px;border: #4c4c4c 1px solid;height: 22px;line-height: 22px;border-radius: 5px;}
 
-       button {margin-top: 5px;color: rgb(255, 253, 253); background-color: rgb(241, 52, 10); border: none;padding: 8px 15px;}
+        button {margin-top: 5px;color: rgb(255, 253, 253); background-color: rgb(241, 52, 10); border: none;padding: 8px 15px;}
     </style>
 
     <script>
@@ -38,6 +38,7 @@
             wxd.loading();
             let urlQuery = new wxd.Map().loadSearch();
             urlQuery.put("sid", $("#sid").val());
+            urlQuery.put("other", $("#other").val());
             pageView.remoteGetData(urlQuery);
         }
 
@@ -46,7 +47,7 @@
     <tr>
         <td tips="true" style="width: 70px;">${index}</td>
         <td tips="true" style="width: 140px;">${row.createTime}</td>
-        <td tips="true" style="width: 40px;">${row.sId}</td>
+        <td tips="true" style="width: 40px;">${row.sid}</td>
         <td tips="true" style="">${row.other}</td>
     </tr>
 `;
@@ -54,7 +55,7 @@
         }
 
         $(() => {
-            pageView = new PageView("/log/role/slog/list", search, createRow);
+            pageView = new PageView("/log/server/slog/list", search, createRow);
             search();
         });
 
@@ -65,12 +66,10 @@
 <body>
 <div style="text-align: left;padding-left: 10px;">
     <button class="submit" type="button" onclick="search();">搜索</button>
-    <br>
     <input id="sid" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="区服id"/>
-    <br>
-    <input id="dataJson" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="a=b"/>
+    <input id="other" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="a=b"/>
 </div>
-<div class="tableDom" style="position: absolute;left: 10px;top: 100px;right: 15px;bottom: 35px;">
+<div class="tableDom" style="position: absolute;left: 10px;top: 55px;right: 15px;bottom: 35px;">
     <table>
         <thead>
         <tr>

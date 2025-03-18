@@ -54,17 +54,16 @@ public class SServerLogApi {
                 if (!haveLogType) {
                     gameContext.recordError("表结构不存在 " + sServerLog.getLogType(), sServerLog.toJsonString());
                 } else {
-                    if (sServerLog.getUid() == 0)
+                    if (sServerLog.getUid() == 0) {
                         sServerLog.setUid(gameContext.newId(sServerLog.getLogType()));
-
-                    String logKey = sServerLog.tableName() + sServerLog.getUid();
-                    boolean haveLogKey = gameContext.getLogKeyCache().containsKey(logKey);
-                    if (haveLogKey) {
-                        gameContext.recordError("表结构 " + sServerLog.getLogType() + " 重复日志记录 " + sServerLog.getUid(), sServerLog.toJsonString());
-                    } else {
-                        gameContext.getLogKeyCache().put(logKey, true);
+                    }
+                    SServerLog byWhere = gameContext.getDataHelper().findByWhere(sServerLog.getLogType(), SServerLog.class, "uid=?", sServerLog.getUid());
+                    if (byWhere == null) {
                         sServerLog.checkDataKey();
                         gameContext.getDataHelper().getDataBatch().insert(sServerLog);
+                    } else {
+                        byWhere.setOther(sServerLog.getOther());
+                        gameContext.getDataHelper().getDataBatch().update(byWhere);
                     }
                 }
             }
@@ -90,7 +89,7 @@ public class SServerLogApi {
                           @Param(path = "pageIndex") int pageIndex,
                           @Param(path = "pageSize") int pageSize,
                           @Param(path = "sid", required = false) Integer sid,
-                          @Param(path = "dataJson", required = false) String dataJson) {
+                          @Param(path = "other", required = false) String other) {
 
         GameContext gameContext = gameService.gameContext(gameId);
 
@@ -98,7 +97,7 @@ public class SServerLogApi {
             return RunResult.error("gameId error");
         }
 
-        if (!gameContext.getGame().getRoleTableMapping().containsKey(logType)) {
+        if (!gameContext.getGame().getServerTableMapping().containsKey(logType)) {
             return RunResult.error("log type error");
         }
         PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
@@ -110,8 +109,8 @@ public class SServerLogApi {
             sqlQueryBuilder.pushWhereByValueNotNull("sid=?", NumberUtil.parseInt(sid, 0));
         }
 
-        if (StringUtils.isNotBlank(dataJson)) {
-            String[] split = dataJson.split(",");
+        if (StringUtils.isNotBlank(other)) {
+            String[] split = other.split(",");
             for (String s : split) {
                 String[] strings = s.split("=");
                 sqlQueryBuilder.pushWhere("json_extract_path_text(other,'" + strings[0] + "') = ?", strings[1]);

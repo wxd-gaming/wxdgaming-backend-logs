@@ -60,8 +60,6 @@ public class ServerApi {
                     serverRecord.setStatus(record.getStatus());
                     serverRecord.setOrdinal(record.getOrdinal());
                     serverRecord.setRegisterRoleCount(record.getRegisterRoleCount());
-                    serverRecord.setActiveRoleCount(record.getActiveRoleCount());
-                    serverRecord.setOnlineRoleCount(record.getOnlineRoleCount());
                     serverRecord.getOther().putAll(record.getOther());
                     serverRecord.setUpdateTime(System.currentTimeMillis());
                     gameContext.getDataHelper().getDataBatch().update(record);
@@ -82,7 +80,7 @@ public class ServerApi {
 
     @HttpRequest(authority = 9)
     public RunResult list(HttpContext httpContext,
-                          @Param(path = "gameId") int gameId,
+                          @ThreadParam GameContext gameContext,
                           @Param(path = "pageIndex") int pageIndex,
                           @Param(path = "pageSize") int pageSize,
                           @Param(path = "sid", required = false) String sid,
@@ -92,7 +90,7 @@ public class ServerApi {
                           @Param(path = "wlan", required = false) String wlan,
                           @Param(path = "lan", required = false) String lan) {
 
-        PgsqlDataHelper pgsqlDataHelper = gameService.gameContext(gameId).getDataHelper();
+        PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
 
         SqlQueryBuilder sqlQueryBuilder = pgsqlDataHelper.queryBuilder();
         sqlQueryBuilder.sqlByEntity(ServerRecord.class);
@@ -122,7 +120,7 @@ public class ServerApi {
 
         long rowCount = sqlQueryBuilder.findCount();
         List<ServerRecord> records = sqlQueryBuilder.findList2Entity(ServerRecord.class);
-
+        int dayInt = MyClock.dayInt();
         List<JSONObject> list = records.stream()
                 .map(FastJsonUtil::toJSONObject)
                 .peek(jsonObject -> {

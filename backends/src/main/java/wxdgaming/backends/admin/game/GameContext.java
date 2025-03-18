@@ -126,6 +126,9 @@ public class GameContext {
         this.logKeyCache.shutdown();
         this.accountRecordJdbcCache.shutdown();
         this.roleRecordJdbcCache.shutdown();
+        for (ServerRecord serverRecord : serverRecordMap.values()) {
+            this.dataHelper.save(serverRecord);
+        }
         this.dataHelper.shutdown();
     }
 

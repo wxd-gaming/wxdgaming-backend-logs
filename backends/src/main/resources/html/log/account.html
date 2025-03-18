@@ -63,6 +63,7 @@
             urlQuery.put("online", $("#online").val());
             urlQuery.put("rechargeAmount", $("#rechargeAmount").val());
             urlQuery.put("rechargeCount", $("#rechargeCount").val());
+            urlQuery.put("other", $("#other").val());
             pageView.remoteGetData(urlQuery);
         }
 
@@ -109,6 +110,7 @@
     <input id="account" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="账户"/>
     <input id="rechargeAmount" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="充值金额大于等于"/>
     <input id="rechargeCount" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="订单笔数大于等于"/>
+    <input id="other" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="a=b"/>
 </div>
 <div class="tableDom" style="position: absolute;left: 10px;top: 90px;right: 15px;bottom: 35px;">
     <table>

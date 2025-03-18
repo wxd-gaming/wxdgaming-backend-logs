@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
-import wxdgaming.backends.BackendsStart;
 import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
@@ -79,7 +78,8 @@ public class AccountApi {
                           @Param(path = "account", required = false) String account,
                           @Param(path = "online", required = false) String online,
                           @Param(path = "rechargeAmount", required = false) String rechargeAmount,
-                          @Param(path = "rechargeCount", required = false) String rechargeCount
+                          @Param(path = "rechargeCount", required = false) String rechargeCount,
+                          @Param(path = "other", required = false) String other
     ) {
         GameContext gameContext = gameService.gameContext(gameId);
         PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
@@ -105,6 +105,15 @@ public class AccountApi {
         if (StringUtils.isNotBlank(maxDay)) {
             queryBuilder.pushWhereByValueNotNull("daykey<=?", NumberUtil.retainNumber(maxDay));
         }
+
+        if (StringUtils.isNotBlank(other)) {
+            String[] split = other.split(",");
+            for (String s : split) {
+                String[] strings = s.split("=");
+                queryBuilder.pushWhere("json_extract_path_text(other,'" + strings[0] + "') = ?", strings[1]);
+            }
+        }
+
         queryBuilder.setOrderBy("createtime desc");
 
         queryBuilder.limit((pageIndex - 1) * pageSize, pageSize, 10, 1000);

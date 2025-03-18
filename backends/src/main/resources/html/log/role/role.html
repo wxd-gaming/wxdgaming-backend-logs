@@ -50,6 +50,7 @@
             urlQuery.put("rechargeCount", $("#rechargeCount").val());
             urlQuery.put("minDay", $("#minDay").val());
             urlQuery.put("maxDay", $("#maxDay").val());
+            urlQuery.put("other", $("#other").val());
             pageView.remoteGetData(urlQuery);
         }
 
@@ -80,7 +81,7 @@
         <td tips="true" style="width: 140px;">${row.lastExitTime}</td>
         <td tips="true" style="width: 140px;">${row.totalOnlineTime}</td>
         <td tips="true" style="width: 140px;">${row.lastOnlineTime}</td>
-        <td tips="true" style="width: 180px;">${row.other}</td>
+        <td tips="true" style="width: 300px;">${row.other}</td>
     </tr>
 `;
             return tr;
@@ -109,6 +110,7 @@
     <input id="curSid" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="当前区服"/>
     <input id="rechargeAmount" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="充值金额大于等于"/>
     <input id="rechargeCount" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="订单笔数大于等于"/>
+    <input id="other" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="a=b"/>
 </div>
 <div class="tableDom" style="position: absolute;left: 10px;top: 120px;right: 15px;bottom: 35px;">
     <table>
@@ -135,7 +137,7 @@
             <th style="width: 140px;">最后登出时间</th>
             <th style="width: 140px;">累计在线时长</th>
             <th style="width: 140px;">最后在线时长</th>
-            <th style="width: 180px;">记录</th>
+            <th style="width: 300px;">记录</th>
         </tr>
         </thead>
         <tbody>

@@ -140,7 +140,8 @@ public class RoleApi {
                           @Param(path = "createSid", required = false) String createSid,
                           @Param(path = "online", required = false) String online,
                           @Param(path = "rechargeAmount", required = false) String rechargeAmount,
-                          @Param(path = "rechargeCount", required = false) String rechargeCount) {
+                          @Param(path = "rechargeCount", required = false) String rechargeCount,
+                          @Param(path = "other", required = false) String other) {
 
         log.info("{}", user);
 
@@ -173,6 +174,14 @@ public class RoleApi {
 
         if (StringUtils.isNotBlank(maxDay)) {
             queryBuilder.pushWhereByValueNotNull("daykey<=?", NumberUtil.retainNumber(maxDay));
+        }
+
+        if (StringUtils.isNotBlank(other)) {
+            String[] split = other.split(",");
+            for (String s : split) {
+                String[] strings = s.split("=");
+                queryBuilder.pushWhere("json_extract_path_text(other,'" + strings[0] + "') = ?", strings[1]);
+            }
         }
 
         queryBuilder.setOrderBy("createtime desc");

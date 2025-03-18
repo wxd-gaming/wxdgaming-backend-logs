@@ -68,6 +68,7 @@
             let postQuery = new wxd.Map().loadSearch();
             postQuery.put("minDay", $("#minDay").val());
             postQuery.put("maxDay", $("#maxDay").val());
+            postQuery.put("other", $("#other").val());
             postQuery.put("changeType", changeType);
             wxd.loading();
             wxd.netty.post("log/role/item/group", postQuery.toString(), function (responseText) {
@@ -102,6 +103,7 @@
         </select>
         <label for="minDay">范围日期-开始日期: </label><input id="minDay" type="date"/>
         <label for="maxDay">范围日期-结束日期: </label><input id="maxDay" type="date"/>
+        <input id="other" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="a=b"/>
     </div>
     <div id="chartDom" style="height: calc(100% - 40px); overflow: auto;min-width: 100%;">
 

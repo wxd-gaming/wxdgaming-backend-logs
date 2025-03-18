@@ -37,7 +37,7 @@ public class SServerLog extends EntityLongUID implements EntityName {
     private int sid;
     @JSONField(ordinal = 99)
     @DbColumn(columnType = ColumnType.Json)
-    private final JSONObject other = MapOf.newJSONObject();
+    private JSONObject other = MapOf.newJSONObject();
 
 
     @JSONField(serialize = false)

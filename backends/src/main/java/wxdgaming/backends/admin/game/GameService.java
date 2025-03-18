@@ -143,7 +143,7 @@ public class GameService {
         Map<String, String> dbTableMap = dataHelper.findTableMap();
         Map<String, LinkedHashMap<String, JSONObject>> tableStructMap = dataHelper.findTableStructMap();
         TableMapping tableMapping = dataHelper.tableMapping(tableClass);
-        checkSLogTable(gameContext, dataHelper, dbTableMap, tableStructMap, tableMapping, true, tableName, tableComment);
+        checkSLogTable(gameContext, dataHelper, dbTableMap, tableStructMap, tableMapping, false, tableName, tableComment);
     }
 
     public void checkSLogTable(GameContext gameContext, PgsqlDataHelper dataHelper,

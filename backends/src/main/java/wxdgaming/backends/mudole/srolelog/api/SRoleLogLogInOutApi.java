@@ -167,7 +167,7 @@ public class SRoleLogLogInOutApi {
                           @Param(path = "account", required = false) String account,
                           @Param(path = "roleId", required = false) String roleId,
                           @Param(path = "roleName", required = false) String roleName,
-                          @Param(path = "dataJson", required = false) String dataJson) {
+                          @Param(path = "other", required = false) String other) {
 
         GameContext gameContext = gameService.gameContext(gameId);
 
@@ -185,13 +185,6 @@ public class SRoleLogLogInOutApi {
         }
         queryBuilder.pushWhereByValueNotNull("rolename=?", roleName);
 
-        if (StringUtils.isNotBlank(dataJson)) {
-            String[] split = dataJson.split(",");
-            for (String s : split) {
-                String[] strings = s.split("=");
-                queryBuilder.pushWhere("json_extract_path_text(other,'" + strings[0] + "') = ?", strings[1]);
-            }
-        }
         if (StringUtils.isNotBlank(minDay)) {
             queryBuilder.pushWhereByValueNotNull("daykey>=?", NumberUtil.retainNumber(minDay));
         }
@@ -199,6 +192,15 @@ public class SRoleLogLogInOutApi {
         if (StringUtils.isNotBlank(maxDay)) {
             queryBuilder.pushWhereByValueNotNull("daykey<=?", NumberUtil.retainNumber(maxDay));
         }
+
+        if (StringUtils.isNotBlank(other)) {
+            String[] split = other.split(",");
+            for (String s : split) {
+                String[] strings = s.split("=");
+                queryBuilder.pushWhere("json_extract_path_text(other,'" + strings[0] + "') = ?", strings[1]);
+            }
+        }
+
         queryBuilder.setOrderBy("createtime desc");
 
         queryBuilder.limit((pageIndex - 1) * pageSize, pageSize, 10, 1000);

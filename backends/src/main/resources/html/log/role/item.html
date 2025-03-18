@@ -40,7 +40,7 @@
             urlQuery.put("account", $("#account").val());
             urlQuery.put("roleId", $("#roleId").val());
             urlQuery.put("roleName", $("#roleName").val());
-            urlQuery.put("otherJson", $("#otherJson").val());
+            urlQuery.put("other", $("#other").val());
             urlQuery.put("minDay", $("#minDay").val());
             urlQuery.put("maxDay", $("#maxDay").val());
             pageView.remoteGetData(urlQuery);
@@ -92,7 +92,7 @@
     <br>
     <input id="itemId" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="道具id"/>
     <input id="itemName" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="道具名字"/>
-    <input id="otherJson" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="a=b"/>
+    <input id="other" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="a=b"/>
 </div>
 <div class="tableDom" style="position: absolute;left: 10px;top: 130px;right: 15px;bottom: 35px;">
     <table>

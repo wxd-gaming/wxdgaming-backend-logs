@@ -83,14 +83,6 @@ public class ServerRecord extends EntityIntegerUID {
     @JSONField(ordinal = 29)
     @DbColumn()
     private int registerRoleCount;
-    /** 在线角色 */
-    @JSONField(ordinal = 30)
-    @DbColumn()
-    private int onlineRoleCount;
-    /** 活跃用户 */
-    @JSONField(ordinal = 31)
-    @DbColumn()
-    private int activeRoleCount;
     /** 充值金额 */
     @JSONField(ordinal = 32)
     @DbColumn()
