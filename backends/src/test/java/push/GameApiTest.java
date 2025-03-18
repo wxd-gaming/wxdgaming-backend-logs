@@ -56,7 +56,7 @@ public class GameApiTest {
     }
 
     public void post(String path, Entity entity) throws Exception {
-        String json = entity.toJsonString();
+        String json = entity.toJSONString();
         CompletableFuture<Response<PostText>> post = post(path, json);
         Response<PostText> postTextResponse = post.join();
         postTextResponse.systemOut();

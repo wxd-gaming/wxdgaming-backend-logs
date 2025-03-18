@@ -35,7 +35,7 @@
 
         function add() {
             let urlQuery = new wxd.Map().loadSearch();
-            urlQuery.put("jsPlugin", $("#jsPlugin").val());
+            urlQuery.put("js", $("#jsPlugin").val());
             wxd.netty.post("/server/saveJsPlugin", urlQuery.toString(),
                 function (responseText) {
                     if (responseText.code !== 1) {
@@ -45,7 +45,7 @@
                     }
                 },
                 (errorMsg) => {
-                    window.parent.parentAlert("异常：" + errorMsg);
+                    window.parent.parentNotice("异常：" + errorMsg);
                 }
             );
         }

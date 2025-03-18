@@ -82,7 +82,7 @@ public class RechargeApi {
                     serverRecord.getRechargeAmount().addAndGet(record.getAmount());
 
                 } else {
-                    gameContext.recordError("重复充值记录 " + record.getUid(), record.toJsonString());
+                    gameContext.recordError("重复充值记录 " + record.getUid(), record.toJSONString());
                 }
             }
         });

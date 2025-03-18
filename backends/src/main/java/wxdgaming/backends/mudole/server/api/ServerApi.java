@@ -7,11 +7,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.graalvm.polyglot.Value;
 import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
+import wxdgaming.backends.entity.games.logs.RoleRecord;
 import wxdgaming.backends.entity.games.logs.ServerRecord;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
-import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
 import wxdgaming.boot2.core.io.FileReadUtil;
 import wxdgaming.boot2.core.io.FileWriteUtil;
 import wxdgaming.boot2.core.lang.RunResult;
@@ -27,6 +27,7 @@ import wxdgaming.boot2.starter.net.server.http.HttpContext;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -55,7 +56,7 @@ public class ServerApi {
         gameContext.submit(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
                 if (record.getUid() == 0) {
-                    gameContext.recordError("sid为空", record.toJsonString());
+                    gameContext.recordError("sid为空", record.toJSONString());
                 } else {
                     ServerRecord serverRecord = gameContext.serverGetOrCreate(record.getUid());
                     serverRecord.setMainSid(record.getMainSid());
@@ -128,7 +129,7 @@ public class ServerApi {
         RunResult ok = RunResult.ok();
         String js = getJs(gameId);
         /*通用的*/
-        jsService.threadContext().evalFile(js);
+        jsService.threadContext().eval(js);
 
         List<Map<?, ?>> vs = new ArrayList<>();
         gameContext.getServerRecordMap().values().forEach(v -> {
@@ -182,11 +183,25 @@ public class ServerApi {
 
         long rowCount = sqlQueryBuilder.findCount();
         List<ServerRecord> records = sqlQueryBuilder.findList2Entity(ServerRecord.class);
-        int dayInt = MyClock.dayInt();
+        Collection<RoleRecord> roleRecords = gameContext.getRoleRecordJdbcCache().values();
         List<JSONObject> list = records.stream()
-                .map(FastJsonUtil::parseJSONObject)
-                .peek(jsonObject -> {
-                    jsonObject.put("updateTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("updateTime")));
+                .map(serverRecord -> {
+                    JSONObject jsonObject = serverRecord.toJSONObject();
+                    long onlineRoleCount = roleRecords.stream()
+                            .filter(v -> v.online())
+                            .filter(v -> v.getCurSid() == serverRecord.getUid())
+                            .count();
+
+                    long activeRoleCount = roleRecords.stream()
+                            .filter(v -> MyClock.isSameDay(v.getOnlineUpdateTime()))
+                            .filter(v -> v.getCurSid() == serverRecord.getUid())
+                            .count();
+
+                    jsonObject.put("onlineRoleCount", onlineRoleCount);
+                    jsonObject.put("activeRoleCount", activeRoleCount);
+                    jsonObject.put("updateTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", serverRecord.getUpdateTime()));
+                    jsonObject.put("other", serverRecord.getOther().toJSONString());
+                    return jsonObject;
                 })
                 .toList();
 

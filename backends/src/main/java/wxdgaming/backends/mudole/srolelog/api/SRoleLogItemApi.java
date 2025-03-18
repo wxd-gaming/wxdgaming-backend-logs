@@ -60,7 +60,7 @@ public class SRoleLogItemApi {
     /** 登录日志的批量提交 */
     @HttpRequest(authority = 2)
     public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") SRoleLog2Item record) {
-        log.info("item log: {}", record.toJsonString());
+        log.info("item log: {}", record.toJSONString());
         gameContext.submit(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
                 AccountRecord accountRecord = gameContext.accountGetOrCreate(record.getAccount());
@@ -72,7 +72,7 @@ public class SRoleLogItemApi {
                 String logKey = record.tableName() + record.getUid();
                 boolean haveLogKey = gameContext.getLogKeyCache().containsKey(logKey);
                 if (haveLogKey) {
-                    gameContext.recordError("表结构 " + record.tableName() + " 重复日志记录 " + record.getUid(), record.toJsonString());
+                    gameContext.recordError("表结构 " + record.tableName() + " 重复日志记录 " + record.getUid(), record.toJSONString());
                 } else {
                     record.checkDataKey();
 

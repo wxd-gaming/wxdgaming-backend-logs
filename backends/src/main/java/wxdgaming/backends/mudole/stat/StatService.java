@@ -42,7 +42,7 @@ public class StatService {
         this.gameService = gameService;
     }
 
-    @Scheduled("0 */20")
+    @Scheduled("0 0")
     public void gameStat() {
         Collection<GameContext> values = gameService.getGameContextHashMap().values();
         final long dayOfStartMillis = MyClock.dayOfStartMillis();
@@ -71,6 +71,7 @@ public class StatService {
                         GameStat gameStat = pgsqlDataHelper.findByKey(GameStat.class, dayKey);
                         if (gameStat == null) {
                             gameStat = new GameStat();
+                            gameStat.setNewEntity(true);
                             gameStat.setUid(dayKey);
                         }
                         {
@@ -139,7 +140,7 @@ public class StatService {
         }
     }
 
-    @Scheduled("0 */20")
+    @Scheduled("0 0")
     public void accountStat() {
         Collection<GameContext> values = gameService.getGameContextHashMap().values();
         final long dayOfStartMillis = MyClock.dayOfStartMillis();
@@ -169,6 +170,7 @@ public class StatService {
                         AccountStat accountStat = pgsqlDataHelper.findByKey(AccountStat.class, registerDayKey);
                         if (accountStat == null) {
                             accountStat = new AccountStat();
+                            accountStat.setNewEntity(true);
                             accountStat.setUid(registerDayKey);
                         }
                         {
@@ -223,6 +225,7 @@ public class StatService {
                 OnlineStat onlineStat = pgsqlDataHelper.findByKey(OnlineStat.class, dayKey);
                 if (onlineStat == null) {
                     onlineStat = new OnlineStat();
+                    onlineStat.setNewEntity(true);
                     onlineStat.setUid(dayKey);
                 }
 
@@ -240,6 +243,7 @@ public class StatService {
                     ServerOnlineStat onlineStat = pgsqlDataHelper.findByKey(ServerOnlineStat.class, dayKey, serverRecord.getUid());
                     if (onlineStat == null) {
                         onlineStat = new ServerOnlineStat();
+                        onlineStat.setNewEntity(true);
                         onlineStat.setUid(dayKey);
                         onlineStat.setSid(serverRecord.getUid());
                     }

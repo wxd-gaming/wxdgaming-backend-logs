@@ -5,6 +5,7 @@ function actionServer2Json(server) {
     json["showName"] = server.getShowName();
     json["openTime"] = formatUTCTimestamp(server.getOpenTime());/*格式化日期*/
     json["ordinal"] = server.getOrdinal();/*格式化日期*/
-
+    json["wlan"] = server.getWlan();
+    json["port"] = server.getPort();
     return json;
 }

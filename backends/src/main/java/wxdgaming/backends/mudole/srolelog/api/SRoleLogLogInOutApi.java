@@ -67,12 +67,12 @@ public class SRoleLogLogInOutApi {
                 String logKey = record.tableName() + record.getUid();
                 boolean haveLogKey = gameContext.getLogKeyCache().containsKey(logKey);
                 if (haveLogKey) {
-                    gameContext.recordError("表结构 " + record.tableName() + " 重复日志记录 " + record.getUid(), record.toJsonString());
+                    gameContext.recordError("表结构 " + record.tableName() + " 重复日志记录 " + record.getUid(), record.toJSONString());
                 } else {
 
                     SRoleLog2Login.LogEnum logEnum = record.getLogEnum();
                     if (logEnum == null) {
-                        gameContext.recordError("登录记录 logEnum 参数异常", record.toJsonString());
+                        gameContext.recordError("登录记录 logEnum 参数异常", record.toJSONString());
                         return;
                     }
 

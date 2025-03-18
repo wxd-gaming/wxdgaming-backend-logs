@@ -47,12 +47,12 @@ public class SRoleLogApi {
     @HttpRequest(authority = 2)
     @ExecutorWith(useVirtualThread = true)
     public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") SRoleLog sRoleLog) {
-        log.info("sLog - {}", sRoleLog.toJsonString());
+        log.info("sLog - {}", sRoleLog.toJSONString());
         gameContext.submit(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
                 boolean haveLogType = gameContext.getGame().getRoleTableMapping().containsKey(sRoleLog.getLogType());
                 if (!haveLogType) {
-                    gameContext.recordError("表结构不存在 " + sRoleLog.getLogType(), sRoleLog.toJsonString());
+                    gameContext.recordError("表结构不存在 " + sRoleLog.getLogType(), sRoleLog.toJSONString());
                 } else {
                     if (sRoleLog.getUid() == 0)
                         sRoleLog.setUid(gameContext.newId(sRoleLog.getLogType()));
@@ -60,7 +60,7 @@ public class SRoleLogApi {
                     String logKey = sRoleLog.tableName() + sRoleLog.getUid();
                     boolean haveLogKey = gameContext.getLogKeyCache().containsKey(logKey);
                     if (haveLogKey) {
-                        gameContext.recordError("表结构 " + sRoleLog.getLogType() + " 重复日志记录 " + sRoleLog.getUid(), sRoleLog.toJsonString());
+                        gameContext.recordError("表结构 " + sRoleLog.getLogType() + " 重复日志记录 " + sRoleLog.getUid(), sRoleLog.toJSONString());
                     } else {
                         gameContext.getLogKeyCache().put(logKey, true);
                         sRoleLog.checkDataKey();

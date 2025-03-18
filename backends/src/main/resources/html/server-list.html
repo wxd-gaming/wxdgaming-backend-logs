@@ -88,6 +88,8 @@
             <td tips="true" style="width: 140px;">${row.showName}</td>
             <td tips="true" style="width: 130px;">${row.openTime}</td>
             <td tips="true" style="width: 80px;">${row.registerRoleCount}</td>
+            <td tips="true" style="width: 80px;">${row.onlineRoleCount}</td>
+            <td tips="true" style="width: 80px;">${row.activeRoleCount}</td>
             <td tips="true" style="width: 120px;">${row.rechargeCount}</td>
             <td tips="true" style="width: 120px;">${row.rechargeAmount}</td>
             <td tips="true" style="width: 120px;">${row.wlan}</td>
@@ -105,6 +107,11 @@
             wxd.loadHtml("/server-list-edit.html?gameId=" + urlQuery.get("gameId"), "85%", "85%");
         }
 
+        function openJson() {
+            let urlQuery = new wxd.Map().loadSearch();
+            window.open("/server/json?gameId=" + urlQuery.get("gameId"));
+        }
+
         $(() => {
             pageView = new PageView("/server/list", search, createRow);
             search();
@@ -115,8 +122,9 @@
 </head>
 
 <body>
-<div class="btn_box" style="text-align: left;padding-left: 10px;padding-top: 8px;">
+<div class="btn_box" style="text-align: left;padding-left: 10px;">
     <button class="submit" type="button" onclick="search();">搜索</button>
+    <button class="submit" type="button" onclick="openJson();">列表Json</button>
     <button class="submit" type="button" onclick="openEdit();">脚本</button>
     <br>
     <input id="sid" type="text" value="" onkeydown="if (event.keyCode===13)search();" placeholder="区服id"/>

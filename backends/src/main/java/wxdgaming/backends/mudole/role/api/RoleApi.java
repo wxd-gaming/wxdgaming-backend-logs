@@ -53,7 +53,7 @@ public class RoleApi {
     @HttpRequest(authority = 2)
     @ExecutorWith(useVirtualThread = true)
     public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") RoleRecord record) {
-        log.info("role - {}", record.toJsonString());
+        log.info("role - {}", record.toJSONString());
         gameContext.submit(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
                 RoleRecord entity = gameContext.roleGetOrCreate(record.getAccount(), record.getUid());

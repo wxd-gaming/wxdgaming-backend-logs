@@ -47,12 +47,12 @@ public class SServerLogApi {
     @HttpRequest(authority = 2)
     @ExecutorWith(useVirtualThread = true)
     public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") SServerLog sServerLog) {
-        log.info("sLog - {}", sServerLog.toJsonString());
+        log.info("sLog - {}", sServerLog.toJSONString());
         gameContext.submit(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
                 boolean haveLogType = gameContext.getGame().getServerTableMapping().containsKey(sServerLog.getLogType());
                 if (!haveLogType) {
-                    gameContext.recordError("表结构不存在 " + sServerLog.getLogType(), sServerLog.toJsonString());
+                    gameContext.recordError("表结构不存在 " + sServerLog.getLogType(), sServerLog.toJSONString());
                 } else {
                     if (sServerLog.getUid() == 0) {
                         sServerLog.setUid(gameContext.newId(sServerLog.getLogType()));
