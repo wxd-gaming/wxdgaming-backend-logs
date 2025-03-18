@@ -7,5 +7,6 @@ function actionServer2Json(server) {
     json["ordinal"] = server.getOrdinal();/*格式化日期*/
     json["wlan"] = server.getWlan();
     json["port"] = server.getPort();
+    json["client-version"] = server.getOther().getString("client-version");
     return json;
 }
