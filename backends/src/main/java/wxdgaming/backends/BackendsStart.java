@@ -43,30 +43,24 @@ public class BackendsStart {
                 BackendsStart.class
         );
 
-        JsService jsService = run.getInstance(JsService.class);
-        jsService.evalFile("script/game-stat.js");
-        GameStat gameStat = new GameStat();
-        Value execute = jsService.threadContext().execute("GameStat", 2, gameStat);
-        System.out.println(gameStat.getArpu());
-
-        HttpListenerFactory httpListenerFactory = run.getInstance(HttpListenerFactory.class);
-        HttpListenerContent httpListenerContent = httpListenerFactory.getHttpListenerContent();
-        Collection<HttpMapping> values = httpListenerContent.getHttpMappingMap().values();
-        for (HttpMapping value : values) {
-            System.out.println(value.path() + " - " + value.comment());
-        }
-
-        Stream<Tuple2<Path, byte[]>> html = FileUtil.resourceStreams("html", ".html");
-        html.forEach(tuple2 -> {
-            Path left = tuple2.getLeft();
-            String pathString = left.toString();
-            int indexOf = pathString.indexOf("html" + File.separator);
-            if (indexOf < 0) {
-                return;
-            }
-            pathString = "/" + pathString.substring(indexOf + 5);
-            System.out.println(pathString);
-        });
+        // HttpListenerFactory httpListenerFactory = run.getInstance(HttpListenerFactory.class);
+        // HttpListenerContent httpListenerContent = httpListenerFactory.getHttpListenerContent();
+        // Collection<HttpMapping> values = httpListenerContent.getHttpMappingMap().values();
+        // for (HttpMapping value : values) {
+        //     System.out.println(value.path() + " - " + value.comment());
+        // }
+        //
+        // Stream<Tuple2<Path, byte[]>> html = FileUtil.resourceStreams("html", ".html");
+        // html.forEach(tuple2 -> {
+        //     Path left = tuple2.getLeft();
+        //     String pathString = left.toString();
+        //     int indexOf = pathString.indexOf("html" + File.separator);
+        //     if (indexOf < 0) {
+        //         return;
+        //     }
+        //     pathString = "/" + pathString.substring(indexOf + 5);
+        //     System.out.println(pathString);
+        // });
 
     }
 

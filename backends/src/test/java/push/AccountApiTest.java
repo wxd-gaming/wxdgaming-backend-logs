@@ -50,7 +50,7 @@ public class AccountApiTest extends GameApiTest {
                 list.add(record);
             }
         }
-        FileWriteUtil.writeString("src/test/resources/account.json", FastJsonUtil.toJsonFmt(recordMap));
+        FileWriteUtil.writeString("src/test/resources/account.json", FastJsonUtil.toJSONStringAsFmt(recordMap));
     }
 
     @Test

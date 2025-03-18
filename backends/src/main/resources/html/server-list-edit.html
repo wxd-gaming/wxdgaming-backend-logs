@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑脚本</title>
+
+    <script charset="utf-8" type="text/javascript" src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script charset="utf-8" type="text/javascript" src="/js/com.wxd.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/style/com.wxd.css"/>
+
+    <style>
+        html, body {
+            display: block;width: 100%;height: 100%;overflow: hidden;background: rgb(255, 255, 255);
+            font-size: 14px;
+        }
+
+        html, body, div, input, button {
+            margin: 0;border: 0;box-sizing: border-box;
+        }
+
+        input[type=text], input[type=date], input[type=password] {width: 160px;}
+
+        input {border: 1px solid black;border-radius: 5px;height: 32px;line-height: 32px; }
+
+
+        li {padding-top: 15px;list-style: none;}
+
+        .submit { color: rgb(255, 253, 253); width: 80px; height: 35px; background-color: rgb(241, 52, 10); border: none; margin-top: 20px;border-radius: 5px;}
+    </style>
+
+    <script>
+
+        function add() {
+            let urlQuery = new wxd.Map().loadSearch();
+            urlQuery.put("jsPlugin", $("#jsPlugin").val());
+            wxd.netty.post("/server/saveJsPlugin", urlQuery.toString(),
+                function (responseText) {
+                    if (responseText.code !== 1) {
+                        window.parent.parentNotice(responseText.msg);
+                    } else {
+                        window.parent.parentAlert("完成");
+                    }
+                },
+                (errorMsg) => {
+                    window.parent.parentAlert("异常：" + errorMsg);
+                }
+            );
+        }
+
+        $(() => {
+            let urlQuery = new wxd.Map().loadSearch();
+            wxd.netty.post("/server/jsplugin", urlQuery.toString(),
+                function (responseText) {
+                    if (responseText.code !== 1) {
+                        window.parent.parentNotice(responseText.msg);
+                    } else {
+                        $("#jsPlugin").text(responseText.data);
+                    }
+                },
+                (errorMsg) => {
+                    window.parent.parentAlert("异常：" + errorMsg);
+                }
+            );
+        });
+
+    </script>
+
+</head>
+<body>
+<div style="position: absolute;left: 50%;top: 50%;transform: translate(-50%,-50%);width: 80%;height:80%;text-align: center;padding: 3px;">
+    <textarea id="jsPlugin" style="width: 99%;height: calc(100% - 40px);"></textarea>
+    <button class="submit" onclick="add();">提交</button>
+</div>
+</body>
+</html>

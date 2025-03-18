@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import org.graalvm.polyglot.Value;
 import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.games.logs.ServerRecord;
@@ -11,16 +12,23 @@ import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
+import wxdgaming.boot2.core.io.FileReadUtil;
+import wxdgaming.boot2.core.io.FileWriteUtil;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.Event;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
+import wxdgaming.boot2.starter.js.JsService;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.ann.RequestMapping;
 import wxdgaming.boot2.starter.net.server.http.HttpContext;
 
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 区服接口
@@ -34,10 +42,12 @@ import java.util.List;
 public class ServerApi {
 
     final GameService gameService;
+    final JsService jsService;
 
     @Inject
-    public ServerApi(GameService gameService) {
+    public ServerApi(GameService gameService, JsService jsService) {
         this.gameService = gameService;
+        this.jsService = jsService;
     }
 
     @HttpRequest(authority = 2)
@@ -76,6 +86,58 @@ public class ServerApi {
             push(gameContext, record);
         }
         return RunResult.OK;
+    }
+
+    private String getJs(int gameId) {
+        String string = null;
+        File file = new File("./script/" + gameId + "/action-server-2-json.js");
+        if (file.exists()) {
+            string = FileReadUtil.readString(file, StandardCharsets.UTF_8);
+        }
+        if (StringUtils.isBlank(string)) {
+            string = FileReadUtil.readString("script/action-server-2-json.js", StandardCharsets.UTF_8);
+        }
+        return string;
+    }
+
+    @HttpRequest(authority = 9)
+    public RunResult jsPlugin(HttpContext httpContext,
+                              @Param(path = "gameId") int gameId) {
+
+        String string = getJs(gameId);
+
+        return RunResult.ok().data(string);
+    }
+
+    @HttpRequest(authority = 9)
+    public RunResult saveJsPlugin(HttpContext httpContext,
+                                  @Param(path = "gameId") int gameId,
+                                  @Param(path = "js") String js) {
+
+        File file = new File("./script/" + gameId + "/action-server-2-json.js");
+        FileWriteUtil.writeString(file, js);
+        return RunResult.ok();
+    }
+
+    @HttpRequest()
+    public RunResult json(HttpContext httpContext, @Param(path = "gameId") int gameId) {
+        GameContext gameContext = gameService.gameContext(gameId);
+        if (gameContext == null) {
+            return RunResult.error("gameId is not exist");
+        }
+        RunResult ok = RunResult.ok();
+        String js = getJs(gameId);
+        /*通用的*/
+        jsService.threadContext().evalFile(js);
+
+        List<Map<?, ?>> vs = new ArrayList<>();
+        gameContext.getServerRecordMap().values().forEach(v -> {
+            Value execute = jsService.threadContext().execute("actionServer2Json", v);
+            Map<?, ?> string = execute.as(Map.class);
+            vs.add(string);
+        });
+        ok.data(vs);
+        return ok;
     }
 
     @HttpRequest(authority = 9)
@@ -122,7 +184,7 @@ public class ServerApi {
         List<ServerRecord> records = sqlQueryBuilder.findList2Entity(ServerRecord.class);
         int dayInt = MyClock.dayInt();
         List<JSONObject> list = records.stream()
-                .map(FastJsonUtil::toJSONObject)
+                .map(FastJsonUtil::parseJSONObject)
                 .peek(jsonObject -> {
                     jsonObject.put("updateTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", jsonObject.getLong("updateTime")));
                 })

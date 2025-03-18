@@ -25,12 +25,37 @@
 
         label {padding-left: 5px;padding-right: 5px;}
 
-        input {margin-top: 5px;margin-left: 10px;width: 160px;border: #4c4c4c 1px solid;height: 22px;line-height: 22px;border-radius: 5px;}
+        .btn_box input {margin-top: 5px;margin-left: 10px;width: 160px;border: #4c4c4c 1px solid;height: 22px;line-height: 22px;border-radius: 5px;}
 
-       button {margin-top: 5px;color: rgb(255, 253, 253); background-color: rgb(241, 52, 10); border: none;padding: 8px 15px;}
+        .btn_box button {margin-top: 5px;color: rgb(255, 253, 253); background-color: rgb(241, 52, 10); border: none;padding: 8px 15px;}
     </style>
 
     <script>
+
+        function parentLoading() {
+            wxd.loading();
+        }
+
+        function parentLoading_close() {
+            wxd.loading_close();
+        }
+
+        function parentNotice(content, isError, closeTime) {
+            wxd.message.notice(content, isError, closeTime);
+        }
+
+        function parentAlert(msg) {
+            wxd.message.alert(
+                msg,
+                "提示：",
+                "关闭",
+                () => {
+                    setTimeout(() => {
+                        $("#div_load_box").parent().remove();
+                    }, 1);
+                }
+            );
+        }
 
         let pageView;
 
@@ -69,10 +94,15 @@
             <td tips="true" style="width: 120px;">${row.lan}</td>
             <td tips="true" style="width: 62px;">${row.port}</td>
             <td tips="true" style="width: 62px;">${row.webPort}</td>
-            <td tips="true" style="width: 120px;">${row.other}</td>
+            <td tips="true" style="width: 300px;">${row.other}</td>
     </tr>
 `;
             return tr;
+        }
+
+        function openEdit() {
+            let urlQuery = new wxd.Map().loadSearch();
+            wxd.loadHtml("/server-list-edit.html?gameId=" + urlQuery.get("gameId"), "85%", "85%");
         }
 
         $(() => {
@@ -85,8 +115,9 @@
 </head>
 
 <body>
-<div style="text-align: left;padding-left: 10px;padding-top: 8px;">
+<div class="btn_box" style="text-align: left;padding-left: 10px;padding-top: 8px;">
     <button class="submit" type="button" onclick="search();">搜索</button>
+    <button class="submit" type="button" onclick="openEdit();">脚本</button>
     <br>
     <input id="sid" type="text" value="" onkeydown="if (event.keyCode===13)search();" placeholder="区服id"/>
     <input id="mainSid" type="text" value="" onkeydown="if (event.keyCode===13)search();" placeholder="主服id"/>
@@ -114,7 +145,7 @@
             <th style="width: 120px;">内网IP</th>
             <th style="width: 62px;">端口</th>
             <th style="width: 62px;">WEB端口</th>
-            <th style="width: 120px;">备注</th>
+            <th style="width: 300px;">其它</th>
         </tr>
         </thead>
         <tbody>

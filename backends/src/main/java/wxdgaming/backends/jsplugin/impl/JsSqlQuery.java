@@ -1,4 +1,4 @@
-package wxdgaming.backends.jsplugin;
+package wxdgaming.backends.jsplugin.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.inject.Inject;
