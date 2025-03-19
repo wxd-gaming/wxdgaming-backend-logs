@@ -27,14 +27,14 @@ import java.util.HashMap;
  **/
 @Slf4j
 @Singleton
-public class Authority_9_ByUser_Filter extends HttpFilter {
+public class Authority_ByUser_Filter extends HttpFilter {
 
     final LoginService loginService;
     final GameService gameService;
     final HttpListenerFactory httpListenerFactory;
 
     @Inject
-    public Authority_9_ByUser_Filter(LoginService loginService, GameService gameService, HttpListenerFactory httpListenerFactory) {
+    public Authority_ByUser_Filter(LoginService loginService, GameService gameService, HttpListenerFactory httpListenerFactory) {
         this.loginService = loginService;
         this.gameService = gameService;
         this.httpListenerFactory = httpListenerFactory;
@@ -47,7 +47,7 @@ public class Authority_9_ByUser_Filter extends HttpFilter {
         return null;
     }
 
-    public Object checkUser(HttpContext httpContext, String url) {
+    public RunResult checkUser(HttpContext httpContext, String url) {
         RunResult runResult = loginService.checkLogin(httpContext);
         if (runResult.code() != 1) {
             return runResult;

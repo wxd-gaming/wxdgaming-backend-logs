@@ -19,10 +19,10 @@ import java.lang.reflect.Method;
  **/
 @Slf4j
 @Singleton
-public class Authority_PathList_Filter extends Authority_9_ByUser_Filter {
+public class Authority_ByUser_Filter_PathList extends Authority_ByUser_Filter {
 
     @Inject
-    public Authority_PathList_Filter(LoginService loginService, GameService gameService, HttpListenerFactory httpListenerFactory) {
+    public Authority_ByUser_Filter_PathList(LoginService loginService, GameService gameService, HttpListenerFactory httpListenerFactory) {
         super(loginService, gameService, httpListenerFactory);
     }
 

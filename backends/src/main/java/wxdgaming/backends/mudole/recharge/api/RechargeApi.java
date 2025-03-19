@@ -79,7 +79,9 @@ public class RechargeApi {
 
                     ServerRecord serverRecord = gameContext.serverGetOrCreate(record.getSid());
                     serverRecord.getRechargeCount().incrementAndGet();
-                    serverRecord.getRechargeAmount().addAndGet(record.getAmount());
+                    serverRecord.getRechargeAmount().addAndGet(record.getAmount())
+                    ;
+                    gameContext.getDataHelper().getDataBatch().save(serverRecord);
 
                 } else {
                     gameContext.recordError("重复充值记录 " + record.getUid(), record.toJSONString());

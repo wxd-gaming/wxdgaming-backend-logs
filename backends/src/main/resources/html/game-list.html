@@ -55,6 +55,44 @@
             );
         }
 
+        function truncates(gameId, gameName) {
+            wxd.message.alert(
+                `确定对游戏 ${gameName}(gameId=${gameId}) 进行清档操作嘛？数据不可恢复~~~`,
+                "警告：",
+                "确定",
+                () => {
+                    let map = new wxd.Map().loadSearch();
+                    wxd.netty.post("/game/truncates", map.toString(),
+                        (data) => {
+                            if (data.code === 1) {
+                                parentNotice(`${gameName}(${gameId}) 清档成功`);
+                            } else {
+                                parentAlert(`${gameName}(${gameId}) 清档失败 -> ${data.msg}`);
+                            }
+                        }
+                    );
+                },
+                "取消"
+            );
+        }
+
+
+        function operate(gameId, type) {
+            let map = new wxd.Map().loadSearch();
+            map.put("gameId", gameId);
+            map.put("type", type);
+            wxd.netty.post("/game/refreshKey", map.toString(),
+                (data) => {
+                    if (data.code === 1) {
+                        parentNotice(`更新完成`);
+                        search();
+                    } else {
+                        parentAlert(`${gameName}(${gameId}) 清档失败 -> ${data.msg}`);
+                    }
+                }
+            );
+        }
+
         let pageView;
 
         function search() {
@@ -67,19 +105,21 @@
         function createRow(index, row) {
             return `
     <tr>
-            <td style="width: 120px;">
-                <a href="javascript:void(0);" onclick="operate(${row.uid}, 'app');return false;" title="更新 AppKey">AppKey</a>
-                <a href="javascript:void(0);" onclick="operate(${row.uid}, 'recharge');return false;" title="更新 RechargeKey">RechargeKey</a>
+            <td style="width: 240px;">
+                <a href="javascript:void(0);" onclick="truncates(${row.uid}, '${row.name}');return false;" title="清档">清档</a>
+                <a href="javascript:void(0);" onclick="operate(${row.uid}, 'app');return false;" title="更新 AppKey">appToken</a>
+                <a href="javascript:void(0);" onclick="operate(${row.uid}, 'recharge');return false;" title="更新 RechargeKey">rechargeToken</a>
+                <a href="javascript:void(0);" onclick="operate(${row.uid}, 'log');return false;" title="更新 AppKey">logToken</a>
             </td>
             <td tips="true" style="width: 58px;">${index}</td>
             <td tips="true" style="width: 58px;">${row.uid}</td>
             <td tips="true" style="width: 120px;">${row.name}</td>
             <td tips="true" style="width: 120px;">${row.icon}</td>
             <td tips="true" style="width: 120px;">${row.createTime}</td>
-            <td tips="true" style="width: 140px;" ondblclick="wxd.copy('appToken: ${row.appToken}');wxd.message.notice('复制成功')">${row.appToken}</td>
-            <td tips="true" style="width: 140px;" ondblclick="wxd.copy('rechargeToken: ${row.rechargeToken}');wxd.message.notice('复制成功')">${row.rechargeToken}</td>
-            <td tips="true" style="width: 140px;" ondblclick="wxd.copy('logToken: ${row.logToken}');wxd.message.notice('复制成功')">${row.logToken}</td>
-            <td tips="true" style="width: 120px;">${row.desc}</td>
+            <td tips="true" style="width: 140px;" ondblclick="wxd.copy('${row.appToken}');wxd.message.notice('复制成功')">${row.appToken}</td>
+            <td tips="true" style="width: 140px;" ondblclick="wxd.copy('${row.rechargeToken}');wxd.message.notice('复制成功')">${row.rechargeToken}</td>
+            <td tips="true" style="width: 140px;" ondblclick="wxd.copy('${row.logToken}');wxd.message.notice('复制成功')">${row.logToken}</td>
+            <td tips="true" style="width: 300px;">${row.desc}</td>
     </tr>
 `;
         }
@@ -104,7 +144,7 @@
     <table>
         <thead>
         <tr>
-            <th style="width: 120px;">操作</th>
+            <th style="width: 240px;">操作</th>
             <th style="width: 58px;">序号</th>
             <th style="width: 58px;">游戏ID</th>
             <th style="width: 120px;">名字</th>

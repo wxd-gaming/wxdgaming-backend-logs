@@ -9,6 +9,7 @@ import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.games.ServerRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
+import wxdgaming.backends.entity.system.User;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
@@ -104,14 +105,23 @@ public class ServerApi {
     }
 
     @HttpRequest(authority = 9)
-    public RunResult editShowName(@ThreadParam GameContext gameContext,
+    public RunResult editShowName(HttpContext httpContext, @ThreadParam User user,
+                                  @ThreadParam GameContext gameContext,
                                   @Param(path = "sid") int sid,
                                   @Param(path = "name") String name,
                                   @Param(path = "showName") String showName) {
         ServerRecord serverRecord = gameContext.getServerRecordMap().get(sid);
         serverRecord.setName(name);
         serverRecord.setShowName(showName);
+
         gameContext.getDataHelper().getDataBatch().save(serverRecord);
+
+        log.info("管理员：{} 修改 游戏 {}-{} {}",
+                user.getAccount(),
+                gameContext.getGame().getUid(), gameContext.getGame().getName(),
+                httpContext.getRequest().getReqContent()
+        );
+
         return RunResult.OK;
     }
 
@@ -138,11 +148,20 @@ public class ServerApi {
 
     @HttpRequest(authority = 9)
     public RunResult saveJsPlugin(HttpContext httpContext,
-                                  @Param(path = "gameId") int gameId,
+                                  @ThreadParam User user,
+                                  @ThreadParam GameContext gameContext,
                                   @Param(path = "js") String js) {
 
-        File file = new File("./script/" + gameId + "/action-server-2-json.js");
+        File file = new File("./script/" + gameContext.getGameId() + "/action-server-2-json.js");
         FileWriteUtil.writeString(file, js);
+
+        log.info("管理员：{} 编辑 游戏 {}-{} 脚本 {}\n{}",
+                user.getAccount(),
+                gameContext.getGame().getUid(), gameContext.getGame().getName(),
+                file,
+                js
+        );
+
         return RunResult.ok();
     }
 
@@ -166,6 +185,21 @@ public class ServerApi {
         });
         ok.data(vs);
         return ok;
+    }
+
+    @HttpRequest(authority = 10)
+    public RunResult del(HttpContext httpContext,
+                         @ThreadParam User user,
+                         @ThreadParam GameContext gameContext,
+                         @Param(path = "sid") int sid) {
+        ServerRecord remove = gameContext.getServerRecordMap().remove(sid);
+        gameContext.getDataHelper().deleteByKey(ServerRecord.class, sid);
+        log.info("管理员：{} 删除 游戏 {}-{} 区服 {}-{}",
+                user.getAccount(),
+                gameContext.getGame().getUid(), gameContext.getGame().getName(),
+                sid, remove == null ? "" : remove.getName()
+        );
+        return RunResult.OK;
     }
 
     @HttpRequest()

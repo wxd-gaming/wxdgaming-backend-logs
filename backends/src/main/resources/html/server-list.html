@@ -82,7 +82,7 @@
     <tr>
             <td style="width: 120px;">
                 <a href="#" onclick="edit(${row.uid},'${row.name}', '${row.showName}','${row.openTime}');return false;" title="服务器名字修改">禁用</a>
-                <a href="#" onclick="edit(${row.uid},'${row.name}', '${row.showName}','${row.openTime}');return false;" title="服务器名字修改">删除</a>
+                <a href="#" onclick="del(${row.uid});return false;" title="删掉服务器">删除</a>
                 <a href="#" onclick="edit(${row.uid},'${row.name}', '${row.showName}','${row.openTime}');return false;" title="服务器名字修改">改名</a>
             </td>
             <td tips="true" style="width: 80px;">${row.uid}</td>
@@ -110,6 +110,29 @@
             wxd.loadHtml('/server-edit.html?' + gameId() + '&sid=' + sid + '&name=' + name + '&showName=' + showName + '&openTime=' + openTime, '400px', '200px');
         }
 
+        function del(sid, name) {
+            wxd.message.alert(
+                "确定要删除服务器 " + name + "(" + sid + ")？", "提示",
+                "确定", () => {
+                    let urlQuery = new wxd.Map().loadSearch();
+                    urlQuery.put("sid", sid);
+                    wxd.netty.post("/server/del", urlQuery.toString(),
+                        function (responseText) {
+                            if (responseText.code !== 1) {
+                                parentNotice(responseText.msg);
+                            } else {
+                                parentNotice("成功");
+                                parentRefresh();
+                            }
+                        }
+                    );
+                },
+                "取消"
+            );
+
+            wxd.loadHtml('/server-edit.html?' + gameId() + '&sid=' + sid, '400px', '200px');
+        }
+
         function openEditPlugin() {
             wxd.loadHtml("/server-list-edit.html?" + gameId(), "85%", "85%");
         }
@@ -118,8 +141,8 @@
             wxd.loadHtml("/server-add.html?" + gameId(), "85%", "85%");
         }
 
-        function openJson(dev) {
-            window.open("/server/json?" + gameId() + "&dev=" + dev);
+        function openJson() {
+            window.open("/server/json?" + gameId());
         }
 
         function gameId() {
@@ -140,8 +163,7 @@
 <div class="btn_box" style="text-align: left;padding-left: 10px;">
     <button class="submit" type="button" onclick="search();">搜索</button>
     <button class="submit" type="button" onclick="openAdd();">新增</button>
-    <button class="submit" type="button" onclick="openJson('false');">正式列表Json</button>
-    <button class="submit" type="button" onclick="openJson('true');">研发列表Json</button>
+    <button class="submit" type="button" onclick="openJson();">正式列表Json</button>
     <button class="submit" type="button" onclick="openEditPlugin();">脚本</button>
     <br>
     <input id="sid" type="text" value="" onkeydown="if (event.keyCode===13)search();" placeholder="区服id"/>

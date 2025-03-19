@@ -64,9 +64,9 @@ public class GameApi {
         if (game.getCreateTime() == 0) {
             game.setCreateTime(System.currentTimeMillis());
         }
-        game.setAppToken(StringUtils.randomString(12));
-        game.setRechargeToken(StringUtils.randomString(18));
-        game.setLogToken(StringUtils.randomString(32));
+        game.setAppToken(StringUtils.randomString(16));
+        game.setRechargeToken(StringUtils.randomString(16));
+        game.setLogToken(StringUtils.randomString(16));
         pgsqlService.insert(game);
         Thread.ofPlatform().start(() -> gameService.addGameCache(game));
         return RunResult.ok();
@@ -86,9 +86,9 @@ public class GameApi {
             if (game.getCreateTime() == 0) {
                 game.setCreateTime(System.currentTimeMillis());
             }
-            game.setAppToken(StringUtils.randomString(12));
-            game.setRechargeToken(StringUtils.randomString(18));
-            game.setLogToken(StringUtils.randomString(32));
+            game.setAppToken(StringUtils.randomString(16));
+            game.setRechargeToken(StringUtils.randomString(16));
+            game.setLogToken(StringUtils.randomString(16));
             pgsqlService.insert(game);
             Thread.ofPlatform().start(() -> gameService.addGameCache(game));
         } else {
@@ -111,6 +111,49 @@ public class GameApi {
             return RunResult.error("gameId is not exist");
         }
         return RunResult.ok().data(gameContext.getGame());
+    }
+
+    @HttpRequest(authority = 10)
+    public RunResult truncates(HttpContext session, @ThreadParam() User user, @ThreadParam GameContext gameContext) {
+
+        log.info(
+                "管理员：{} 清档 游戏 {}-{}",
+                user.getAccount(),
+                gameContext.getGame().getUid(), gameContext.getGame().getName()
+        );
+
+        gameContext.submit(() -> {
+            gameContext.getLogKeyCache().discard();
+            gameContext.getRoleRecordJdbcCache().discard();
+            gameContext.getAccountRecordJdbcCache().discard();
+            gameContext.getServerRecordMap().clear();
+            gameContext.getDataHelper().truncates();
+        });
+
+        return RunResult.OK;
+    }
+
+    @HttpRequest(authority = 10)
+    public RunResult refreshKey(HttpContext httpContext,
+                                @ThreadParam() User user,
+                                @ThreadParam GameContext gameContext,
+                                @Param(path = "type") String type) {
+
+        log.info(
+                "管理员：{} 刷新 游戏 {}-{} {} key",
+                user.getAccount(),
+                gameContext.getGame().getUid(), gameContext.getGame().getName(),
+                type
+        );
+
+        switch (type) {
+            case "app" -> gameContext.getGame().setAppToken(StringUtils.randomString(16));
+            case "log" -> gameContext.getGame().setLogToken(StringUtils.randomString(16));
+            case "recharge" -> gameContext.getGame().setRechargeToken(StringUtils.randomString(16));
+        }
+
+
+        return RunResult.OK;
     }
 
     @HttpRequest(authority = 9, comment = "游戏列表")
