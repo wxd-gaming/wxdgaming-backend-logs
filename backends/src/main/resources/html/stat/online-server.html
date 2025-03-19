@@ -17,17 +17,11 @@
     <style>
         html, body {display: block;width: 100%;height: 100%;overflow: hidden;overflow-x: auto;background: rgb(255, 255, 255);}
 
-        html, body, div, table, tr, td {margin: 0;border: 0;box-sizing: border-box;}
-
         a:link {color: #0866b4;}
 
         a:visited { color: #0866b4;}
 
         label {padding-left: 5px;padding-right: 5px;}
-
-        input {margin-top: 5px;margin-left: 10px;width: 160px;border: #4c4c4c 1px solid;height: 22px;line-height: 22px;border-radius: 5px;}
-
-        button {margin-top: 5px;color: rgb(255, 253, 253); background-color: rgb(241, 52, 10); border: none;padding: 8px 15px;}
 
         .tableDom table thead th, .tableDom table tbody td {text-align: center;}
     </style>
@@ -72,7 +66,7 @@
 </head>
 
 <body>
-<div style="padding-left: 10px; padding-top: 8px; text-align: left;vertical-align: center;">
+<div class="btn_box" style="padding-left: 10px; padding-top: 8px; text-align: left;vertical-align: center;">
     <button class="submit" type="button" onclick="search();">搜索</button>
     <input id="sid" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="区服ID"/>
     <label for="minDay">范围日期-开始日期: </label><input id="minDay" type="date"/>

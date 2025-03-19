@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.entity.games.ErrorRecord;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
-import wxdgaming.backends.entity.games.logs.ServerRecord;
+import wxdgaming.backends.entity.games.ServerRecord;
 import wxdgaming.backends.entity.system.Game;
 import wxdgaming.boot2.core.cache.Cache;
 import wxdgaming.boot2.core.format.HexId;

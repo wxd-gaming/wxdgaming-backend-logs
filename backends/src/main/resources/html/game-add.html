@@ -21,14 +21,8 @@
             margin: 0;border: 0;box-sizing: border-box;
         }
 
-        input[type=text], input[type=date], input[type=password] {width: 160px;}
-
-        input {border: 1px solid black;border-radius: 5px;height: 32px;line-height: 32px; }
-
-
         li {padding-top: 15px;list-style: none;}
 
-        .tijiao { color: rgb(255, 253, 253); width: 80px; height: 35px; background-color: rgb(241, 52, 10); border: none; margin-top: 20px;border-radius: 5px;}
     </style>
 
     <script>
@@ -57,11 +51,11 @@
 
 </head>
 <body>
-<div style="position: absolute;left: 50%;top: 50%;transform: translate(-50%,-50%);width: 380px;text-align: center;padding: 3px;">
+<div class="btn_box" style="position: absolute;left: 50%;top: 50%;transform: translate(-50%,-50%);width: 380px;text-align: center;padding: 3px;">
     <ul>
         <li><label for="gameName">游戏名字：</label><input type="text" id="gameName" style="width: 260px;"></li>
     </ul>
-    <button class="tijiao" onclick="add();">提交</button>
+    <button onclick="add();">提交</button>
 </div>
 </body>
 </html>

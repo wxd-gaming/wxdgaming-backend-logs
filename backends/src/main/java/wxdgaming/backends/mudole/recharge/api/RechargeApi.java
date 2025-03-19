@@ -9,7 +9,7 @@ import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.RechargeRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
-import wxdgaming.backends.entity.games.logs.ServerRecord;
+import wxdgaming.backends.entity.games.ServerRecord;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;

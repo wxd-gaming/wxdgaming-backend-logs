@@ -11,7 +11,7 @@ import wxdgaming.backends.entity.games.OnlineStat;
 import wxdgaming.backends.entity.games.ServerOnlineStat;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
-import wxdgaming.backends.entity.games.logs.ServerRecord;
+import wxdgaming.backends.entity.games.ServerRecord;
 import wxdgaming.backends.entity.system.Game;
 import wxdgaming.boot2.core.io.Objects;
 import wxdgaming.boot2.core.threading.Event;

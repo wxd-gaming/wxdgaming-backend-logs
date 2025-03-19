@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>添加用户</title>
+    <title>修改区服显示名称</title>
 
     <script charset="utf-8" type="text/javascript" src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
     <script charset="utf-8" type="text/javascript" src="/js/com.wxd.js"></script>
@@ -17,41 +17,55 @@
             font-size: 14px;
         }
 
+        ul, li {width: 100%;margin: 0;box-sizing: border-box;}
+
         li {padding-top: 15px;list-style: none;}
+
+        .btn_box label {display: inline-block; width: 95px;text-align: right;}
+
+        .btn_box select, .btn_box input {width: calc(100% - 130px);}
 
     </style>
 
     <script>
 
-        function add() {
+        function submit() {
             let urlQuery = new wxd.Map().loadSearch();
-            urlQuery.put("account", $("#account").val());
-            urlQuery.put("pwd", $("#pwd").val());
-            urlQuery.put("phone", $("#phone").val());
-            wxd.netty.post("/user/add", urlQuery.toString(),
+            urlQuery.put("name", $("#name").val());
+            urlQuery.put("showName", $("#showName").val());
+            wxd.netty.post("/server/editShowName", urlQuery.toString(),
                 function (responseText) {
                     if (responseText.code !== 1) {
                         window.parent.parentNotice(responseText.msg);
                     } else {
-                        window.parent.parentAlert("完成");
+                        window.parent.parentRefresh();
                     }
                 },
                 (errorMsg) => {
-                    window.parent.parentAlert("异常：" + errorMsg);
+                    window.parent.parentNotice("异常：" + errorMsg);
                 }
             );
         }
+
+        $(() => {
+            let loadSearch = new wxd.Map().loadSearch();
+            $("#name").val(loadSearch.get("name"));
+            $("#showName").val(loadSearch.get("showName"));
+            $("#openTime").val(loadSearch.get("openTime"));
+        });
     </script>
 
 </head>
 <body>
 <div class="btn_box" style="position: absolute;left: 50%;top: 50%;transform: translate(-50%,-50%);width: 380px;text-align: center;padding: 3px;">
     <ul>
-        <li><label for="account">账号：</label><input type="text" id="account" style="width: 260px;"></li>
-        <li><label for="pwd">密码：</label><input type="password" id="pwd" style="width: 260px;"></li>
-        <li><label for="phone">电话：</label><input type="text" id="phone" style="width: 260px;"></li>
+        <li><label for="name">名字：</label><input type="text" id="name"></li>
+        <li><label for="showName">显示名字：</label><input type="text" id="showName"></li>
+        <li>
+            <label for="openTime">开服时间：</label><input type="datetime-local" id="openTime">
+        </li>
     </ul>
-    <button onclick="add();">提交</button>
+    <button class="submit" onclick="submit();">提交</button>
 </div>
 </body>
 </html>

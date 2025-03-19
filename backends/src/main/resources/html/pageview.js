@@ -3,6 +3,7 @@
 class PageView {
 
     url;
+    gameId = 0;
     pathname = null;
     items = [];
     dataCount = 0;

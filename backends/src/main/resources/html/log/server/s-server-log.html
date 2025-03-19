@@ -17,17 +17,12 @@
     <style>
         html, body {display: block;width: 100%;height: 100%;overflow: hidden;overflow-x: auto;background: rgb(255, 255, 255);}
 
-        html, body, div, table, tr, td {margin: 0;border: 0;box-sizing: border-box;}
-
         a:link {color: #0866b4;}
 
         a:visited { color: #0866b4;}
 
         label {padding-left: 5px;padding-right: 5px;}
 
-        input {margin-top: 5px;margin-left: 10px;width: 160px;border: #4c4c4c 1px solid;height: 22px;line-height: 22px;border-radius: 5px;}
-
-        button {margin-top: 5px;color: rgb(255, 253, 253); background-color: rgb(241, 52, 10); border: none;padding: 8px 15px;}
     </style>
 
     <script>
@@ -64,7 +59,7 @@
 </head>
 
 <body>
-<div style="text-align: left;padding-left: 10px;">
+<div class="btn_box" style="text-align: left;padding-left: 10px;">
     <button class="submit" type="button" onclick="search();">搜索</button>
     <input id="sid" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="区服id"/>
     <input id="other" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="a=b"/>

@@ -1,10 +1,11 @@
-package wxdgaming.backends.entity.games.logs;
+package wxdgaming.backends.entity.games;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Getter;
 import lombok.Setter;
 import wxdgaming.boot2.core.collection.MapOf;
+import wxdgaming.boot2.core.lang.TimeValue;
 import wxdgaming.boot2.starter.batis.ColumnType;
 import wxdgaming.boot2.starter.batis.EntityIntegerUID;
 import wxdgaming.boot2.starter.batis.ann.DbColumn;
@@ -22,9 +23,20 @@ import java.util.concurrent.atomic.AtomicLong;
 @Setter
 @DbTable(tableName = "record_server")
 public class ServerRecord extends EntityIntegerUID {
-
+    /** 分组标签 */
+    @DbColumn(index = true)
+    @JSONField(ordinal = 2)
+    private String group;
+    /** 控制显示顺序 */
+    @DbColumn(index = true)
+    @JSONField(ordinal = 3)
+    private int ordinal;
+    /** 特殊标签 ，比如new-新服，recommend-推荐服 */
+    @DbColumn(index = true)
+    @JSONField(ordinal = 4)
+    private String label;
     /** 服务器id */
-    @JSONField(ordinal = 12)
+    @JSONField(ordinal = 10)
     @DbColumn(index = true)
     private int mainSid;
     /** 平台 */
@@ -42,23 +54,19 @@ public class ServerRecord extends EntityIntegerUID {
     /** 最后更新时间 */
     @DbColumn()
     @JSONField(ordinal = 16)
-    private long updateTime;
+    private TimeValue updateTime = new TimeValue();
     /** 是否启用 */
     @DbColumn(index = true)
     @JSONField(ordinal = 17)
     private boolean enabled;
-    /** 顺序 */
-    @DbColumn(index = true)
-    @JSONField(ordinal = 18)
-    private int ordinal;
     /** 开服时间 */
     @JSONField(ordinal = 19)
     @DbColumn(index = true, columnType = ColumnType.String, length = 128)
-    private String openTime;
+    private TimeValue openTime = new TimeValue();
     /** 维护时间 */
     @JSONField(ordinal = 21)
     @DbColumn(index = true, columnType = ColumnType.String, length = 128)
-    private String maintainTime;
+    private TimeValue maintainTime = new TimeValue();
     /** ip */
     @JSONField(ordinal = 22)
     @DbColumn(index = true, columnType = ColumnType.String, length = 128)

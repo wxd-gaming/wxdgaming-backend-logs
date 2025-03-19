@@ -7,8 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.graalvm.polyglot.Value;
 import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
+import wxdgaming.backends.entity.games.ServerRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
-import wxdgaming.backends.entity.games.logs.ServerRecord;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
@@ -17,8 +17,6 @@ import wxdgaming.boot2.core.io.FileWriteUtil;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.Event;
 import wxdgaming.boot2.core.timer.MyClock;
-import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
-import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.js.JsService;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.ann.RequestMapping;
@@ -26,10 +24,8 @@ import wxdgaming.boot2.starter.net.server.http.HttpContext;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * 区服接口
@@ -60,19 +56,9 @@ public class ServerApi {
                 } else {
                     ServerRecord serverRecord = gameContext.serverGetOrCreate(record.getUid());
                     serverRecord.setMainSid(record.getMainSid());
-                    serverRecord.setName(record.getName());
-                    serverRecord.setShowName(record.getShowName());
-                    serverRecord.setOpenTime(record.getOpenTime());
-                    serverRecord.setMaintainTime(record.getMaintainTime());
-                    serverRecord.setWlan(record.getWlan());
-                    serverRecord.setLan(record.getLan());
-                    serverRecord.setPort(record.getPort());
-                    serverRecord.setWebPort(record.getWebPort());
-                    serverRecord.setStatus(record.getStatus());
-                    serverRecord.setOrdinal(record.getOrdinal());
                     serverRecord.setRegisterRoleCount(record.getRegisterRoleCount());
                     serverRecord.getOther().putAll(record.getOther());
-                    serverRecord.setUpdateTime(System.currentTimeMillis());
+                    serverRecord.getUpdateTime().refresh(System.currentTimeMillis());
                     gameContext.getDataHelper().getDataBatch().update(record);
                 }
             }
@@ -82,10 +68,50 @@ public class ServerApi {
 
     @HttpRequest(authority = 2)
     public RunResult pushList(@ThreadParam GameContext gameContext, @Param(path = "data") List<ServerRecord> recordList) {
-
         for (ServerRecord record : recordList) {
             push(gameContext, record);
         }
+        return RunResult.OK;
+    }
+
+    @HttpRequest(authority = 2)
+    public RunResult addList(@ThreadParam GameContext gameContext, @Param(path = "data") List<ServerRecord> recordList) {
+        for (ServerRecord record : recordList) {
+            add(gameContext, record);
+        }
+        return RunResult.OK;
+    }
+
+    @HttpRequest(authority = 9)
+    public RunResult add(@ThreadParam GameContext gameContext, @Param(path = "data") ServerRecord record) {
+        if (record.getUid() == 0) {
+            return RunResult.error("sid为空 " + record.toJSONString());
+        } else {
+            ServerRecord serverRecord = gameContext.serverGetOrCreate(record.getUid());
+            serverRecord.setGroup(record.getGroup());
+            serverRecord.setOrdinal(record.getOrdinal());
+            serverRecord.setLabel(record.getLabel());
+            serverRecord.setName(record.getName());
+            serverRecord.setOpenTime(record.getOpenTime());
+            serverRecord.setWlan(record.getWlan());
+            serverRecord.setLan(record.getLan());
+            serverRecord.setPort(record.getPort());
+            serverRecord.setWebPort(record.getWebPort());
+            serverRecord.getUpdateTime().refresh(System.currentTimeMillis());
+            gameContext.getDataHelper().getDataBatch().update(record);
+        }
+        return RunResult.OK;
+    }
+
+    @HttpRequest(authority = 9)
+    public RunResult editShowName(@ThreadParam GameContext gameContext,
+                                  @Param(path = "sid") int sid,
+                                  @Param(path = "name") String name,
+                                  @Param(path = "showName") String showName) {
+        ServerRecord serverRecord = gameContext.getServerRecordMap().get(sid);
+        serverRecord.setName(name);
+        serverRecord.setShowName(showName);
+        gameContext.getDataHelper().getDataBatch().save(serverRecord);
         return RunResult.OK;
     }
 
@@ -133,11 +159,36 @@ public class ServerApi {
 
         List<Map<?, ?>> vs = new ArrayList<>();
         gameContext.getServerRecordMap().values().forEach(v -> {
+            if (!v.isEnabled()) return;/*如果禁用了*/
             Value execute = jsService.threadContext().execute("actionServer2Json", v);
             Map<?, ?> string = execute.as(Map.class);
             vs.add(string);
         });
         ok.data(vs);
+        return ok;
+    }
+
+    @HttpRequest()
+    public RunResult get(HttpContext httpContext, @Param(path = "gameId") int gameId, @Param(path = "sid") int sid) {
+        GameContext gameContext = gameService.gameContext(gameId);
+        if (gameContext == null) {
+            return RunResult.error("gameId is not exist");
+        }
+        RunResult ok = RunResult.ok();
+        String js = getJs(gameId);
+        /*通用的*/
+        jsService.threadContext().eval(js);
+
+        ServerRecord serverRecord = gameContext.getServerRecordMap().get(sid);
+        if (serverRecord == null) {
+            return RunResult.error("sid is not exist");
+        }
+        if (!serverRecord.isEnabled()) {
+            return RunResult.error("sid is not exist");
+        }
+        Value execute = jsService.threadContext().execute("actionServer2Json", serverRecord);
+        Map<?, ?> string = execute.as(Map.class);
+        ok.data(string);
         return ok;
     }
 
@@ -153,39 +204,50 @@ public class ServerApi {
                           @Param(path = "wlan", required = false) String wlan,
                           @Param(path = "lan", required = false) String lan) {
 
-        PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
+        Map<Integer, ServerRecord> serverRecordMap = gameContext.getServerRecordMap();
 
-        SqlQueryBuilder sqlQueryBuilder = pgsqlDataHelper.queryBuilder();
-        sqlQueryBuilder.sqlByEntity(ServerRecord.class);
+        Stream<ServerRecord> stream = new ArrayList<>(serverRecordMap.values()).stream();
 
         if (StringUtils.isNotBlank(sid)) {
-            sqlQueryBuilder.pushWhere("uid = ?", Integer.parseInt(sid));
+            stream = stream.filter(v -> v.getUid() == Integer.parseInt(sid));
         }
 
         if (StringUtils.isNotBlank(mainSid)) {
-            sqlQueryBuilder.pushWhere("mainsid = ?", Integer.parseInt(mainSid));
+            stream = stream.filter(v -> v.getMainSid() == Integer.parseInt(mainSid));
+        }
+        if (StringUtils.isNotBlank(name)) {
+            stream = stream.filter(v -> Objects.equals(v.getName(), name));
         }
 
-        sqlQueryBuilder.pushWhereByValueNotNull("name = ?", name);
-        sqlQueryBuilder.pushWhereByValueNotNull("showname = ?", showName);
-        sqlQueryBuilder.pushWhereByValueNotNull("wlan=?", wlan);
-        sqlQueryBuilder.pushWhereByValueNotNull("lan=?", lan);
+        if (StringUtils.isNotBlank(showName)) {
+            stream = stream.filter(v -> Objects.equals(v.getShowName(), showName));
+        }
+        if (StringUtils.isNotBlank(wlan)) {
+            stream = stream.filter(v -> Objects.equals(v.getWlan(), wlan));
+        }
+        if (StringUtils.isNotBlank(lan)) {
+            stream = stream.filter(v -> Objects.equals(v.getLan(), lan));
+        }
 
-        sqlQueryBuilder.setOrderBy("uid desc");
+        stream = stream.sorted((o1, o2) -> Integer.compare(o2.getUid(), o1.getUid()));
+
+        List<ServerRecord> records = stream.toList();
+
+        stream = records.stream();
+
         if (pageIndex > 0) {
-            sqlQueryBuilder.setSkip((pageIndex - 1) * pageSize);
+            stream = stream.skip(((long) pageIndex - 1) * pageSize);
         }
 
         if (pageSize <= 10) pageSize = 10;
         if (pageSize > 1000) pageSize = 1000;
 
-        sqlQueryBuilder.setLimit(pageSize);
+        stream = stream.limit(pageSize);
 
-        long rowCount = sqlQueryBuilder.findCount();
-        List<ServerRecord> records = sqlQueryBuilder.findList2Entity(ServerRecord.class);
+        long rowCount = records.size();
+
         Collection<RoleRecord> roleRecords = gameContext.getRoleRecordJdbcCache().values();
-        List<JSONObject> list = records.stream()
-                .map(serverRecord -> {
+        List<JSONObject> list = stream.map(serverRecord -> {
                     JSONObject jsonObject = serverRecord.toJSONObject();
                     long onlineRoleCount = roleRecords.stream()
                             .filter(v -> v.online())
@@ -199,7 +261,9 @@ public class ServerApi {
 
                     jsonObject.put("onlineRoleCount", onlineRoleCount);
                     jsonObject.put("activeRoleCount", activeRoleCount);
-                    jsonObject.put("updateTime", MyClock.formatDate("yyyy-MM-dd HH:mm:ss", serverRecord.getUpdateTime()));
+                    jsonObject.put("updateTime", serverRecord.getUpdateTime().dateFormat());
+                    jsonObject.put("openTime", serverRecord.getOpenTime().dateFormat());
+                    jsonObject.put("maintainTime", serverRecord.getMaintainTime().dateFormat());
                     jsonObject.put("other", serverRecord.getOther().toJSONString());
                     return jsonObject;
                 })

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>添加用户</title>
+
+    <script charset="utf-8" type="text/javascript" src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script charset="utf-8" type="text/javascript" src="/js/com.wxd.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/style/com.wxd.css"/>
+
+    <style>
+        html, body {
+            display: block;width: 100%;height: 100%;overflow: hidden;background: rgb(255, 255, 255);
+            font-size: 14px;
+        }
+
+        ul, li {width: 100%;margin: 0;box-sizing: border-box;}
+
+        li {padding-top: 15px;list-style: none;}
+
+        .btn_box label {display: inline-block; width: 95px;text-align: right;}
+
+        .btn_box select, .btn_box input {width: calc(100% - 130px);}
+
+    </style>
+
+    <script>
+
+        function submit() {
+            let urlQuery = new wxd.Map().loadSearch();
+            urlQuery.put("uid", $("#sid").val());
+            urlQuery.put("group", $("#group").val());
+            urlQuery.put("ordinal", $("#ordinal").val());
+            urlQuery.put("label", $("#label").val());
+            urlQuery.put("name", $("#name").val());
+            urlQuery.put("openTime", $("#openTime").val());
+            urlQuery.put("wlan", $("#wlan").val());
+            urlQuery.put("lan", $("#lan").val());
+            urlQuery.put("port", $("#port").val());
+            urlQuery.put("webPort", $("#webPort").val());
+            wxd.netty.post("/server/add", urlQuery.toString(),
+                function (responseText) {
+                    if (responseText.code !== 1) {
+                        window.parent.parentNotice(responseText.msg);
+                    } else {
+                        window.parent.parentAlert("完成");
+                    }
+                },
+                (errorMsg) => {
+                    window.parent.parentAlert("异常：" + errorMsg);
+                }
+            );
+        }
+    </script>
+
+</head>
+<body>
+<div class="btn_box" style="position: absolute;left: 50%;top: 50%;transform: translate(-50%,-50%);width: 380px;text-align: center;padding: 3px;">
+    <ul>
+        <li><label for="sid">区服ID：</label><input type="number" id="sid"></li>
+        <li>
+            <label for="group">显示分组：</label><input type="text" id="group" placeholder="1-100,2-200">
+        </li>
+        <li><label for="ordinal">显示优先级：</label><input type="number" id="ordinal"></li>
+        <li>
+            <label for="label">特殊标签：</label><input type="text" id="label" placeholder="new-新服，recommend-推荐服">
+        </li>
+        <li><label for="name">名字：</label><input type="text" id="name"></li>
+        <li>
+            <label for="openTime">开服时间：</label><input type="datetime-local" id="openTime">
+        </li>
+        <li><label for="wlan">外网ip：</label><input type="text" id="wlan"></li>
+        <li><label for="lan">内网ip：</label><input type="text" id="lan"></li>
+        <li><label for="port">tcp端口：</label><input type="number" id="port"></li>
+        <li><label for="webPort">web端口：</label><input type="number" id="webPort"></li>
+    </ul>
+    <button class="submit" onclick="submit();">提交</button>
+</div>
+</body>
+</html>
