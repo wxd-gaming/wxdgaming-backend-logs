@@ -8,7 +8,7 @@ import wxdgaming.backends.entity.games.ServerRecord;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
 import wxdgaming.backends.entity.system.Game;
-import wxdgaming.boot2.core.cache2.CASCache;
+import wxdgaming.boot2.core.cache2.CASKeyCache;
 import wxdgaming.boot2.core.cache2.Cache;
 import wxdgaming.boot2.core.format.HexId;
 import wxdgaming.boot2.core.threading.ExecutorUtil;
@@ -61,7 +61,7 @@ public class GameContext {
         this.rechargeHexId = new HexId(gameId);
         this.errorHexId = new HexId(gameId);
         this.dataHelper = dataHelper;
-        this.logKeyCache = CASCache.<String, Boolean>builder()
+        this.logKeyCache = CASKeyCache.<String>builder()
                 .cacheName("logKeyCache")
                 .area(100)
                 .heartTimeMs(TimeUnit.HOURS.toMillis(2))
