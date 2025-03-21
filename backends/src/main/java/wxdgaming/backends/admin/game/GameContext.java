@@ -4,11 +4,12 @@ import com.alibaba.fastjson.JSONObject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.entity.games.ErrorRecord;
+import wxdgaming.backends.entity.games.ServerRecord;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
-import wxdgaming.backends.entity.games.ServerRecord;
 import wxdgaming.backends.entity.system.Game;
-import wxdgaming.boot2.core.cache.Cache;
+import wxdgaming.boot2.core.cache2.CASCache;
+import wxdgaming.boot2.core.cache2.Cache;
 import wxdgaming.boot2.core.format.HexId;
 import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.threading.ThreadContext;
@@ -60,12 +61,11 @@ public class GameContext {
         this.rechargeHexId = new HexId(gameId);
         this.errorHexId = new HexId(gameId);
         this.dataHelper = dataHelper;
-        this.logKeyCache = Cache.<String, Boolean>builder()
+        this.logKeyCache = CASCache.<String, Boolean>builder()
                 .cacheName("logKeyCache")
-                .hashArea(100)
-                .delay(2, TimeUnit.DAYS)
-                .heartTime(2, TimeUnit.DAYS)
-                .expireAfterWrite(2, TimeUnit.DAYS)
+                .area(100)
+                .heartTimeMs(TimeUnit.HOURS.toMillis(2))
+                .expireAfterWriteMs(TimeUnit.DAYS.toMillis(2))
                 .build();
         this.accountRecordJdbcCache = new JdbcCache<>(dataHelper, 10, 60) {
 

@@ -65,7 +65,7 @@ public class SRoleLogLogInOutApi {
                     record.setUid(gameContext.newId(record.tableName()));
 
                 String logKey = record.tableName() + record.getUid();
-                boolean haveLogKey = gameContext.getLogKeyCache().containsKey(logKey);
+                boolean haveLogKey = gameContext.getLogKeyCache().has(logKey);
                 if (haveLogKey) {
                     gameContext.recordError("表结构 " + record.tableName() + " 重复日志记录 " + record.getUid(), record.toJSONString());
                 } else {

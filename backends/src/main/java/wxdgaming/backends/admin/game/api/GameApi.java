@@ -123,9 +123,9 @@ public class GameApi {
         );
 
         gameContext.submit(() -> {
-            gameContext.getLogKeyCache().discard();
-            gameContext.getRoleRecordJdbcCache().discard();
-            gameContext.getAccountRecordJdbcCache().discard();
+            gameContext.getLogKeyCache().discardAll();
+            gameContext.getRoleRecordJdbcCache().discardAll();
+            gameContext.getAccountRecordJdbcCache().discardAll();
             gameContext.getServerRecordMap().clear();
             gameContext.getDataHelper().truncates();
         });

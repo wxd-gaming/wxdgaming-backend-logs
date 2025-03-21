@@ -20,7 +20,7 @@ logToken：3ugv7y8cP0Uk86gRYYm7I9AXLM36Rjz8
 ```
 
 ```angular2html
-添加要给账号
+添加一个账号
 
     public void pushAccount() throws Exception {
         JSONObject push = new JSONObject()

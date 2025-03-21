@@ -21,7 +21,7 @@
 
         a:visited { color: #0866b4;}
 
-        label {padding-left: 5px;padding-right: 5px;}
+        label {margin: 0 0 0 15px;}
 
     </style>
 
@@ -32,6 +32,8 @@
         function search() {
             wxd.loading();
             let urlQuery = new wxd.Map().loadSearch();
+            urlQuery.put("minDay", $("#minDay").val());
+            urlQuery.put("maxDay", $("#maxDay").val());
             urlQuery.put("sid", $("#sid").val());
             urlQuery.put("other", $("#other").val());
             pageView.remoteGetData(urlQuery);
@@ -61,6 +63,8 @@
 <body>
 <div class="btn_box" style="text-align: left;padding-left: 10px;">
     <button class="submit" type="button" onclick="search();">搜索</button>
+    <label for="minDay">范围日期-开始日期: </label><input id="minDay" type="date"/>
+    <label for="maxDay">范围日期-结束日期: </label><input id="maxDay" type="date"/>
     <input id="sid" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="区服id"/>
     <input id="other" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="a=b"/>
 </div>

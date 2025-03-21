@@ -62,7 +62,10 @@ public class SServerLogApi {
                         sServerLog.checkDataKey();
                         gameContext.getDataHelper().getDataBatch().insert(sServerLog);
                     } else {
+                        byWhere.setCreateTime(sServerLog.getCreateTime());
+                        byWhere.setSid(sServerLog.getSid());
                         byWhere.setOther(sServerLog.getOther());
+                        byWhere.checkDataKey();
                         gameContext.getDataHelper().getDataBatch().update(byWhere);
                     }
                 }
@@ -84,14 +87,14 @@ public class SServerLogApi {
     @HttpRequest(authority = 9)
     @ExecutorWith(useVirtualThread = true)
     public RunResult list(HttpContext httpSession,
-                          @Param(path = "gameId") int gameId,
+                          @ThreadParam GameContext gameContext,
                           @Param(path = "logType") String logType,
                           @Param(path = "pageIndex") int pageIndex,
                           @Param(path = "pageSize") int pageSize,
+                          @Param(path = "minDay", required = false) String minDay,
+                          @Param(path = "maxDay", required = false) String maxDay,
                           @Param(path = "sid", required = false) Integer sid,
                           @Param(path = "other", required = false) String other) {
-
-        GameContext gameContext = gameService.gameContext(gameId);
 
         if (gameContext == null) {
             return RunResult.error("gameId error");
@@ -101,29 +104,37 @@ public class SServerLogApi {
             return RunResult.error("log type error");
         }
         PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
-        SqlQueryBuilder sqlQueryBuilder = pgsqlDataHelper.queryBuilder();
+        SqlQueryBuilder queryBuilder = pgsqlDataHelper.queryBuilder();
 
-        sqlQueryBuilder.setTableName(logType);
+        queryBuilder.setTableName(logType);
+
+        if (StringUtils.isNotBlank(minDay)) {
+            queryBuilder.pushWhereByValueNotNull("daykey>=?", NumberUtil.retainNumber(minDay));
+        }
+
+        if (StringUtils.isNotBlank(maxDay)) {
+            queryBuilder.pushWhereByValueNotNull("daykey<=?", NumberUtil.retainNumber(maxDay));
+        }
 
         if (sid != null) {
-            sqlQueryBuilder.pushWhereByValueNotNull("sid=?", NumberUtil.parseInt(sid, 0));
+            queryBuilder.pushWhereByValueNotNull("sid=?", NumberUtil.parseInt(sid, 0));
         }
 
         if (StringUtils.isNotBlank(other)) {
             String[] split = other.split(",");
             for (String s : split) {
                 String[] strings = s.split("=");
-                sqlQueryBuilder.pushWhere("json_extract_path_text(other,'" + strings[0] + "') = ?", strings[1]);
+                queryBuilder.pushWhere("json_extract_path_text(other,'" + strings[0] + "') = ?", strings[1]);
             }
         }
 
-        sqlQueryBuilder.setOrderBy("createtime desc");
+        queryBuilder.setOrderBy("createtime desc");
 
-        sqlQueryBuilder.limit((pageIndex - 1) * pageSize, pageSize, 10, 1000);
+        queryBuilder.limit((pageIndex - 1) * pageSize, pageSize, 10, 1000);
 
-        long rowCount = sqlQueryBuilder.findCount();
+        long rowCount = queryBuilder.findCount();
 
-        List<SServerLog> slogs = sqlQueryBuilder.findList2Entity(SServerLog.class);
+        List<SServerLog> slogs = queryBuilder.findList2Entity(SServerLog.class);
 
         List<JSONObject> list = slogs.stream()
                 .map(SServerLog::toJSONObject)

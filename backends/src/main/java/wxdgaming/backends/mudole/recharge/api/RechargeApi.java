@@ -55,7 +55,7 @@ public class RechargeApi {
                 }
                 record.checkDataKey();
                 String logKey = "recharge" + record.getUid();
-                boolean containsKey = gameContext.getLogKeyCache().containsKey(logKey);
+                boolean containsKey = gameContext.getLogKeyCache().has(logKey);
                 if (!containsKey) {
                     gameContext.getLogKeyCache().put(logKey, true);
                     gameContext.getDataHelper().dataBatch().insert(record);

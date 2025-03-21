@@ -58,7 +58,7 @@ public class SRoleLogApi {
                         sRoleLog.setUid(gameContext.newId(sRoleLog.getLogType()));
 
                     String logKey = sRoleLog.tableName() + sRoleLog.getUid();
-                    boolean haveLogKey = gameContext.getLogKeyCache().containsKey(logKey);
+                    boolean haveLogKey = gameContext.getLogKeyCache().has(logKey);
                     if (haveLogKey) {
                         gameContext.recordError("表结构 " + sRoleLog.getLogType() + " 重复日志记录 " + sRoleLog.getUid(), sRoleLog.toJSONString());
                     } else {
