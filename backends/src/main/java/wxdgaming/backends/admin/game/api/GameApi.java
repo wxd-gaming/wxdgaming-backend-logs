@@ -224,7 +224,7 @@ public class GameApi {
     public RunResult addRoleLogType(HttpContext session, @ThreadParam GameContext gameContext, @Body JSONObject data) {
         Game game = gameContext.getGame();
         if (!game.getRoleTableMapping().containsKey(data.getString("logType"))) {
-            gameService.checkSLogTable(gameContext, gameContext.getDataHelper(), SRoleLog.class, data.getString("logType"), data.getString("logComment"));
+            gameService.checkSLogTable(gameContext, gameContext.getDataHelper(), SRoleLog.class, true, data.getString("logType"), data.getString("logComment"));
             game.getRoleTableMapping().put(data.getString("logType"), data.getString("logComment"));
             this.pgsqlService.update(game);
         }
@@ -241,7 +241,7 @@ public class GameApi {
     public RunResult addServerLogType(HttpContext session, @ThreadParam GameContext gameContext, @Body JSONObject data) {
         Game game = gameContext.getGame();
         if (!game.getServerTableMapping().containsKey(data.getString("logType"))) {
-            gameService.checkSLogTable(gameContext, gameContext.getDataHelper(), SServerLog.class, data.getString("logType"), data.getString("logComment"));
+            gameService.checkSLogTable(gameContext, gameContext.getDataHelper(), SServerLog.class, false, data.getString("logType"), data.getString("logComment"));
             game.getServerTableMapping().put(data.getString("logType"), data.getString("logComment"));
             this.pgsqlService.update(game);
         }

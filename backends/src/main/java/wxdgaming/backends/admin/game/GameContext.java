@@ -67,6 +67,7 @@ public class GameContext {
                 .heartTimeMs(TimeUnit.HOURS.toMillis(2))
                 .expireAfterWriteMs(TimeUnit.DAYS.toMillis(2))
                 .build();
+        this.logKeyCache.start();
         this.accountRecordJdbcCache = new JdbcCache<>(dataHelper, 10, 60) {
 
             @Override protected AccountRecord loader(String account) {
@@ -267,6 +268,7 @@ public class GameContext {
         return registerAccountRechargeNum == null ? 0L : registerAccountRechargeNum;
     }
 
+    /** 订单数量 */
     public long rechargeOrderNum(int dayKey) {
         Long rechargeOrderNum = dataHelper.executeScalar("SELECT \"count\"(DISTINCT sporder) FROM record_recharge WHERE daykey=?", Long.class, dayKey);
         return rechargeOrderNum == null ? 0L : rechargeOrderNum;
@@ -278,26 +280,11 @@ public class GameContext {
                 .count();
     }
 
-    public Object[] queryRechargeGroup(int dayKey) {
+    public List<JSONObject> queryRechargeGroup(int dayKey) {
 
         String sql = "SELECT rr.amount,\"count\"(rr.amount) FROM record_recharge as rr WHERE daykey=? GROUP BY daykey,rr.amount ORDER BY rr.daykey DESC,rr.amount";
 
-        List<JSONObject> jsonObjects = dataHelper.queryList(sql, dayKey);
-
-        jsonObjects.sort((o1, o2) -> Long.compare(o2.getLongValue("count"), o1.getLongValue("count")));
-
-        Object[] objectsTitle = new Object[jsonObjects.size()];
-        Object[] objectsValue = new Object[jsonObjects.size()];
-
-        for (int i = 0; i < jsonObjects.size(); i++) {
-            JSONObject jsonObject = jsonObjects.get(i);
-            objectsTitle[i] = jsonObject.getIntValue("amount") / 100;
-            objectsValue[i] = jsonObject.getIntValue("count");
-        }
-
-        return new Object[]{
-                objectsTitle, objectsValue
-        };
+        return dataHelper.queryList(sql, dayKey);
     }
 
 }
