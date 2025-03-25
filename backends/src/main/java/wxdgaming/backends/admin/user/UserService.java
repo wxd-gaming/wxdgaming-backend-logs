@@ -8,7 +8,7 @@ import wxdgaming.backends.entity.system.User;
 import wxdgaming.boot2.core.BootConfig;
 import wxdgaming.boot2.core.ann.Sort;
 import wxdgaming.boot2.core.ann.Start;
-import wxdgaming.boot2.core.shutdown;
+import wxdgaming.boot2.core.ann.shutdown;
 import wxdgaming.boot2.core.util.AssertUtil;
 import wxdgaming.boot2.core.util.Md5Util;
 import wxdgaming.boot2.starter.batis.sql.JdbcCache;

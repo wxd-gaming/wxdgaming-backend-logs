@@ -14,7 +14,7 @@ import wxdgaming.backends.entity.system.GlobalData;
 import wxdgaming.boot2.core.ann.Start;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.reflect.ReflectContext;
-import wxdgaming.boot2.core.shutdown;
+import wxdgaming.boot2.core.ann.shutdown;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.batis.Entity;
 import wxdgaming.boot2.starter.batis.TableMapping;
