@@ -39,10 +39,6 @@ public class ServerRecord extends EntityIntegerUID {
     @JSONField(ordinal = 10)
     @DbColumn(index = true)
     private int mainSid;
-    /** 平台 */
-    @JSONField(ordinal = 13)
-    @DbColumn(index = true, columnType = ColumnType.String, length = 128)
-    private String platform;
     /** 服务器名字 */
     @JSONField(ordinal = 14)
     @DbColumn(index = true, columnType = ColumnType.String, length = 128)
@@ -58,7 +54,7 @@ public class ServerRecord extends EntityIntegerUID {
     /** 是否启用 */
     @DbColumn(index = true)
     @JSONField(ordinal = 17)
-    private boolean enabled;
+    private boolean enabled = true;
     /** 开服时间 */
     @JSONField(ordinal = 19)
     @DbColumn(index = true, columnType = ColumnType.String, length = 128)

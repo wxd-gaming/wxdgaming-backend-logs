@@ -57,6 +57,7 @@ public class ServerApi {
                 } else {
                     ServerRecord serverRecord = gameContext.serverGetOrCreate(record.getUid());
                     serverRecord.setMainSid(record.getMainSid());
+                    serverRecord.setEnabled(record.isEnabled());
                     serverRecord.setRegisterRoleCount(record.getRegisterRoleCount());
                     serverRecord.getOther().putAll(record.getOther());
                     serverRecord.getUpdateTime().refresh(System.currentTimeMillis());
@@ -98,6 +99,7 @@ public class ServerApi {
             serverRecord.setLan(record.getLan());
             serverRecord.setPort(record.getPort());
             serverRecord.setWebPort(record.getWebPort());
+            serverRecord.setEnabled(record.isEnabled());
             serverRecord.getUpdateTime().refresh(System.currentTimeMillis());
             gameContext.getDataHelper().getDataBatch().update(record);
         }
