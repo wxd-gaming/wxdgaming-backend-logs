@@ -227,7 +227,7 @@ public class GameContext {
     }
 
     public long loginAccountNum(int dayKey) {
-        Long loginAccountNum = dataHelper.executeScalar("SELECT \"count\"(DISTINCT account) FROM record_role_login WHERE daykey=?", Long.class, dayKey);
+        Long loginAccountNum = dataHelper.executeScalar("SELECT \"count\"(DISTINCT account) FROM record_active_account WHERE daykey=?", Long.class, dayKey);
         return loginAccountNum == null ? 0L : loginAccountNum;
     }
 

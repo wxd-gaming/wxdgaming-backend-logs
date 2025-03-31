@@ -92,12 +92,13 @@ public class SRoleLogLogInOutApi {
                         roleRecord.setLastJoinTime(record.getCreateTime());
                         roleRecord.setLastJoinSid(record.getSid());
                         roleRecord.setOnlineUpdateTime(record.getCreateTime());
-                        accountRecord.setOnlineUpdateTime(record.getCreateTime());
+                        long oldOnlineTime = accountRecord.getOnlineUpdateTime();
+                        accountRecord.setOnlineUpdateTime(Math.max(record.getCreateTime(), oldOnlineTime));
+                        /* todo 上线的时候刷新一下活跃账号记录*/
+                        SLogService.refreshActiveAccount(gameContext, accountRecord.getAccount(), oldOnlineTime, accountRecord.getOnlineUpdateTime());
 
                     } else if (logEnum == SRoleLog2Login.LogEnum.LOGOUT) {
                         roleRecord.setLastExitTime(record.getCreateTime());
-                        roleRecord.setOnlineUpdateTime(0);
-                        accountRecord.setOnlineUpdateTime(0);
                         OnlineTimeRecord onlineTimeRecord = new OnlineTimeRecord();
                         onlineTimeRecord.setCreateTime(MyClock.millis());/* 产生记录的时间 */
                         onlineTimeRecord.setUid(gameContext.newId("OnlineTimeRecord"));
@@ -117,6 +118,9 @@ public class SRoleLogLogInOutApi {
                         roleRecord.setTotalOnlineTime(roleRecord.getTotalOnlineTime() + onlineTime);
 
                         accountRecord.setTotalOnlineTime(accountRecord.getTotalOnlineTime() + onlineTime);
+                        /* todo 下线的时候刷新一下活跃账号记录*/
+                        long oldOnlineTime = accountRecord.getOnlineUpdateTime();
+                        SLogService.refreshActiveAccount(gameContext, accountRecord.getAccount(), oldOnlineTime, record.getCreateTime());
 
                         onlineTimeRecord.checkDataKey();
                         gameContext.getDataHelper().getDataBatch().insert(onlineTimeRecord);
@@ -128,23 +132,26 @@ public class SRoleLogLogInOutApi {
     }
 
     @HttpRequest(authority = 2)
-    @ExecutorWith(useVirtualThread = true)
     public RunResult online(HttpContext httpSession,
                             @ThreadParam GameContext gameContext,
                             @Param(path = "account") String account,
                             @Param(path = "roleId") long roleId,
                             @Param(path = "time") long time) {
-
-        AccountRecord accountRecord = gameContext.accountGetOrCreate(account);
-        RoleRecord roleRecord = gameContext.roleGetOrCreate(account, roleId);
-        roleRecord.setOnlineUpdateTime(Math.max(roleRecord.getOnlineUpdateTime(), time));
-        accountRecord.setOnlineUpdateTime(Math.max(accountRecord.getOnlineUpdateTime(), time));
-
+        gameContext.submit(new Event(5000, 10000) {
+            @Override public void onEvent() throws Exception {
+                AccountRecord accountRecord = gameContext.accountGetOrCreate(account);
+                RoleRecord roleRecord = gameContext.roleGetOrCreate(account, roleId);
+                roleRecord.setOnlineUpdateTime(Math.max(roleRecord.getOnlineUpdateTime(), time));
+                long oldOnlineTime = accountRecord.getOnlineUpdateTime();
+                accountRecord.setOnlineUpdateTime(Math.max(oldOnlineTime, time));
+                /* todo 同步在线状态的时候刷新一下活跃账号记录*/
+                SLogService.refreshActiveAccount(gameContext, account, oldOnlineTime, accountRecord.getOnlineUpdateTime());
+            }
+        });
         return RunResult.OK;
     }
 
     @HttpRequest(authority = 2)
-    @ExecutorWith(useVirtualThread = true)
     public RunResult onlineList(HttpContext httpSession,
                                 @ThreadParam GameContext gameContext,
                                 @Param(path = "data") List<JSONObject> data) {
