@@ -6,7 +6,11 @@ function sendRole(host, webPort, gameId, sid, roleId, title, content, goodsList)
     postJson += "&title=" + title;
     postJson += "&content=" + content;
     postJson += "&goodsList=" + goodsList;
-    let sign = JHttp.md5(postJson);
-    postJson["sign"] = sign;
+    postJson += "&sign=" + JHttp.md5(postJson);
     let post = JHttp.post("http://" + host + ":" + webPort + "/sendRole", postJson);
+    if (post.code === 1) {
+        console.log("发送成功");
+    } else {
+        console.log("发送失败：" + post.msg);
+    }
 }
