@@ -12,6 +12,7 @@ import wxdgaming.boot2.core.cache2.CASKeyCache;
 import wxdgaming.boot2.core.cache2.Cache;
 import wxdgaming.boot2.core.format.HexId;
 import wxdgaming.boot2.core.threading.ExecutorUtil;
+import wxdgaming.boot2.core.threading.ExecutorUtilImpl;
 import wxdgaming.boot2.core.threading.ThreadContext;
 import wxdgaming.boot2.core.util.AssertUtil;
 import wxdgaming.boot2.core.util.ObjectLockUtil;
@@ -218,7 +219,7 @@ public class GameContext {
     }
 
     public void submit(Runnable runnable) {
-        ExecutorUtil.getInstance().getVirtualExecutor().submit("queue-game-" + gameId, runnable);
+        ExecutorUtilImpl.getInstance().getVirtualExecutor().submit("queue-game-" + gameId, runnable);
     }
 
     public long registerAccountNum(int dayKey) {

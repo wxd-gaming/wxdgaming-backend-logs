@@ -14,6 +14,7 @@ import wxdgaming.boot2.core.io.FileReadUtil;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.threading.ExecutorServices;
 import wxdgaming.boot2.core.threading.ExecutorUtil;
+import wxdgaming.boot2.core.threading.ExecutorUtilImpl;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.core.util.RandomUtils;
 import wxdgaming.boot2.starter.batis.Entity;
@@ -51,8 +52,8 @@ public class GameApiTest {
 
 
     static {
-        executorServices = ExecutorUtil.getInstance().newExecutorServices("push", 10, 10, 10000);
-        ExecutorUtil.getInstance().init();
+        executorServices = ExecutorUtilImpl.getInstance().newExecutorServices("push", 10, 10, 10000);
+        ExecutorUtilImpl.getInstance().init();
     }
 
     public void post(String path, Entity entity) throws Exception {
