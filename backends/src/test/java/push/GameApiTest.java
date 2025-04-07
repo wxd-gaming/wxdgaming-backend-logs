@@ -5,6 +5,7 @@ import com.alibaba.fastjson.TypeReference;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
+import reactor.core.publisher.Mono;
 import wxdgaming.backends.entity.system.Game;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.chatset.json.FastJsonUtil;
@@ -58,12 +59,12 @@ public class GameApiTest {
 
     public void post(String path, Entity entity) throws Exception {
         String json = entity.toJSONString();
-        CompletableFuture<Response<PostText>> post = post(path, json);
-        Response<PostText> postTextResponse = post.join();
+        Mono<Response<PostText>> post = post(path, json);
+        Response<PostText> postTextResponse = post.block();
         postTextResponse.systemOut();
     }
 
-    public CompletableFuture<Response<PostText>> post(String path, String json) {
+    public Mono<Response<PostText>> post(String path, String json) {
         login();
         if (path.startsWith("/")) path = path.substring(1);
         return HttpBuilder.postJson(postHost + "/" + path, json)
@@ -92,7 +93,7 @@ public class GameApiTest {
     public String findAppToken() {
         login();
         JSONObject jsonObject = MapOf.newJSONObject().fluentPut("gameId", gameId);
-        Response<PostText> postTextResponse = post("/game/find", jsonObject.toJSONString()).join();
+        Response<PostText> postTextResponse = post("/game/find", jsonObject.toJSONString()).block();
         int i = postTextResponse.responseCode();
         RunResult runResult = postTextResponse.bodyRunResult();
         if (i != 200 || runResult.code() != 1)
@@ -105,7 +106,7 @@ public class GameApiTest {
     public String findLogToken() {
         login();
         JSONObject jsonObject = MapOf.newJSONObject().fluentPut("gameId", gameId);
-        Response<PostText> postTextResponse = post("/game/find", jsonObject.toJSONString()).join();
+        Response<PostText> postTextResponse = post("/game/find", jsonObject.toJSONString()).block();
         int i = postTextResponse.responseCode();
         RunResult runResult = RunResult.parse(postTextResponse.bodyString());
         if (i != 200 || runResult.code() != 1)
@@ -161,7 +162,7 @@ public class GameApiTest {
     @Test
     public void addGame() throws Exception {
         JSONObject jsonObject = MapOf.newJSONObject("gameName", "超变传奇");
-        post("game/add", jsonObject.toString()).get().bodyString();
+        post("game/add", jsonObject.toString()).block().bodyString();
     }
 
     @Test

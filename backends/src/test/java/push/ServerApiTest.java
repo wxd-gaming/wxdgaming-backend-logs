@@ -3,6 +3,7 @@ package push;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
+import reactor.core.publisher.Mono;
 import wxdgaming.boot2.core.collection.MapOf;
 import wxdgaming.boot2.starter.net.httpclient.PostText;
 import wxdgaming.boot2.starter.net.httpclient.Response;
@@ -33,7 +34,7 @@ public class ServerApiTest extends GameApiTest {
     }
 
     public void pushServer(String logToken, int count) throws Exception {
-        List<CompletableFuture<Response<PostText>>> futures = new ArrayList<>();
+        List<Mono<Response<PostText>>> futures = new ArrayList<>();
         for (int i = 1; i <= count; i++) {
             JSONObject record = new JSONObject();
             record.fluentPut("uid", i);
@@ -55,12 +56,12 @@ public class ServerApiTest extends GameApiTest {
                     .fluentPut("data", record);
 
 
-            CompletableFuture<Response<PostText>> post = post("server/push", push.toJSONString());
+            Mono<Response<PostText>> post = post("server/push", push.toJSONString());
             futures.add(post);
         }
 
-        for (CompletableFuture<Response<PostText>> future : futures) {
-            future.join();
+        for (Mono<Response<PostText>> future : futures) {
+            future.block();
         }
 
     }

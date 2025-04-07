@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.jupiter.api.RepeatedTest;
+import reactor.core.publisher.Mono;
 import wxdgaming.boot2.core.collection.MapOf;
 import wxdgaming.boot2.core.lang.DiffTime;
 import wxdgaming.boot2.core.lang.RunResult;
@@ -72,7 +73,7 @@ public class LoginPushTest extends RoleApiTest {
                     .fluentPut("gameId", gameId)
                     .fluentPut("token", logToken)
                     .fluentPut("data", sLogs);
-            Response<PostText> join = post("log/role/login/pushList", push.toJSONString()).join();
+            Response<PostText> join = post("log/role/login/pushList", push.toJSONString()).block();
             RunResult runResult = join.bodyRunResult();
             if (join.responseCode() != 200 || runResult.code() != 1) {
                 System.out.println(join.bodyString());
@@ -110,8 +111,8 @@ public class LoginPushTest extends RoleApiTest {
         jsonObject.put("gameId", gameId);
         jsonObject.put("token", logToken);
         jsonObject.put("data", data);
-        CompletableFuture<Response<PostText>> post = post("log/role/login/push", jsonObject.toJSONString());
-        Response<PostText> join = post.join();
+        Mono<Response<PostText>> post = post("log/role/login/push", jsonObject.toJSONString());
+        Response<PostText> join = post.block();
         RunResult runResult = join.bodyRunResult();
         if (join.responseCode() != 200 || runResult.code() != 1) {
             System.out.println(join.bodyString());

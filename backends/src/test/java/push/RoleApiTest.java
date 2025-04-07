@@ -2,6 +2,7 @@ package push;
 
 import com.alibaba.fastjson.JSONObject;
 import org.junit.Test;
+import reactor.core.publisher.Mono;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.util.RandomUtils;
@@ -64,8 +65,8 @@ public class RoleApiTest extends AccountApiTest {
                 .fluentPut("token", logToken)
                 .fluentPut("data", roleRecordList);
 
-        CompletableFuture<Response<PostText>> future = post("log/role/pushList", push.toJSONString());
-        Response<PostText> join = future.join();
+        Mono<Response<PostText>> future = post("log/role/pushList", push.toJSONString());
+        Response<PostText> join = future.block();
         RunResult runResult = join.bodyRunResult();
         if (join.responseCode() != 200 || runResult.code() != 1) {
             System.out.println(join.bodyString());

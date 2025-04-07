@@ -3,6 +3,7 @@ package push;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
+import reactor.core.publisher.Mono;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.collection.MapOf;
 import wxdgaming.boot2.core.lang.DiffTime;
@@ -91,8 +92,8 @@ public class ItemLogPushTest extends RoleApiTest {
                     .fluentPut("token", logToken)
                     .fluentPut("data", sLogs);
 
-            CompletableFuture<Response<PostText>> future = post("log/role/item/pushList", push.toJSONString());
-            Response<PostText> join = future.join();
+            Mono<Response<PostText>> future = post("log/role/item/pushList", push.toJSONString());
+            Response<PostText> join = future.block();
             if (join.responseCode() != 200 || join.bodyRunResult().code() != 1) {
                 log.error("{}", join.bodyString());
             }
