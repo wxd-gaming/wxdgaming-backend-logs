@@ -85,10 +85,10 @@ public class SRoleLogApi {
     @HttpRequest(authority = 9)
     @ExecutorWith(useVirtualThread = true)
     public RunResult list(HttpContext httpSession,
-                          @Param(path = "gameId") int gameId,
+                          @Param(path = "gameId") Integer gameId,
                           @Param(path = "logType") String logType,
-                          @Param(path = "pageIndex") int pageIndex,
-                          @Param(path = "pageSize") int pageSize,
+                          @Param(path = "pageIndex") Integer pageIndex,
+                          @Param(path = "pageSize") Integer pageSize,
                           @Param(path = "minDay", required = false) String minDay,
                           @Param(path = "maxDay", required = false) String maxDay,
                           @Param(path = "account", required = false) String account,

@@ -105,7 +105,7 @@ public class GameApi {
     }
 
     @HttpRequest(authority = 9)
-    public RunResult find(HttpContext session, @Param(path = "gameId") int gameId) {
+    public RunResult find(HttpContext session, @Param(path = "gameId") Integer gameId) {
         GameContext gameContext = gameService.gameContext(gameId);
         if (gameContext == null) {
             return RunResult.error("gameId is not exist");
@@ -159,8 +159,8 @@ public class GameApi {
     @HttpRequest(authority = 9, comment = "游戏列表")
     public RunResult list(HttpContext session,
                           @ThreadParam() User user,
-                          @Param(path = "pageIndex") int pageIndex,
-                          @Param(path = "pageSize") int pageSize) {
+                          @Param(path = "pageIndex") Integer pageIndex,
+                          @Param(path = "pageSize") Integer pageSize) {
 
         int skip = 0;
         if (pageIndex > 0) {

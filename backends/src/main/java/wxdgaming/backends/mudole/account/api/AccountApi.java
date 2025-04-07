@@ -70,9 +70,9 @@ public class AccountApi {
     /** 列表查询不要走缓存，否则会特别耗内存 */
     @HttpRequest(authority = 9)
     public RunResult list(HttpContext httpContext,
-                          @Param(path = "gameId") int gameId,
-                          @Param(path = "pageIndex") int pageIndex,
-                          @Param(path = "pageSize") int pageSize,
+                          @Param(path = "gameId") Integer gameId,
+                          @Param(path = "pageIndex") Integer pageIndex,
+                          @Param(path = "pageSize") Integer pageSize,
                           @Param(path = "minDay", required = false) String minDay,
                           @Param(path = "maxDay", required = false) String maxDay,
                           @Param(path = "account", required = false) String account,

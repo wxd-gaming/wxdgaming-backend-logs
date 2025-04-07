@@ -38,9 +38,9 @@ public class AccountStatApi {
 
 
     @HttpRequest(authority = 9)
-    public RunResult list(HttpContext httpContext, @Param(path = "gameId") int gameId,
-                          @Param(path = "pageIndex") int pageIndex,
-                          @Param(path = "pageSize") int pageSize,
+    public RunResult list(HttpContext httpContext, @Param(path = "gameId") Integer gameId,
+                          @Param(path = "pageIndex") Integer pageIndex,
+                          @Param(path = "pageSize") Integer pageSize,
                           @Param(path = "minDay", required = false) String minDay,
                           @Param(path = "maxDay", required = false) String maxDay) {
         PgsqlDataHelper pgsqlDataHelper = gameService.gameContext(gameId).getDataHelper();

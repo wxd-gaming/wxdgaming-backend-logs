@@ -76,8 +76,8 @@ public class RoleApi {
     public RunResult lv(HttpContext httpContext,
                         @ThreadParam GameContext gameContext,
                         @Param(path = "account") String account,
-                        @Param(path = "roleId") long roleId,
-                        @Param(path = "lv") int lv) {
+                        @Param(path = "roleId") Long roleId,
+                        @Param(path = "lv") Integer lv) {
         gameContext.submit(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
                 RoleRecord entity = gameContext.roleGetOrCreate(account, roleId);
@@ -113,7 +113,7 @@ public class RoleApi {
     public RunResult delete(HttpContext httpContext,
                             @ThreadParam GameContext gameContext,
                             @Param(path = "account") String account,
-                            @Param(path = "roleId") long roleId) {
+                            @Param(path = "roleId") Long roleId) {
 
         User user = ThreadContext.context("user");
         log.info("{}", user);
@@ -128,9 +128,9 @@ public class RoleApi {
     @HttpRequest
     public RunResult list(HttpContext httpContext,
                           @ThreadParam(path = "user") User user,
-                          @Param(path = "gameId") int gameId,
-                          @Param(path = "pageIndex") int pageIndex,
-                          @Param(path = "pageSize") int pageSize,
+                          @Param(path = "gameId") Integer gameId,
+                          @Param(path = "pageIndex") Integer pageIndex,
+                          @Param(path = "pageSize") Integer pageSize,
                           @Param(path = "minDay", required = false) String minDay,
                           @Param(path = "maxDay", required = false) String maxDay,
                           @Param(path = "account", required = false) String account,

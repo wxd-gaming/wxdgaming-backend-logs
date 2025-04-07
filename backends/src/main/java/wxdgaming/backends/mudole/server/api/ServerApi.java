@@ -109,7 +109,7 @@ public class ServerApi {
     @HttpRequest(authority = 9)
     public RunResult editShowName(HttpContext httpContext, @ThreadParam User user,
                                   @ThreadParam GameContext gameContext,
-                                  @Param(path = "sid") int sid,
+                                  @Param(path = "sid") Integer sid,
                                   @Param(path = "name") String name,
                                   @Param(path = "showName") String showName) {
         ServerRecord serverRecord = gameContext.getServerRecordMap().get(sid);
@@ -141,7 +141,7 @@ public class ServerApi {
 
     @HttpRequest(authority = 9)
     public RunResult jsPlugin(HttpContext httpContext,
-                              @Param(path = "gameId") int gameId) {
+                              @Param(path = "gameId") Integer gameId) {
 
         String string = getJs(gameId);
 
@@ -168,7 +168,7 @@ public class ServerApi {
     }
 
     @HttpRequest()
-    public RunResult json(HttpContext httpContext, @Param(path = "gameId") int gameId) {
+    public RunResult json(HttpContext httpContext, @Param(path = "gameId") Integer gameId) {
         GameContext gameContext = gameService.gameContext(gameId);
         if (gameContext == null) {
             return RunResult.error("gameId is not exist");
@@ -193,7 +193,7 @@ public class ServerApi {
     public RunResult del(HttpContext httpContext,
                          @ThreadParam User user,
                          @ThreadParam GameContext gameContext,
-                         @Param(path = "sid") int sid) {
+                         @Param(path = "sid") Integer sid) {
         ServerRecord remove = gameContext.getServerRecordMap().remove(sid);
         gameContext.getDataHelper().deleteByKey(ServerRecord.class, sid);
         log.info("管理员：{} 删除 游戏 {}-{} 区服 {}-{}",
@@ -205,7 +205,7 @@ public class ServerApi {
     }
 
     @HttpRequest()
-    public RunResult get(HttpContext httpContext, @Param(path = "gameId") int gameId, @Param(path = "sid") int sid) {
+    public RunResult get(HttpContext httpContext, @Param(path = "gameId") Integer gameId, @Param(path = "sid") Integer sid) {
         GameContext gameContext = gameService.gameContext(gameId);
         if (gameContext == null) {
             return RunResult.error("gameId is not exist");
@@ -231,8 +231,8 @@ public class ServerApi {
     @HttpRequest(authority = 9)
     public RunResult list(HttpContext httpContext,
                           @ThreadParam GameContext gameContext,
-                          @Param(path = "pageIndex") int pageIndex,
-                          @Param(path = "pageSize") int pageSize,
+                          @Param(path = "pageIndex") Integer pageIndex,
+                          @Param(path = "pageSize") Integer pageSize,
                           @Param(path = "sid", required = false) String sid,
                           @Param(path = "mainSid", required = false) String mainSid,
                           @Param(path = "name", required = false) String name,

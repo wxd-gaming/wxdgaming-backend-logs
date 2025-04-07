@@ -135,8 +135,8 @@ public class SRoleLogLogInOutApi {
     public RunResult online(HttpContext httpSession,
                             @ThreadParam GameContext gameContext,
                             @Param(path = "account") String account,
-                            @Param(path = "roleId") long roleId,
-                            @Param(path = "time") long time) {
+                            @Param(path = "roleId") Long roleId,
+                            @Param(path = "time") Long time) {
         gameContext.submit(new Event(5000, 10000) {
             @Override public void onEvent() throws Exception {
                 AccountRecord accountRecord = gameContext.accountGetOrCreate(account);
@@ -166,9 +166,9 @@ public class SRoleLogLogInOutApi {
     @HttpRequest(authority = 9)
     @ExecutorWith(useVirtualThread = true)
     public RunResult list(HttpContext httpSession,
-                          @Param(path = "gameId") int gameId,
-                          @Param(path = "pageIndex") int pageIndex,
-                          @Param(path = "pageSize") int pageSize,
+                          @Param(path = "gameId") Integer gameId,
+                          @Param(path = "pageIndex") Integer pageIndex,
+                          @Param(path = "pageSize") Integer pageSize,
                           @Param(path = "minDay", required = false) String minDay,
                           @Param(path = "maxDay", required = false) String maxDay,
                           @Param(path = "account", required = false) String account,

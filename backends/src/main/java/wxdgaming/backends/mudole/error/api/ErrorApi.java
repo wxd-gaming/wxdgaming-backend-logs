@@ -36,9 +36,9 @@ public class ErrorApi {
 
     @HttpRequest()
     public RunResult list(
-            @Param(path = "gameId") int gameId,
-            @Param(path = "pageIndex") int pageIndex,
-            @Param(path = "pageSize") int pageSize
+            @Param(path = "gameId") Integer gameId,
+            @Param(path = "pageIndex") Integer pageIndex,
+            @Param(path = "pageSize") Integer pageSize
     ) {
         GameContext gameContext = gameService.gameContext(gameId);
 

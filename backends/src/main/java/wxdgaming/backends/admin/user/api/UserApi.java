@@ -324,8 +324,8 @@ public class UserApi {
     @HttpRequest(comment = "用户列表")
     public RunResult list(HttpContext httpContext,
                           @ThreadParam() User user,
-                          @Param(path = "pageIndex") int pageIndex,
-                          @Param(path = "pageSize") int pageSize,
+                          @Param(path = "pageIndex") Integer pageIndex,
+                          @Param(path = "pageSize") Integer pageSize,
                           @Param(path = "account") String account) {
 
         if (!user.isRoot() && !user.isAdmin()) {
