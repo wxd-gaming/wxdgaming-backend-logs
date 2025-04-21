@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import wxdgaming.boot2.core.ann.Sort;
+import wxdgaming.boot2.core.ann.Order;
 import wxdgaming.boot2.core.ann.Start;
 import wxdgaming.boot2.core.ann.shutdown;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
@@ -28,7 +28,7 @@ public class AdminService {
     }
 
     @Start
-    @Sort(100)
+    @Order(100)
     public void start() throws Exception {
 
     }

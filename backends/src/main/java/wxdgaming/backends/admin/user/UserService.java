@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.entity.system.User;
 import wxdgaming.boot2.core.BootConfig;
-import wxdgaming.boot2.core.ann.Sort;
+import wxdgaming.boot2.core.ann.Order;
 import wxdgaming.boot2.core.ann.Start;
 import wxdgaming.boot2.core.ann.shutdown;
 import wxdgaming.boot2.core.util.AssertUtil;
@@ -48,7 +48,7 @@ public class UserService {
     }
 
     @Start
-    @Sort(10000000)
+    @Order(10000000)
     public void start() {
         /*这里是添加默认管理员*/
         User user = userCache.getIfPresent(ROOT);
