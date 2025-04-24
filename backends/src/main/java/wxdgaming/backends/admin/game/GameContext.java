@@ -8,15 +8,14 @@ import wxdgaming.backends.entity.games.ServerRecord;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
 import wxdgaming.backends.entity.system.Game;
-import wxdgaming.boot2.core.cache2.CASKeyCache;
+import wxdgaming.boot2.core.cache2.CASCache;
 import wxdgaming.boot2.core.cache2.Cache;
 import wxdgaming.boot2.core.format.HexId;
-import wxdgaming.boot2.core.threading.ExecutorUtil;
 import wxdgaming.boot2.core.threading.ExecutorUtilImpl;
 import wxdgaming.boot2.core.threading.ThreadContext;
 import wxdgaming.boot2.core.util.AssertUtil;
 import wxdgaming.boot2.core.util.ObjectLockUtil;
-import wxdgaming.boot2.starter.batis.sql.JdbcCache;
+import wxdgaming.boot2.starter.batis.sql.SqlDataCache;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 
 import java.util.LinkedList;
@@ -49,8 +48,8 @@ public class GameContext {
      * <p>value: true</p>
      */
     private final Cache<String, Boolean> logKeyCache;
-    private final JdbcCache<AccountRecord, String> accountRecordJdbcCache;
-    private final JdbcCache<RoleRecord, Long> roleRecordJdbcCache;
+    private final SqlDataCache<AccountRecord, String> accountRecordJdbcCache;
+    private final SqlDataCache<RoleRecord, Long> roleRecordJdbcCache;
     private final Map<Integer, ServerRecord> serverRecordMap = new ConcurrentHashMap<>();
     private final ReentrantLock errorReentrantLock = new ReentrantLock();
     private final LinkedList<ErrorRecord> errorRecordList = new LinkedList<>();
@@ -62,14 +61,14 @@ public class GameContext {
         this.rechargeHexId = new HexId(gameId);
         this.errorHexId = new HexId(gameId);
         this.dataHelper = dataHelper;
-        this.logKeyCache = CASKeyCache.<String>builder()
+        this.logKeyCache = CASCache.<String, Boolean>builder()
                 .cacheName("logKeyCache")
                 .area(100)
                 .heartTimeMs(TimeUnit.HOURS.toMillis(2))
                 .expireAfterWriteMs(TimeUnit.DAYS.toMillis(2))
                 .build();
         this.logKeyCache.start();
-        this.accountRecordJdbcCache = new JdbcCache<>(dataHelper, 10, 60) {
+        this.accountRecordJdbcCache = new SqlDataCache<AccountRecord, String>(dataHelper, 10, 60) {
 
             @Override protected AccountRecord loader(String account) {
                 AccountRecord byWhere = dataHelper.findByWhere(AccountRecord.class, "account = ?", account);
@@ -96,7 +95,7 @@ public class GameContext {
 
         };
 
-        this.roleRecordJdbcCache = new JdbcCache<>(dataHelper, 10, 60) {
+        this.roleRecordJdbcCache = new SqlDataCache<>(dataHelper, 10, 60) {
             @Override protected RoleRecord loader(Long uid) {
                 RoleRecord byWhere = dataHelper.findByWhere(RoleRecord.class, "uid = ?", uid);
                 if (byWhere != null) {
