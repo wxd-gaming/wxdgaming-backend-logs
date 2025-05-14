@@ -4,7 +4,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import wxdgaming.boot2.core.lang.ObjectBase;
+import wxdgaming.boot2.starter.batis.ColumnType;
 import wxdgaming.boot2.starter.batis.EntityIntegerUID;
+import wxdgaming.boot2.starter.batis.ann.DbColumn;
 import wxdgaming.boot2.starter.batis.ann.DbTable;
 
 import java.util.ArrayList;
@@ -21,13 +23,16 @@ import java.util.ArrayList;
 @DbTable
 public class CDKeyEntity extends EntityIntegerUID {
 
+    /** 固定的礼包码 比如 666 */
+    @DbColumn(index = true, columnType = ColumnType.String, length = 18)
+    private String cdKey;
     /** 备注 */
     private String comment;
     /** 使用类型，1个人，2本服，3全服 */
     private int useType;
     /** 全局使用次数 */
     private int useCount;
-    /** 奖励道具 道具id|数量|绑定状态| */
+    /** 奖励道具 道具id|数量|绑定状态|过期时间 */
     private ArrayList<CDKeyReward> rewards = new ArrayList<>();
 
     @Getter

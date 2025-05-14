@@ -64,6 +64,21 @@ logToken：3ugv7y8cP0Uk86gRYYm7I9AXLM36Rjz8
     }
 ```
 
+### 使用礼包码
+```angular2html
+
+        HashMap<String, Object> params = new HashMap<>();
+        params.put("gameId", gameId);
+        params.put("appToken", appToken);
+        params.put("key", cdKey);
+        params.put("account", account);
+        params.put("rid", rid);
+
+        PostText postText = HttpBuilder.postJson("http://www.backend.com/cdkey/use", FastJsonUtil.toJSONString(params));
+        RunResult runResult = postText.request().bodyRunResult();
+
+```
+
 #### 预览
 
 ![image](/png/gamestat.png)
