@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.admin.game.GameContext;
+import wxdgaming.backends.admin.game.GameExecutorEvent;
 import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
 import wxdgaming.backends.entity.system.User;
@@ -13,11 +14,11 @@ import wxdgaming.backends.mudole.srolelog.SLogService;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
+import wxdgaming.boot2.core.executor.ExecutorEvent;
+import wxdgaming.boot2.core.executor.ExecutorWith;
+import wxdgaming.boot2.core.executor.ThreadContext;
 import wxdgaming.boot2.core.format.TimeFormat;
 import wxdgaming.boot2.core.lang.RunResult;
-import wxdgaming.boot2.core.threading.Event;
-import wxdgaming.boot2.core.threading.ExecutorWith;
-import wxdgaming.boot2.core.threading.ThreadContext;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.core.util.NumberUtil;
 import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
@@ -54,7 +55,8 @@ public class RoleApi {
     @ExecutorWith(useVirtualThread = true)
     public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") RoleRecord record) {
         log.info("role - {}", record.toJSONString());
-        gameContext.submit(new Event(5000, 10000) {
+        gameContext.submit(new GameExecutorEvent() {
+
             @Override public void onEvent() throws Exception {
                 RoleRecord entity = gameContext.roleGetOrCreate(record.getAccount(), record.getUid());
 
@@ -78,7 +80,7 @@ public class RoleApi {
                         @Param(path = "account") String account,
                         @Param(path = "roleId") Long roleId,
                         @Param(path = "lv") Integer lv) {
-        gameContext.submit(new Event(5000, 10000) {
+        gameContext.submit(new GameExecutorEvent() {
             @Override public void onEvent() throws Exception {
                 RoleRecord entity = gameContext.roleGetOrCreate(account, roleId);
                 if (entity == null) {

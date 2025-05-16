@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.graalvm.polyglot.Value;
 import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
+import wxdgaming.backends.admin.game.GameExecutorEvent;
 import wxdgaming.backends.entity.games.ServerRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
 import wxdgaming.backends.entity.system.User;
@@ -16,7 +17,6 @@ import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.io.FileReadUtil;
 import wxdgaming.boot2.core.io.FileWriteUtil;
 import wxdgaming.boot2.core.lang.RunResult;
-import wxdgaming.boot2.core.threading.Event;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.js.JsService;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
@@ -50,7 +50,7 @@ public class ServerApi {
 
     @HttpRequest(authority = 2)
     public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") ServerRecord record) {
-        gameContext.submit(new Event(5000, 10000) {
+        gameContext.submit(new GameExecutorEvent() {
             @Override public void onEvent() throws Exception {
                 if (record.getUid() == 0) {
                     gameContext.recordError("sid为空", record.toJSONString());

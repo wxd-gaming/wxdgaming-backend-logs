@@ -10,9 +10,9 @@ import wxdgaming.backends.entity.games.logs.RoleRecord;
 import wxdgaming.backends.entity.system.Game;
 import wxdgaming.boot2.core.cache2.CASCache;
 import wxdgaming.boot2.core.cache2.Cache;
+import wxdgaming.boot2.core.executor.ExecutorFactory;
+import wxdgaming.boot2.core.executor.ThreadContext;
 import wxdgaming.boot2.core.format.HexId;
-import wxdgaming.boot2.core.threading.ExecutorUtilImpl;
-import wxdgaming.boot2.core.threading.ThreadContext;
 import wxdgaming.boot2.core.util.AssertUtil;
 import wxdgaming.boot2.core.util.ObjectLockUtil;
 import wxdgaming.boot2.starter.batis.sql.SqlDataCache;
@@ -217,8 +217,9 @@ public class GameContext {
         log.error("记录错误信息 {}", errorRecord);
     }
 
-    public void submit(Runnable runnable) {
-        ExecutorUtilImpl.getInstance().getVirtualExecutor().submit("queue-game-" + gameId, runnable);
+    public void submit(GameExecutorEvent runnable) {
+        runnable.setQueueName("queue-game-" + gameId);
+        ExecutorFactory.EXECUTOR_SERVICE_VIRTUAL.execute(runnable);
     }
 
     public long registerAccountNum(int dayKey) {

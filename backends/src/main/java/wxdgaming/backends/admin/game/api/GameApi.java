@@ -6,6 +6,7 @@ import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.admin.AdminService;
 import wxdgaming.backends.admin.game.GameContext;
+import wxdgaming.backends.admin.game.GameExecutorEvent;
 import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.games.logs.SRoleLog;
 import wxdgaming.backends.entity.games.logs.SServerLog;
@@ -122,12 +123,14 @@ public class GameApi {
                 gameContext.getGame().getUid(), gameContext.getGame().getName()
         );
 
-        gameContext.submit(() -> {
-            gameContext.getLogKeyCache().discardAll();
-            gameContext.getRoleRecordJdbcCache().discardAll();
-            gameContext.getAccountRecordJdbcCache().discardAll();
-            gameContext.getServerRecordMap().clear();
-            gameContext.getDataHelper().truncates();
+        gameContext.submit(new GameExecutorEvent() {
+            @Override public void onEvent() throws Exception {
+                gameContext.getLogKeyCache().discardAll();
+                gameContext.getRoleRecordJdbcCache().discardAll();
+                gameContext.getAccountRecordJdbcCache().discardAll();
+                gameContext.getServerRecordMap().clear();
+                gameContext.getDataHelper().truncates();
+            }
         });
 
         return RunResult.OK;

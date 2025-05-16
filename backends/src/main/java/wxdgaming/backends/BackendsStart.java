@@ -2,7 +2,7 @@ package wxdgaming.backends;
 
 
 import wxdgaming.boot2.core.CoreScan;
-import wxdgaming.boot2.core.RunApplication;
+import wxdgaming.boot2.starter.RunApplicationMain;
 import wxdgaming.boot2.starter.WxdApplication;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlScan;
 import wxdgaming.boot2.starter.js.JsScan;
@@ -22,7 +22,7 @@ public class BackendsStart {
     public static long ONLINE_TIME_DIFF = TimeUnit.MINUTES.toMillis(3);
 
     public static void main(String[] args) {
-        RunApplication run = WxdApplication.run(
+        RunApplicationMain run = WxdApplication.run(
                 CoreScan.class,
                 ScheduledScan.class,
                 SocketScan.class,
@@ -30,6 +30,8 @@ public class BackendsStart {
                 JsScan.class,
                 BackendsStart.class
         );
+
+        run.start();
 
         // HttpListenerFactory httpListenerFactory = run.getInstance(HttpListenerFactory.class);
         // HttpListenerContent httpListenerContent = httpListenerFactory.getHttpListenerContent();

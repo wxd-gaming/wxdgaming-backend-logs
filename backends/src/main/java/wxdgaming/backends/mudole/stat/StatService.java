@@ -4,17 +4,13 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.admin.game.GameContext;
+import wxdgaming.backends.admin.game.GameExecutorEvent;
 import wxdgaming.backends.admin.game.GameService;
-import wxdgaming.backends.entity.games.AccountStat;
-import wxdgaming.backends.entity.games.GameStat;
-import wxdgaming.backends.entity.games.OnlineStat;
-import wxdgaming.backends.entity.games.ServerOnlineStat;
+import wxdgaming.backends.entity.games.*;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
-import wxdgaming.backends.entity.games.ServerRecord;
 import wxdgaming.backends.entity.system.Game;
 import wxdgaming.boot2.core.io.Objects;
-import wxdgaming.boot2.core.threading.Event;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.scheduled.ann.Scheduled;
@@ -22,7 +18,6 @@ import wxdgaming.boot2.starter.scheduled.ann.Scheduled;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -57,7 +52,7 @@ public class StatService {
             if (statTime.get() < game.getCreateTime()) {
                 statTime.set(game.getCreateTime());
             }
-            Event event = new Event(TimeUnit.HOURS.toMillis(2), TimeUnit.HOURS.toMillis(2)) {
+            GameExecutorEvent event = new GameExecutorEvent() {
                 @Override public void onEvent() throws Exception {
                     /*统计留存开始时间*/
                     for (int i = 0; i <= days; i++) {
@@ -155,7 +150,7 @@ public class StatService {
             if (statTime.get() < game.getCreateTime()) {
                 statTime.set(game.getCreateTime());
             }
-            Event event = new Event(TimeUnit.HOURS.toMillis(2), TimeUnit.HOURS.toMillis(2)) {
+            GameExecutorEvent event = new GameExecutorEvent() {
                 @Override public void onEvent() throws Exception {
                     /*统计留存开始时间*/
                     for (int i = 0; i <= days; i++) {

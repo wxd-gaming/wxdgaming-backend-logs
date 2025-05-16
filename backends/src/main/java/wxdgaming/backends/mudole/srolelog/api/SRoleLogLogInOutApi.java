@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.admin.game.GameContext;
+import wxdgaming.backends.admin.game.GameExecutorEvent;
 import wxdgaming.backends.admin.game.GameService;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.OnlineTimeRecord;
@@ -14,9 +15,8 @@ import wxdgaming.backends.mudole.srolelog.SLogService;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
+import wxdgaming.boot2.core.executor.ExecutorWith;
 import wxdgaming.boot2.core.lang.RunResult;
-import wxdgaming.boot2.core.threading.Event;
-import wxdgaming.boot2.core.threading.ExecutorWith;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.core.util.NumberUtil;
 import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
@@ -58,7 +58,7 @@ public class SRoleLogLogInOutApi {
     /** 登录日志的批量提交 */
     @HttpRequest(authority = 2)
     public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") SRoleLog2Login record) {
-        gameContext.submit(new Event(5000, 10000) {
+        gameContext.submit(new GameExecutorEvent() {
             @Override public void onEvent() throws Exception {
                 record.setLogType(record.tableName());
                 if (record.getUid() == 0)
@@ -137,7 +137,7 @@ public class SRoleLogLogInOutApi {
                             @Param(path = "account") String account,
                             @Param(path = "roleId") Long roleId,
                             @Param(path = "time") Long time) {
-        gameContext.submit(new Event(5000, 10000) {
+        gameContext.submit(new GameExecutorEvent() {
             @Override public void onEvent() throws Exception {
                 AccountRecord accountRecord = gameContext.accountGetOrCreate(account);
                 RoleRecord roleRecord = gameContext.roleGetOrCreate(account, roleId);

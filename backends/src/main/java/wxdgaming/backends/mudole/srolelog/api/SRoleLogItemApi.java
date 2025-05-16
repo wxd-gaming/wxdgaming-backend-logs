@@ -6,6 +6,7 @@ import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.admin.game.GameService;
+import wxdgaming.backends.admin.game.GameExecutorEvent;
 import wxdgaming.backends.entity.games.logs.AccountRecord;
 import wxdgaming.backends.entity.games.logs.RoleRecord;
 import wxdgaming.backends.entity.games.logs.SRoleLog;
@@ -14,10 +15,9 @@ import wxdgaming.backends.mudole.srolelog.SLogService;
 import wxdgaming.boot2.core.ann.Param;
 import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
+import wxdgaming.boot2.core.executor.ExecutorWith;
 import wxdgaming.boot2.core.io.Objects;
 import wxdgaming.boot2.core.lang.RunResult;
-import wxdgaming.boot2.core.threading.Event;
-import wxdgaming.boot2.core.threading.ExecutorWith;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.core.util.NumberUtil;
 import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
@@ -61,7 +61,7 @@ public class SRoleLogItemApi {
     @HttpRequest(authority = 2)
     public RunResult push(@ThreadParam GameContext gameContext, @Param(path = "data") SRoleLog2Item record) {
         log.info("item log: {}", record.toJSONString());
-        gameContext.submit(new Event(5000, 10000) {
+        gameContext.submit(new GameExecutorEvent() {
             @Override public void onEvent() throws Exception {
                 AccountRecord accountRecord = gameContext.accountGetOrCreate(record.getAccount());
                 RoleRecord roleRecord = gameContext.roleGetOrCreate(record.getAccount(), record.getRoleId());
