@@ -12,9 +12,9 @@ import wxdgaming.backends.entity.games.logs.SServerLog;
 import wxdgaming.backends.entity.system.Game;
 import wxdgaming.backends.entity.system.GlobalData;
 import wxdgaming.boot2.core.ann.Start;
+import wxdgaming.boot2.core.ann.shutdown;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.reflect.ReflectContext;
-import wxdgaming.boot2.core.ann.shutdown;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.batis.Entity;
 import wxdgaming.boot2.starter.batis.TableMapping;
@@ -68,7 +68,10 @@ public class GameService {
     @shutdown
     public void shutdown() {
         this.pgsqlService.update(globalData);
-        gameContextHashMap.forEach((k, v) -> v.shutdown());
+        gameContextHashMap.forEach((k, v) -> {
+            pgsqlService.save(v.getGame());
+            v.shutdown();
+        });
     }
 
     public int newGameId() {

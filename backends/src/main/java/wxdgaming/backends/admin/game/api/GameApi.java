@@ -99,6 +99,7 @@ public class GameApi {
             queryEntity.setAppToken(game.getAppToken());
             queryEntity.setRechargeToken(game.getRechargeToken());
             queryEntity.setLogToken(game.getLogToken());
+            pgsqlService.save(gameContext.getGame());
             Thread.ofPlatform().start(() -> gameService.addGameCache(game));
         }
         user.getAuthorizationGames().add(game.getUid());
@@ -154,7 +155,7 @@ public class GameApi {
             case "log" -> gameContext.getGame().setLogToken(StringUtils.randomString(16));
             case "recharge" -> gameContext.getGame().setRechargeToken(StringUtils.randomString(16));
         }
-
+        pgsqlService.save(gameContext.getGame());
 
         return RunResult.OK;
     }
