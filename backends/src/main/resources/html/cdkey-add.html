@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新增礼包码</title>
+
+    <script charset="utf-8" type="text/javascript" src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script charset="utf-8" type="text/javascript" src="/js/com.wxd.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/style/com.wxd.css"/>
+
+    <style>
+        html, body {
+            display: block;width: 100%;height: 100%;overflow: hidden;background: rgb(255, 255, 255);
+            font-size: 14px;
+        }
+
+        html, body, div, input, button {
+            margin: 0;border: 0;box-sizing: border-box;
+        }
+
+        li {padding-top: 15px;list-style: none;}
+
+        label {width: 120px;}
+
+    </style>
+
+    <script>
+
+        function add() {
+            window.parent.parentLoading();
+            let urlQuery = new wxd.Map().loadSearch();
+            urlQuery.put("comment", $("#comment").val());
+            urlQuery.put("cdkey", $("#cdkey").val());
+            urlQuery.put("rewards", $("#rewards").val());
+            wxd.netty.post("/cdkey/add", urlQuery.toString(),
+                function (responseText) {
+                    window.parent.parentLoading_close();
+                    if (responseText.code !== 1) {
+                        window.parent.parentNotice(responseText.msg, true);
+                    } else {
+                        window.parent.parentAlert("完成");
+                    }
+                },
+                (errorMsg) => {
+                    window.parent.parentLoading_close();
+                    window.parent.parentAlert("异常：" + errorMsg);
+                },
+                true,
+                120_000
+            );
+        }
+    </script>
+
+</head>
+<body>
+<div class="btn_box" style="position: absolute;left: 50%;top: 50%;transform: translate(-50%,-50%);width: 380px;text-align: center;padding: 3px;">
+    <ul>
+        <li title="备注礼包码说明">
+            <label for="comment">备注：</label><input type="text" id="comment" style="width: 260px;"></li>
+        <li title="固定礼包码"><label for="cdkey">礼包码：</label><input type="text" id="cdkey" style="width: 260px;">
+        </li>
+        <li title="道具格式"><label for="rewards">道具：</label><input type="text" id="rewards" style="width: 260px;">
+        </li>
+    </ul>
+    <button onclick="add();">提交</button>
+</div>
+</body>
+</html>

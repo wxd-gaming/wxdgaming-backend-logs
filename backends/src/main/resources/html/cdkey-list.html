@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏列表</title>
+
+    <script charset="utf-8" type="text/javascript" src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script charset="utf-8" type="text/javascript" src="/js/com.wxd.js"></script>
+    <script charset="utf-8" type="text/javascript" src="/pageview.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/style/com.wxd.css"/>
+    <link rel="stylesheet" type="text/css" href="/style/table.css"/>
+
+    <style>
+        html, body {display: block;width: 100%;height: 100%;overflow: hidden;overflow-x: auto;background: rgb(255, 255, 255);}
+
+        html, body, div, table, tr, td {margin: 0px;border: 0px;box-sizing: border-box;}
+
+        a:link {color: #0866b4;}
+
+        a:visited { color: #0866b4;}
+
+        label {padding-left: 5px;padding-right: 5px;}
+
+    </style>
+
+    <script>
+
+        function parentLoading() {
+            wxd.loading();
+        }
+
+        function parentLoading_close() {
+            wxd.loading_close();
+        }
+
+        function parentNotice(content, isError, closeTime) {
+            wxd.message.notice(content, isError, closeTime);
+        }
+
+        function parentAlert(msg) {
+            wxd.message.alert(
+                msg,
+                "提示：",
+                "关闭",
+                () => {
+                    setTimeout(() => {
+                        $("#div_load_box").parent().remove();
+                        search();
+                    }, 1);
+                }
+            );
+        }
+
+        function operate(gameId, type,) {
+            let map = new wxd.Map().loadSearch();
+            map.put("type", type);
+            map.put("uid", uid);
+            map.put("uid", count);
+            wxd.netty.post("/cdkey/list", map.toString(),
+                (data) => {
+                    if (data.code === 1) {
+                        parentAlert(`${gameName}(${gameId}) 清档失败 -> ${data.msg}`);
+                    } else {
+                        parentAlert(`${gameName}(${gameId}) 清档失败 -> ${data.msg}`);
+                    }
+                }
+            );
+        }
+
+        let pageView;
+
+        function search() {
+            wxd.loading();
+            let urlQuery = new wxd.Map().loadSearch();
+            urlQuery.put("search", $("#search").val());
+            pageView.remoteGetData(urlQuery);
+        }
+
+        function createRow(index, row) {
+            return `
+    <tr>
+            <td style="width: 140px;">
+                <a href="javascript:void(0);" onclick="truncates(${row.uid}, '${row.name}');return false;" title="生成">生产</a>
+            </td>
+            <td tips="true" style="width: 58px;">${index}</td>
+            <td tips="true" style="width: 58px;">${row.uid}</td>
+            <td tips="true" style="width: 200px;">${row.comment}</td>
+            <td tips="true" style="width: 120px;" title="固定礼包码">${row.cdkey}</td>
+            <td tips="true" style="">${row.rewards}</td>
+    </tr>
+`;
+        }
+
+        function openAdd() {
+            wxd.loadHtml("/cdkey-add.html?" + gameId(), "85%", "85%");
+        }
+
+        function gameId() {
+            let urlQuery = new wxd.Map().loadSearch();
+            return urlQuery.toString();
+        }
+
+        $(() => {
+            pageView = new PageView("/cdkey/list", search, createRow);
+            search();
+        });
+
+    </script>
+
+</head>
+
+<body>
+<div class="btn_box" style="padding-left: 10px;padding-top: 8px; text-align: left;vertical-align: center;">
+    <button type="button" onclick="openAdd()">添加</button>
+    <button type="button" onclick="search();">查询</button>
+    <br>
+    <input id="search" type="text" value="" style="" onkeydown="if (event.keyCode===13)search();" placeholder="游戏ID或者游戏名字"/>
+</div>
+<div class="tableDom" style="position: absolute;left: 10px;top: 100px;right: 15px;bottom: 35px;">
+    <table>
+        <thead>
+        <tr>
+            <th style="width: 140px;">操作</th>
+            <th style="width: 58px;">序号</th>
+            <th style="width: 58px;">礼包ID</th>
+            <th style="width: 200px;">备注</th>
+            <th style="width: 120px;" title="固定礼包码">礼包码</th>
+            <th style="">道具</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
