@@ -220,7 +220,7 @@ public class GameContext {
 
     public void submit(GameExecutorEvent runnable) {
         runnable.setQueueName("queue-game-" + gameId);
-        ExecutorFactory.EXECUTOR_SERVICE_VIRTUAL.execute(runnable);
+        ExecutorFactory.getExecutorServiceVirtual().execute(runnable);
     }
 
     public long registerAccountNum(int dayKey) {
