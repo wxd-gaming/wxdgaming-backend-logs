@@ -47,7 +47,7 @@ public class GameStatApi {
         // if ((StringUtils.isNotBlank(day) && StringUtils.isNotBlank(minDay))
         //     || (StringUtils.isNotBlank(day) && StringUtils.isNotBlank(maxDay))
         //     || (StringUtils.isNotBlank(minDay) && StringUtils.isNotBlank(maxDay))) {
-        //     return RunResult.error("日期参数只能有一个选项");
+        //     return RunResult.fail("日期参数只能有一个选项");
         // }
 
         PgsqlDataHelper pgsqlDataHelper = gameService.gameContext(gameId).getDataHelper();

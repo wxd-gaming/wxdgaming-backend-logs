@@ -2,12 +2,11 @@ package wxdgaming.backends.admin;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.boot2.core.ann.Order;
+import wxdgaming.boot2.core.ann.Shutdown;
 import wxdgaming.boot2.core.ann.Start;
-import wxdgaming.boot2.core.ann.shutdown;
-import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
+import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 
 /**
  * 管理服务
@@ -16,15 +15,14 @@ import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
  * @version: 2025-02-11 09:50
  **/
 @Slf4j
-@Getter
 @Singleton
 public class AdminService {
 
-    final PgsqlService pgsqlService;
+    final PgsqlDataHelper pgsqlDataHelper;
 
     @Inject
-    public AdminService(PgsqlService pgsqlService) {
-        this.pgsqlService = pgsqlService;
+    public AdminService(PgsqlDataHelper pgsqlDataHelper) {
+        this.pgsqlDataHelper = pgsqlDataHelper;
     }
 
     @Start
@@ -33,7 +31,7 @@ public class AdminService {
 
     }
 
-    @shutdown
+    @Shutdown
     public void shutdown() {
 
     }

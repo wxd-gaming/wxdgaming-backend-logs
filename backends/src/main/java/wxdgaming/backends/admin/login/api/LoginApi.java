@@ -7,10 +7,11 @@ import wxdgaming.backends.admin.login.LoginService;
 import wxdgaming.backends.admin.user.UserService;
 import wxdgaming.backends.entity.system.User;
 import wxdgaming.boot2.core.ann.Param;
+import wxdgaming.boot2.core.ann.Value;
 import wxdgaming.boot2.core.io.Objects;
 import wxdgaming.boot2.core.lang.RunResult;
-import wxdgaming.boot2.core.util.JwtUtils;
-import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
+import wxdgaming.boot2.core.token.JsonTokenBuilder;
+import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.ann.RequestMapping;
 import wxdgaming.boot2.starter.net.http.HttpHeadNameType;
@@ -29,12 +30,14 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping(path = "/")
 public class LoginApi {
 
-    final PgsqlService dataHelper;
+    final PgsqlDataHelper dataHelper;
     final LoginService loginService;
     final UserService userService;
+    @Value(path = "tokenKey")
+    private String tokenKey;
 
     @Inject
-    public LoginApi(LoginService loginService, PgsqlService dataHelper, UserService userService) {
+    public LoginApi(LoginService loginService, PgsqlDataHelper dataHelper, UserService userService) {
         this.loginService = loginService;
         this.dataHelper = dataHelper;
         this.userService = userService;
@@ -44,24 +47,24 @@ public class LoginApi {
     public RunResult login(HttpContext httpContext, @Param(path = "account") String account, @Param(path = "pwd") String pwd) {
         User user = dataHelper.findByWhere(User.class, "account = ?", account);
         if (user == null) {
-            return RunResult.error("账号不存在");
+            return RunResult.fail("账号不存在");
         }
 
         String md5Sign = userService.md5Pwd(user.getUid(), user.getAccount(), pwd);
         if (!Objects.equals(md5Sign, user.getPwd())) {
-            return RunResult.error("密码错误");
+            return RunResult.fail("密码错误");
         }
 
         if (user.isDisConnect()) {
-            return RunResult.error("账号已被禁用");
+            return RunResult.fail("账号已被禁用");
         }
 
         /*设置6天的过期时间*/
         long daysMillis = TimeUnit.DAYS.toMillis(6);
 
-        String outToken = JwtUtils.createJwtBuilder(daysMillis)
-                .claim("account", user.getAccount())
-                .claim("update-index", user.getUpdateIndex())
+        String outToken = JsonTokenBuilder.of(tokenKey, TimeUnit.DAYS, 6)
+                .put("account", user.getAccount())
+                .put("update-index", user.getUpdateIndex())
                 .compact();
 
         httpContext.getResponse().getResponseCookie().addCookie(HttpHeadNameType.AUTHORIZATION.getValue(), outToken, "/", null, daysMillis);

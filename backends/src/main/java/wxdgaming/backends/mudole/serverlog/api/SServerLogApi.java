@@ -97,11 +97,11 @@ public class SServerLogApi {
                           @Param(path = "other", required = false) String other) {
 
         if (gameContext == null) {
-            return RunResult.error("gameId error");
+            return RunResult.fail("gameId error");
         }
 
         if (!gameContext.getGame().getServerTableMapping().containsKey(logType)) {
-            return RunResult.error("log type error");
+            return RunResult.fail("log type error");
         }
         PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
         SqlQueryBuilder queryBuilder = pgsqlDataHelper.queryBuilder();

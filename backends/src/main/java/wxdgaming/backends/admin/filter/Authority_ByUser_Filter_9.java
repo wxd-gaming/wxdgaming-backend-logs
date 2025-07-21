@@ -27,9 +27,9 @@ public class Authority_ByUser_Filter_9 extends Authority_ByUser_Filter {
         super(loginService, gameService, httpListenerFactory);
     }
 
-    @Override public Object doFilter(HttpRequest httpRequest, Method method, String url, HttpContext httpContext) {
+    @Override public Object doFilter(HttpRequest httpRequest, Method method, HttpContext httpContext) {
         if (httpRequest != null && Objects.checkHave(httpRequest.authority(), 9)) {
-            return checkUser(httpContext, url);
+            return checkUser(httpContext, httpContext.getRequest().getUriPath());
         }
         return null;
     }

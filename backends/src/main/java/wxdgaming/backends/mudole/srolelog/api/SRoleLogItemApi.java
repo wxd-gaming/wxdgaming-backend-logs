@@ -171,7 +171,7 @@ public class SRoleLogItemApi {
         GameContext gameContext = gameService.gameContext(gameId);
 
         if (gameContext == null) {
-            return RunResult.error("gameId error");
+            return RunResult.fail("gameId error");
         }
 
         PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();

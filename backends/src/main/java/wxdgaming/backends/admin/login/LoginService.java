@@ -2,16 +2,16 @@ package wxdgaming.backends.admin.login;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
 import io.netty.handler.codec.http.cookie.Cookie;
 import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.admin.user.UserService;
 import wxdgaming.backends.entity.system.User;
+import wxdgaming.boot2.core.ann.Value;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.executor.ThreadContext;
 import wxdgaming.boot2.core.lang.RunResult;
-import wxdgaming.boot2.core.util.JwtUtils;
+import wxdgaming.boot2.core.token.JsonToken;
+import wxdgaming.boot2.core.token.JsonTokenParse;
 import wxdgaming.boot2.starter.net.http.HttpHeadNameType;
 import wxdgaming.boot2.starter.net.server.http.HttpContext;
 
@@ -26,6 +26,8 @@ import wxdgaming.boot2.starter.net.server.http.HttpContext;
 public class LoginService {
 
     private final UserService userService;
+    @Value(path = "tokenKey")
+    private String tokenKey;
 
     @Inject
     public LoginService(UserService userService) {
@@ -39,29 +41,28 @@ public class LoginService {
         else token = httpContext.getRequest().header(HttpHeadNameType.AUTHORIZATION.getValue());
 
         if (StringUtils.isBlank(token)) {
-            return RunResult.error("未登录");
+            return RunResult.fail("未登录");
         }
 
         try {
-            Jws<Claims> claimsJws = JwtUtils.parseJWT(token);
-            Claims payload = claimsJws.getPayload();
-            String account = payload.get("account", String.class);
+            JsonToken jsonToken = JsonTokenParse.parse(tokenKey, token);
+            String account = jsonToken.getString("account");
             if (account == null) {
-                return RunResult.error("未登录");
+                return RunResult.fail("未登录");
             }
 
             User user = userService.findByAccount(account);
             if (user == null) {
-                return RunResult.error("账号异常");
+                return RunResult.fail("账号异常");
             }
 
-            int updateIndex = payload.get("update-index", Integer.class);
+            int updateIndex = jsonToken.getInteger("update-index");
             if (user.getUpdateIndex() != updateIndex) {
-                return RunResult.error("登录已过期");
+                return RunResult.fail("登录已过期");
             }
 
             if (user.isDisConnect()) {
-                return RunResult.error("账号已被禁用");
+                return RunResult.fail("账号已被禁用");
             }
 
             ThreadContext.putContent("user", user);
@@ -69,7 +70,7 @@ public class LoginService {
             return RunResult.ok();
         } catch (Exception e) {
             log.error("登录校验失败", e);
-            return RunResult.error("登录已过期");
+            return RunResult.fail("登录已过期");
         }
     }
 

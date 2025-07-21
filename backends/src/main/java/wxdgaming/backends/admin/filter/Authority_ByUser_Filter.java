@@ -27,7 +27,7 @@ import java.util.HashMap;
  **/
 @Slf4j
 @Singleton
-public class Authority_ByUser_Filter extends HttpFilter {
+public class Authority_ByUser_Filter implements HttpFilter {
 
     final LoginService loginService;
     final GameService gameService;
@@ -40,9 +40,9 @@ public class Authority_ByUser_Filter extends HttpFilter {
         this.httpListenerFactory = httpListenerFactory;
     }
 
-    @Override public Object doFilter(HttpRequest httpRequest, Method method, String url, HttpContext httpContext) {
+    @Override public Object doFilter(HttpRequest httpRequest, Method method, HttpContext httpContext) {
         if (httpRequest != null && Objects.checkHave(httpRequest.authority(), 9)) {
-            return checkUser(httpContext, url);
+            return checkUser(httpContext, httpContext.getRequest().getUriPath());
         }
         return null;
     }
@@ -59,13 +59,13 @@ public class Authority_ByUser_Filter extends HttpFilter {
 
             if (gameId > 0) {
                 if (!user.checkAuthorGame(gameId)) {
-                    return RunResult.error("权限不足");
+                    return RunResult.fail("权限不足");
                 }
             }
             HashMap<String, HttpMapping> httpMappingMap = httpListenerFactory.getHttpListenerContent().getHttpMappingMap();
             HttpMapping httpMapping = httpMappingMap.get(url);
             if (httpMapping == null)
-                return RunResult.error("权限不足");
+                return RunResult.fail("权限不足");
 
             if (httpMapping.path().startsWith("/log/") || httpMapping.path().startsWith("log/")) {
                 return null;
@@ -76,7 +76,7 @@ public class Authority_ByUser_Filter extends HttpFilter {
             }
 
             if (!user.checkAuthorRouting(url)) {
-                return RunResult.error("权限不足");
+                return RunResult.fail("权限不足");
             }
         } finally {
             if (gameId > 0) {

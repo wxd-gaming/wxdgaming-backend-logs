@@ -5,7 +5,7 @@ import com.google.inject.Singleton;
 import wxdgaming.backends.admin.game.GameContext;
 import wxdgaming.backends.entity.games.logs.ActiveAccountRecord;
 import wxdgaming.boot2.core.timer.MyClock;
-import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
+import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 
 /**
  * 日志服务
@@ -16,11 +16,11 @@ import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
 @Singleton
 public class SLogService {
 
-    PgsqlService psqlService;
+    PgsqlDataHelper pgsqlDataHelper;
 
     @Inject
-    public SLogService(PgsqlService psqlService) {
-        this.psqlService = psqlService;
+    public SLogService(PgsqlDataHelper pgsqlDataHelper) {
+        this.pgsqlDataHelper = pgsqlDataHelper;
     }
 
     /** 刷新账号的活跃记录 */

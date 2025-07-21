@@ -87,7 +87,7 @@ public class ServerApi {
     @HttpRequest(authority = 9)
     public RunResult add(@ThreadParam GameContext gameContext, @Param(path = "data") ServerRecord record) {
         if (record.getUid() == 0) {
-            return RunResult.error("sid为空 " + record.toJSONString());
+            return RunResult.fail("sid为空 " + record.toJSONString());
         } else {
             ServerRecord serverRecord = gameContext.serverGetOrCreate(record.getUid());
             serverRecord.setGroup(record.getGroup());
@@ -171,7 +171,7 @@ public class ServerApi {
     public RunResult json(HttpContext httpContext, @Param(path = "gameId") Integer gameId) {
         GameContext gameContext = gameService.gameContext(gameId);
         if (gameContext == null) {
-            return RunResult.error("gameId is not exist");
+            return RunResult.fail("gameId is not exist");
         }
         RunResult ok = RunResult.ok();
         String js = getJs(gameId);
@@ -208,7 +208,7 @@ public class ServerApi {
     public RunResult get(HttpContext httpContext, @Param(path = "gameId") Integer gameId, @Param(path = "sid") Integer sid) {
         GameContext gameContext = gameService.gameContext(gameId);
         if (gameContext == null) {
-            return RunResult.error("gameId is not exist");
+            return RunResult.fail("gameId is not exist");
         }
         RunResult ok = RunResult.ok();
         String js = getJs(gameId);
@@ -217,10 +217,10 @@ public class ServerApi {
 
         ServerRecord serverRecord = gameContext.getServerRecordMap().get(sid);
         if (serverRecord == null) {
-            return RunResult.error("sid is not exist");
+            return RunResult.fail("sid is not exist");
         }
         if (!serverRecord.isEnabled()) {
-            return RunResult.error("sid is not exist");
+            return RunResult.fail("sid is not exist");
         }
         Value execute = jsService.threadContext().execute("actionServer2Json", serverRecord);
         Map<?, ?> string = execute.as(Map.class);

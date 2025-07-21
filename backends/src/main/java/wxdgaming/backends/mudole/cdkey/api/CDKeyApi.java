@@ -12,7 +12,7 @@ import wxdgaming.boot2.core.ann.ThreadParam;
 import wxdgaming.boot2.core.chatset.StringUtils;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.util.CDKeyUtil;
-import wxdgaming.boot2.core.util.ObjectLockUtil;
+import wxdgaming.boot2.core.util.SingletonLockUtil;
 import wxdgaming.boot2.starter.batis.sql.SqlQueryBuilder;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
@@ -94,7 +94,7 @@ public class CDKeyApi {
                           @ThreadParam GameContext gameContext,
                           @Param(path = "id") int id, @Param(path = "num") int num) {
         final String lockKey = "cdkey:" + id;
-        ObjectLockUtil.lock(lockKey);
+        SingletonLockUtil.lock(lockKey);
         try {
             /*TODO 需要记录数据库防止暴力破解*/
             PgsqlDataHelper dataHelper = gameContext.getDataHelper();
@@ -115,7 +115,7 @@ public class CDKeyApi {
             }
             return RunResult.ok().data(resultList);
         } finally {
-            ObjectLockUtil.unlock(lockKey);
+            SingletonLockUtil.unlock(lockKey);
         }
     }
 
@@ -127,10 +127,10 @@ public class CDKeyApi {
                          @Param(path = "account") String account,
                          @Param(path = "rid") long rid) {
         if (StringUtils.isBlank(key)) {
-            return RunResult.error("cdkey null");
+            return RunResult.fail("cdkey null");
         }
         final String lockKey = "cdkey:" + key;
-        ObjectLockUtil.lock(lockKey);
+        SingletonLockUtil.lock(lockKey);
         try {
             /*TODO 需要记录数据库防止暴力破解*/
             PgsqlDataHelper dataHelper = gameContext.getDataHelper();
@@ -146,14 +146,14 @@ public class CDKeyApi {
             int cdKeyId = CDKeyUtil.getCdKeyId(key);
             CDKeyEntity cdKeyEntity = dataHelper.findByKey(CDKeyEntity.class, cdKeyId);
             if (cdKeyEntity == null) {
-                return RunResult.error("cdkey 不存在");
+                return RunResult.fail("cdkey 不存在");
             }
             CDKeyRecord cdKeyRecord = dataHelper.findByKey(CDKeyRecord.class, cdKeyId, key);
             if (cdKeyRecord == null) {
-                return RunResult.error("cdkey 不存在");
+                return RunResult.fail("cdkey 不存在");
             }
             if (cdKeyRecord.getUseCount() > cdKeyEntity.getUseCount()) {
-                return RunResult.error("cdkey 不存在");
+                return RunResult.fail("cdkey 不存在");
             }
             if (!cdKeyRecord.getAccountList().contains(account)) {
                 cdKeyRecord.getAccountList().add(account);
@@ -168,7 +168,7 @@ public class CDKeyApi {
                     .fluentPut("comment", cdKeyEntity.getComment())
                     .fluentPut("rewards", cdKeyEntity.getRewards());
         } finally {
-            ObjectLockUtil.unlock(lockKey);
+            SingletonLockUtil.unlock(lockKey);
         }
     }
 

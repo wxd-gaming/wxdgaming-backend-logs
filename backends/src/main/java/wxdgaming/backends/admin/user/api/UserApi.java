@@ -63,25 +63,25 @@ public class UserApi {
                               @Param(path = "pwd") String pwd) {
 
         if (StringUtils.isBlank(pwd) || pwd.length() < 6) {
-            return RunResult.error("密码长度不能小于6位");
+            return RunResult.fail("密码长度不能小于6位");
         }
 
         User findUser = userService.findByAccount(account);
         if (findUser == null) {
-            return RunResult.error("用户不存在");
+            return RunResult.fail("用户不存在");
         }
 
         if (!user.isRoot() && Objects.equals(account, user.getAccount())) {
-            return RunResult.error("权限不足");
+            return RunResult.fail("权限不足");
         }
 
         if (findUser.isAdmin()) {
             if (!user.isRoot()) {
-                return RunResult.error("权限不足");
+                return RunResult.fail("权限不足");
             }
         } else {
             if (findUser.getParentUid() != user.getUid()) {
-                return RunResult.error("权限不足");
+                return RunResult.fail("权限不足");
             }
         }
 
@@ -103,23 +103,23 @@ public class UserApi {
                          @Param(path = "phone") String phone) {
 
         if (StringUtils.isBlank(account) || account.length() < 4) {
-            return RunResult.error("账号长度不能小于4位");
+            return RunResult.fail("账号长度不能小于4位");
         }
 
         if (StringUtils.isBlank(pwd) || pwd.length() < 6) {
-            return RunResult.error("密码长度不能小于6位");
+            return RunResult.fail("密码长度不能小于6位");
         }
 
         if (StringUtils.isBlank(phone) || phone.length() < 11) {
-            return RunResult.error("手机号码格式错误");
+            return RunResult.fail("手机号码格式错误");
         }
 
         if (userService.findByAccount(account) != null) {
-            return RunResult.error("账号已存在");
+            return RunResult.fail("账号已存在");
         }
 
         if (!admin.isRoot() && !admin.isAdmin()) {
-            return RunResult.error("权限不足");
+            return RunResult.fail("权限不足");
         }
 
         /*这里是添加默认管理员*/
@@ -148,19 +148,19 @@ public class UserApi {
                                  @Param(path = "account") String account,
                                  @Param(path = "authors", defaultValue = "[]") String authorString) {
         if (!(user.isAdmin() || user.isRoot())) {
-            return RunResult.error("权限不足");
+            return RunResult.fail("权限不足");
         }
         if (Objects.equals(account, user.getAccount())) {
-            return RunResult.error("无法给自己授权");
+            return RunResult.fail("无法给自己授权");
         }
         User byAccount = userService.findByAccount(account);
         if (byAccount == null) {
-            return RunResult.error("用户不存在");
+            return RunResult.fail("用户不存在");
         }
 
         if (byAccount.isAdmin()) {
             if (!user.isRoot()) {
-                return RunResult.error("权限不足");
+                return RunResult.fail("权限不足");
             }
         }
         List<Integer> authorList = FastJsonUtil.parseArray(authorString, Integer.class);
@@ -181,19 +181,19 @@ public class UserApi {
                                    @Param(path = "account") String account,
                                    @Param(path = "authors", defaultValue = "[]") String authorString) {
         if (!(user.isAdmin() || user.isRoot())) {
-            return RunResult.error("权限不足");
+            return RunResult.fail("权限不足");
         }
         if (Objects.equals(account, user.getAccount())) {
-            return RunResult.error("无法给自己授权");
+            return RunResult.fail("无法给自己授权");
         }
         User byAccount = userService.findByAccount(account);
         if (byAccount == null) {
-            return RunResult.error("用户不存在");
+            return RunResult.fail("用户不存在");
         }
 
         if (byAccount.isAdmin()) {
             if (!user.isRoot()) {
-                return RunResult.error("权限不足");
+                return RunResult.fail("权限不足");
             }
         }
 
@@ -215,12 +215,12 @@ public class UserApi {
                                      @Param(path = "account") String account) {
 
         if (Objects.equals(account, user.getAccount())) {
-            return RunResult.error("无法给自己授权");
+            return RunResult.fail("无法给自己授权");
         }
 
         User byAccount = userService.findByAccount(account);
         if (byAccount == null) {
-            return RunResult.error("用户不存在");
+            return RunResult.fail("用户不存在");
         }
 
         List<JSONObject> list = gameService.getGameContextHashMap().values()
@@ -245,12 +245,12 @@ public class UserApi {
                                        @Param(path = "account") String account) {
 
         if (Objects.equals(account, user.getAccount())) {
-            return RunResult.error("无法给自己授权");
+            return RunResult.fail("无法给自己授权");
         }
 
         User byAccount = userService.findByAccount(account);
         if (byAccount == null) {
-            return RunResult.error("用户不存在");
+            return RunResult.fail("用户不存在");
         }
         Stream<HttpMapping> stream = httpListenerFactory.getHttpListenerContent().getHttpMappingMap().values().stream();
 
@@ -300,17 +300,17 @@ public class UserApi {
                          @Param(path = "account") String account) {
 
         if (Objects.equals(account, user.getAccount())) {
-            return RunResult.error("不能禁用自己");
+            return RunResult.fail("不能禁用自己");
         }
 
         User findUser = userService.findByAccount(account);
         if (findUser.isAdmin()) {
             if (!user.isRoot()) {
-                return RunResult.error("权限不足");
+                return RunResult.fail("权限不足");
             }
         } else {
             if (findUser.getParentUid() != user.getUid()) {
-                return RunResult.error("权限不足");
+                return RunResult.fail("权限不足");
             }
         }
 
@@ -329,7 +329,7 @@ public class UserApi {
                           @Param(path = "account") String account) {
 
         if (!user.isRoot() && !user.isAdmin()) {
-            return RunResult.error("权限不足");
+            return RunResult.fail("权限不足");
         }
 
         SqlQueryBuilder queryBuilder = userService.getPgsqlService().queryBuilder();

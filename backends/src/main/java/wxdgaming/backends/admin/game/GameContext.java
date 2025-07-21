@@ -14,7 +14,7 @@ import wxdgaming.boot2.core.executor.ExecutorFactory;
 import wxdgaming.boot2.core.executor.ThreadContext;
 import wxdgaming.boot2.core.format.HexId;
 import wxdgaming.boot2.core.util.AssertUtil;
-import wxdgaming.boot2.core.util.ObjectLockUtil;
+import wxdgaming.boot2.core.util.SingletonLockUtil;
 import wxdgaming.boot2.starter.batis.sql.SqlDataCache;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 
@@ -153,7 +153,7 @@ public class GameContext {
 
     public AccountRecord accountGetOrCreate(String account, long createTime) {
         AssertUtil.assertNullEmpty(account, "account is blank");
-        ObjectLockUtil.lock(account);
+        SingletonLockUtil.lock(account);
         try {
             AccountRecord ifPresent = accountRecordJdbcCache.getIfPresent(account);
             if (ifPresent == null) {
@@ -166,7 +166,7 @@ public class GameContext {
             }
             return ifPresent;
         } finally {
-            ObjectLockUtil.unlock(account);
+            SingletonLockUtil.unlock(account);
         }
     }
 
@@ -177,7 +177,7 @@ public class GameContext {
     public RoleRecord roleGetOrCreate(String account, long roleId, long createTime) {
         AssertUtil.assertTrue(roleId > 0, "account is blank");
         AssertUtil.assertNullEmpty(account, "account is blank");
-        ObjectLockUtil.lock(account);
+        SingletonLockUtil.lock(account);
         try {
             RoleRecord ifPresent = roleRecordJdbcCache.getIfPresent(roleId);
             if (ifPresent == null) {
@@ -195,7 +195,7 @@ public class GameContext {
             }
             return ifPresent;
         } finally {
-            ObjectLockUtil.unlock(account);
+            SingletonLockUtil.unlock(account);
         }
     }
 

@@ -124,7 +124,7 @@ public class RoleApi {
             entity.setDel(1);
             return RunResult.OK;
         }
-        return RunResult.error("角色不存在");
+        return RunResult.fail("角色不存在");
     }
 
     @HttpRequest

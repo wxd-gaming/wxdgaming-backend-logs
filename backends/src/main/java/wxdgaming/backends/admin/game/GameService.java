@@ -11,17 +11,16 @@ import wxdgaming.backends.entity.games.logs.SRoleLog;
 import wxdgaming.backends.entity.games.logs.SServerLog;
 import wxdgaming.backends.entity.system.Game;
 import wxdgaming.backends.entity.system.GlobalData;
+import wxdgaming.boot2.core.ann.Shutdown;
 import wxdgaming.boot2.core.ann.Start;
-import wxdgaming.boot2.core.ann.shutdown;
 import wxdgaming.boot2.core.lang.RunResult;
-import wxdgaming.boot2.core.reflect.ReflectContext;
+import wxdgaming.boot2.core.reflect.ReflectProvider;
 import wxdgaming.boot2.core.timer.MyClock;
 import wxdgaming.boot2.starter.batis.Entity;
 import wxdgaming.boot2.starter.batis.TableMapping;
 import wxdgaming.boot2.starter.batis.ann.DbTable;
 import wxdgaming.boot2.starter.batis.sql.SqlConfig;
 import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
-import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
 import wxdgaming.boot2.starter.scheduled.ann.Scheduled;
 
 import java.time.LocalDateTime;
@@ -44,32 +43,32 @@ public class GameService {
     final ConcurrentHashMap<Integer, GameContext> gameContextHashMap = new ConcurrentHashMap<>();
 
     GlobalData globalData;
-    final PgsqlService pgsqlService;
-    final ReflectContext logReflectContext;
+    final PgsqlDataHelper pgsqlDataHelper;
+    final ReflectProvider logReflectContext;
 
     @Inject
-    public GameService(PgsqlService pgsqlService) {
-        this.pgsqlService = pgsqlService;
-        this.logReflectContext = ReflectContext.Builder.of(GameTableScan.class.getPackageName()).build();
+    public GameService(PgsqlDataHelper pgsqlDataHelper) {
+        this.pgsqlDataHelper = pgsqlDataHelper;
+        this.logReflectContext = ReflectProvider.Builder.of(GameTableScan.class.getPackageName()).build();
     }
 
     @Start
     public void start() throws Exception {
-        globalData = this.pgsqlService.findByKey(GlobalData.class, 1);
+        globalData = this.pgsqlDataHelper.findByKey(GlobalData.class, 1);
         if (globalData == null) {
             globalData = new GlobalData();
             globalData.setUid(1);
             globalData.setNewEntity(true);
-            this.pgsqlService.insert(globalData);
+            this.pgsqlDataHelper.insert(globalData);
         }
         scheduled();
     }
 
-    @shutdown
+    @Shutdown
     public void shutdown() {
-        this.pgsqlService.update(globalData);
+        this.pgsqlDataHelper.update(globalData);
         gameContextHashMap.forEach((k, v) -> {
-            pgsqlService.save(v.getGame());
+            pgsqlDataHelper.save(v.getGame());
             v.shutdown();
         });
     }
@@ -85,7 +84,7 @@ public class GameService {
     /** 每日凌晨检查数据库，检查表分区信息 */
     @Scheduled("0 0 0")
     public void scheduled() {
-        List<Game> games = pgsqlService.findList(Game.class);
+        List<Game> games = pgsqlDataHelper.findList(Game.class);
         for (Game game : games) {
             addGameCache(game);
         }
@@ -96,7 +95,7 @@ public class GameService {
         GameContext gameContext = gameContextHashMap.computeIfAbsent(gameId, k -> {
 
             String dbName = "game_db_" + k;
-            SqlConfig clone = pgsqlService.getSqlConfig().clone(dbName);
+            SqlConfig clone = pgsqlDataHelper.getSqlConfig().clone(dbName);
             clone.setScanPackage(GameTableScan.class.getPackageName());
             PgsqlDataHelper pgsqlDataHelper = new PgsqlDataHelper(clone);
             pgsqlDataHelper.start();
@@ -113,15 +112,16 @@ public class GameService {
 
         Map<String, String> dbTableMap = gameContext.getDataHelper().findTableMap();
         Map<String, LinkedHashMap<String, JSONObject>> tableStructMap = gameContext.getDataHelper().findTableStructMap();
-        this.logReflectContext.withAnnotated(DbTable.class)
-                .filter(content -> RecordBase.class.isAssignableFrom(content.getCls()))
-                .forEach(content -> {
-                    TableMapping tableMapping = gameContext.getDataHelper().tableMapping((Class) content.getCls());
+        this.logReflectContext.classWithAnnotated(DbTable.class)
+                .filter(RecordBase.class::isAssignableFrom)
+                .map(cls -> (Class<? extends Entity>) cls)
+                .forEach(cls -> {
+                    TableMapping tableMapping = gameContext.getDataHelper().tableMapping(cls);
                     checkSLogTable(
                             gameContext,
                             gameContext.getDataHelper(),
                             dbTableMap, tableStructMap,
-                            tableMapping, RecordBase.class.isAssignableFrom(content.getCls()),
+                            tableMapping, RecordBase.class.isAssignableFrom(cls),
                             tableMapping.getTableName(), tableMapping.getTableComment()
                     );
                 });
@@ -179,15 +179,15 @@ public class GameService {
 
     public RunResult checkAppToken(Integer gameId, String token) {
         if (token == null)
-            return RunResult.error("token is null");
+            return RunResult.fail("token is null");
 
         GameContext gameContext = gameContextHashMap.get(gameId);
         if (gameContext == null) {
-            return RunResult.error("gameId is not exist");
+            return RunResult.fail("gameId is not exist");
         }
 
         if (!gameContext.getGame().getAppToken().equals(token))
-            return RunResult.error("token is not match");
+            return RunResult.fail("token is not match");
 
         return null;
     }

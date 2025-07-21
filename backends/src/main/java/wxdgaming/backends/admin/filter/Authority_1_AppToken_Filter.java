@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  **/
 @Slf4j
 @Singleton
-public class Authority_1_AppToken_Filter extends HttpFilter {
+public class Authority_1_AppToken_Filter implements HttpFilter {
 
     final GameService gameService;
 
@@ -37,23 +37,23 @@ public class Authority_1_AppToken_Filter extends HttpFilter {
     }
 
 
-    @Override public Object doFilter(HttpRequest httpRequest, Method method, String url, HttpContext httpContext) {
+    @Override public Object doFilter(HttpRequest httpRequest, Method method, HttpContext httpContext) {
         if (httpRequest != null && Objects.checkHave(httpRequest.authority(), 1)) {
 
             JSONObject reqParams = httpContext.getRequest().getReqParams();
 
             Integer gameId = reqParams.getInteger("gameId");
             if (gameId == null) {
-                return RunResult.error("参数gameId不能为空");
+                return RunResult.fail("参数gameId不能为空");
             }
             GameContext gameContext = gameService.gameContext(gameId);
             if (gameContext == null) {
-                return RunResult.error("gameId is not exist");
+                return RunResult.fail("gameId is not exist");
             }
 
             String token = reqParams.getString("token");
             if (token == null) {
-                return RunResult.error("参数token不能为空");
+                return RunResult.fail("参数token不能为空");
             }
 
             String rawToken = reqParams.entrySet().stream()
@@ -67,7 +67,7 @@ public class Authority_1_AppToken_Filter extends HttpFilter {
             String sign = Md5Util.md5DigestEncode(rawToken, gameContext.getGame().getAppToken());
 
             if (!Objects.equals(sign, token)) {
-                return RunResult.error("game log token error");
+                return RunResult.fail("game log token error");
             }
             ThreadContext.putContent(gameContext);
         }

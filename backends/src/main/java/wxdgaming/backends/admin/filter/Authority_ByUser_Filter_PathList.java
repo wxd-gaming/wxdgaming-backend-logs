@@ -26,9 +26,9 @@ public class Authority_ByUser_Filter_PathList extends Authority_ByUser_Filter {
         super(loginService, gameService, httpListenerFactory);
     }
 
-    @Override public Object doFilter(HttpRequest httpRequest, Method method, String url, HttpContext httpContext) {
+    @Override public Object doFilter(HttpRequest httpRequest, Method method, HttpContext httpContext) {
         if (httpContext.getRequest().getUriPath().endsWith("/list")) {
-            return checkUser(httpContext, url);
+            return checkUser(httpContext, httpContext.getRequest().getUriPath());
         }
         return null;
     }

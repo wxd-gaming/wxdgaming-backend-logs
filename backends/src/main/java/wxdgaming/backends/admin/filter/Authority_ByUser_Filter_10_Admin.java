@@ -30,9 +30,9 @@ public class Authority_ByUser_Filter_10_Admin extends Authority_ByUser_Filter {
         super(loginService, gameService, httpListenerFactory);
     }
 
-    @Override public Object doFilter(HttpRequest httpRequest, Method method, String url, HttpContext httpContext) {
+    @Override public Object doFilter(HttpRequest httpRequest, Method method, HttpContext httpContext) {
         if (httpRequest != null && Objects.checkHave(httpRequest.authority(), 10)) {
-            Object object = checkUser(httpContext, url);
+            Object object = checkUser(httpContext, httpContext.getRequest().getUriPath());
             if (object != null) {
                 return object;
             }
@@ -40,7 +40,7 @@ public class Authority_ByUser_Filter_10_Admin extends Authority_ByUser_Filter {
             if (context.isAdmin() & context.isRoot()) {
                 return null;
             }
-            return RunResult.error("权限不足");
+            return RunResult.fail("权限不足");
         }
         return null;
     }

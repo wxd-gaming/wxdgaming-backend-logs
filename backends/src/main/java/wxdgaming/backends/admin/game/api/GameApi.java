@@ -20,7 +20,7 @@ import wxdgaming.boot2.core.io.FileUtil;
 import wxdgaming.boot2.core.lang.RunResult;
 import wxdgaming.boot2.core.lang.Tuple2;
 import wxdgaming.boot2.core.timer.MyClock;
-import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
+import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 import wxdgaming.boot2.starter.net.ann.HttpRequest;
 import wxdgaming.boot2.starter.net.ann.RequestMapping;
 import wxdgaming.boot2.starter.net.server.http.HttpContext;
@@ -44,20 +44,20 @@ import java.util.stream.Stream;
 @RequestMapping(path = "/game")
 public class GameApi {
 
-    final PgsqlService pgsqlService;
+    final PgsqlDataHelper pgsqlDataHelper;
     final GameService gameService;
     final AdminService adminService;
 
     @Inject
-    public GameApi(GameService gameService, PgsqlService pgsqlService, AdminService adminService) {
+    public GameApi(GameService gameService, PgsqlDataHelper pgsqlDataHelper, AdminService adminService) {
         this.gameService = gameService;
-        this.pgsqlService = pgsqlService;
+        this.pgsqlDataHelper = pgsqlDataHelper;
         this.adminService = adminService;
     }
 
     @HttpRequest(authority = 9, comment = "添加游戏")
     public RunResult add(HttpContext session, @ThreadParam() User user, @Param(path = "gameName") String gameName) {
-        if (!user.isAdmin()) return RunResult.error("权限不足");
+        if (!user.isAdmin()) return RunResult.fail("权限不足");
         int newGameId = gameService.newGameId();
         Game game = new Game();
         game.setUid(newGameId);
@@ -68,14 +68,14 @@ public class GameApi {
         game.setAppToken(StringUtils.randomString(16));
         game.setRechargeToken(StringUtils.randomString(16));
         game.setLogToken(StringUtils.randomString(16));
-        pgsqlService.insert(game);
+        pgsqlDataHelper.insert(game);
         Thread.ofPlatform().start(() -> gameService.addGameCache(game));
         return RunResult.ok();
     }
 
     @HttpRequest(authority = 9, comment = "添加游戏")
     public RunResult push(HttpContext session, @ThreadParam() User user, @Body Game game) {
-        if (!user.isAdmin()) return RunResult.error("权限不足");
+        if (!user.isAdmin()) return RunResult.fail("权限不足");
         GameContext gameContext = null;
         if (game.getUid() > 0) {
             gameContext = gameService.gameContext(game.getUid());
@@ -90,7 +90,7 @@ public class GameApi {
             game.setAppToken(StringUtils.randomString(16));
             game.setRechargeToken(StringUtils.randomString(16));
             game.setLogToken(StringUtils.randomString(16));
-            pgsqlService.insert(game);
+            pgsqlDataHelper.insert(game);
             Thread.ofPlatform().start(() -> gameService.addGameCache(game));
         } else {
             Game queryEntity = gameContext.getGame();
@@ -99,7 +99,7 @@ public class GameApi {
             queryEntity.setAppToken(game.getAppToken());
             queryEntity.setRechargeToken(game.getRechargeToken());
             queryEntity.setLogToken(game.getLogToken());
-            pgsqlService.save(gameContext.getGame());
+            pgsqlDataHelper.save(gameContext.getGame());
             Thread.ofPlatform().start(() -> gameService.addGameCache(game));
         }
         user.getAuthorizationGames().add(game.getUid());
@@ -110,7 +110,7 @@ public class GameApi {
     public RunResult find(HttpContext session, @Param(path = "gameId") Integer gameId) {
         GameContext gameContext = gameService.gameContext(gameId);
         if (gameContext == null) {
-            return RunResult.error("gameId is not exist");
+            return RunResult.fail("gameId is not exist");
         }
         return RunResult.ok().data(gameContext.getGame());
     }
@@ -155,7 +155,7 @@ public class GameApi {
             case "log" -> gameContext.getGame().setLogToken(StringUtils.randomString(16));
             case "recharge" -> gameContext.getGame().setRechargeToken(StringUtils.randomString(16));
         }
-        pgsqlService.save(gameContext.getGame());
+        pgsqlDataHelper.save(gameContext.getGame());
 
         return RunResult.OK;
     }
@@ -230,7 +230,7 @@ public class GameApi {
         if (!game.getRoleTableMapping().containsKey(data.getString("logType"))) {
             gameService.checkSLogTable(gameContext, gameContext.getDataHelper(), SRoleLog.class, true, data.getString("logType"), data.getString("logComment"));
             game.getRoleTableMapping().put(data.getString("logType"), data.getString("logComment"));
-            this.pgsqlService.update(game);
+            this.pgsqlDataHelper.update(game);
         }
         return RunResult.ok();
     }
@@ -247,7 +247,7 @@ public class GameApi {
         if (!game.getServerTableMapping().containsKey(data.getString("logType"))) {
             gameService.checkSLogTable(gameContext, gameContext.getDataHelper(), SServerLog.class, false, data.getString("logType"), data.getString("logComment"));
             game.getServerTableMapping().put(data.getString("logType"), data.getString("logComment"));
-            this.pgsqlService.update(game);
+            this.pgsqlDataHelper.update(game);
         }
         return RunResult.ok();
     }

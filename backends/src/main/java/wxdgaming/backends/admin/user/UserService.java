@@ -7,12 +7,12 @@ import lombok.extern.slf4j.Slf4j;
 import wxdgaming.backends.entity.system.User;
 import wxdgaming.boot2.core.BootConfig;
 import wxdgaming.boot2.core.ann.Order;
+import wxdgaming.boot2.core.ann.Shutdown;
 import wxdgaming.boot2.core.ann.Start;
-import wxdgaming.boot2.core.ann.shutdown;
 import wxdgaming.boot2.core.util.AssertUtil;
 import wxdgaming.boot2.core.util.Md5Util;
 import wxdgaming.boot2.starter.batis.sql.SqlDataCache;
-import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlService;
+import wxdgaming.boot2.starter.batis.sql.pgsql.PgsqlDataHelper;
 
 /**
  * 用户服务
@@ -30,11 +30,11 @@ public class UserService {
     /** 密钥key */
     public static String PWDKEY = null;
 
-    final PgsqlService pgsqlService;
+    final PgsqlDataHelper pgsqlService;
     final SqlDataCache<User, String> userCache;
 
     @Inject
-    public UserService(PgsqlService pgsqlService) {
+    public UserService(PgsqlDataHelper pgsqlService) {
         this.pgsqlService = pgsqlService;
         ROOT = BootConfig.getIns().getNestedValue("other.root", String.class);
         AssertUtil.assertNull(ROOT, "json path=other.root root 账号配置异常");
@@ -68,7 +68,7 @@ public class UserService {
         }
     }
 
-    @shutdown
+    @Shutdown
     public void shutdown() {
         userCache.shutdown();
     }

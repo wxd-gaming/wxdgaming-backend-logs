@@ -99,11 +99,11 @@ public class SRoleLogApi {
         GameContext gameContext = gameService.gameContext(gameId);
 
         if (gameContext == null) {
-            return RunResult.error("gameId error");
+            return RunResult.fail("gameId error");
         }
 
         if (!gameContext.getGame().getRoleTableMapping().containsKey(logType)) {
-            return RunResult.error("log type error");
+            return RunResult.fail("log type error");
         }
         PgsqlDataHelper pgsqlDataHelper = gameContext.getDataHelper();
         SqlQueryBuilder queryBuilder = pgsqlDataHelper.queryBuilder();
